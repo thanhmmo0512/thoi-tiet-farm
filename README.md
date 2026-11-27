@@ -1,7 +1,11 @@
-# Thời tiết farm
+# Sổ Vườn Chanh Dây (bản demo)
 
-Trang dự báo thời tiết cho các farm chanh dây, so sánh nhiều nguồn dự báo (ECMWF, GFS, ICON, CMA, JMA, UKMO, Météo-France, GEM) theo tọa độ ghim sẵn hoặc vị trí điện thoại.
+App web quản lý vườn chanh dây, cài được ra màn hình chính điện thoại (iPhone và Android):
 
-- Dữ liệu thời tiết: [Open-Meteo.com](https://open-meteo.com/) (CC BY 4.0).
-- Quy tắc báo mưa (số nguồn, tỉ lệ đồng thuận) đang ở giai đoạn thử nghiệm, chỉnh trong trang và sẽ chốt sau khi đối chiếu với mưa thực tế ở farm.
-- Vị trí ghim và cài đặt chỉ lưu trên từng thiết bị (localStorage), không lưu trong mã nguồn.
+- Dashboard sản lượng xuất: hàng Âu, hàng chợ, hàng múc, hàng xô, theo Farm 1-2-3 và mùa vụ.
+- Lịch phun thuốc (có thời gian cách ly), bón phân, trồng cây; nhắc việc.
+- Thời tiết từ 8 nguồn dự báo qua [Open-Meteo](https://open-meteo.com/) (CC BY 4.0), theo vị trí ghim từng farm hoặc GPS điện thoại; quy tắc báo mưa thử nghiệm, chỉnh được; ghi thời tiết thực tế để kiểm chứng.
+- Hỏi nhanh về nhật ký (bộ lọc có sẵn, chưa dùng AI).
+- Thùng rác, lịch sử người nhập/sửa/xóa, sao lưu và tải file sao lưu.
+
+**Giới hạn của bản demo:** dữ liệu lưu trên trình duyệt của từng máy, chưa đồng bộ giữa các máy và chưa có đăng nhập (chọn vai trò xem thử ở nút tròn góc trên Trang chủ). Lớp dữ liệu `LocalDB` trong `index.html` dùng cùng kiểu lệnh với Firestore để sau này chuyển sang Firebase.

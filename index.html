@@ -3,184 +3,811 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Thời Tiết Farm</title>
+<title>Sổ Vườn Chanh Dây</title>
+<meta name="description" content="Nhật ký và dashboard vườn chanh dây: xuất hàng, lịch phun thuốc, bón phân, trồng cây, thời tiết nhiều nguồn.">
+<meta name="theme-color" content="#21a038">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-180.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Sổ Vườn">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&display=swap">
 <script src="https://unpkg.com/lucide@0.460.0/dist/umd/lucide.min.js"></script>
 <style>
-/* Layout: green app header → location chips → current card → spray verdict → 3-hour slots with per-model votes → 7 days → rule settings */
+/* Layout: phone-app shell — green header band, illustrated banner, white rounded sheet with round-icon menu grids, screen stack with back button, bottom tab bar */
 :root{
   --bg:#eef2ea; --sheet:#ffffff; --sunk:#f2f5ef; --line:#e3e8de;
   --fg:#1c2418; --muted:#6a7462;
-  --green:#21a038; --green-soft:#e6f4e6; --on-green:#ffffff;
+  --green:#21a038; --green-d:#178a2c; --green-soft:#e6f4e6; --on-green:#ffffff;
+  --purple:#6b2c86; --purple-soft:#f2e8f7;
+  --orange:#e57a2e; --orange-soft:#fdeedf;
+  --amber:#c9900a; --amber-soft:#fcf2d8;
   --blue:#1f78b4; --blue-soft:#e2f0f9;
-  --amber:#b8840a; --amber-soft:#fcf2d8;
-  --red:#c62f26; --red-soft:#fde6e3;
   --grey:#6f766a; --grey-soft:#eef0eb;
-  --sky1:#3a9be0; --sky2:#1f6fb0;
+  --red:#c62f26; --red-soft:#fde6e3;
+  --sky1:#d8ecfb; --sky2:#f4f9ee; --hill1:#8fd16a; --hill2:#5bb24a; --hill3:#f2cf55;
   --f:"Be Vietnam Pro",system-ui,-apple-system,"Segoe UI",sans-serif;
-  color-scheme:light;
+  --shadow:0 2px 10px rgba(30,60,20,.08);
 }
-@media (prefers-color-scheme: dark){:root{
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
   --bg:#10150e; --sheet:#181f16; --sunk:#20281d; --line:#2d3729;
   --fg:#e8eee3; --muted:#9da893;
-  --green:#2a9a3c; --green-soft:#1d2e1b;
-  --blue:#73b8e6; --blue-soft:#14262f; --amber:#e8b84b; --amber-soft:#33290f;
-  --red:#f08a82; --red-soft:#3a1d1b; --grey:#a7ae9f; --grey-soft:#262c23;
-  --sky1:#1f5f8f; --sky2:#173f63;
+  --green:#2a9a3c; --green-d:#1f7f30; --green-soft:#1d2e1b; --on-green:#ffffff;
+  --purple:#c597db; --purple-soft:#2b2032; --orange:#f2a066; --orange-soft:#33230f;
+  --amber:#e8b84b; --amber-soft:#33290f; --blue:#73b8e6; --blue-soft:#14262f;
+  --grey:#a7ae9f; --grey-soft:#262c23; --red:#f08a82; --red-soft:#3a1d1b;
+  --sky1:#1d3040; --sky2:#1b2619; --hill1:#3f7a35; --hill2:#2f6129; --hill3:#7a6a26;
+  --shadow:0 2px 10px rgba(0,0,0,.35);
   color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#10150e; --sheet:#181f16; --sunk:#20281d; --line:#2d3729;
+  --fg:#e8eee3; --muted:#9da893;
+  --green:#2a9a3c; --green-d:#1f7f30; --green-soft:#1d2e1b; --on-green:#ffffff;
+  --purple:#c597db; --purple-soft:#2b2032; --orange:#f2a066; --orange-soft:#33230f;
+  --amber:#e8b84b; --amber-soft:#33290f; --blue:#73b8e6; --blue-soft:#14262f;
+  --grey:#a7ae9f; --grey-soft:#262c23; --red:#f08a82; --red-soft:#3a1d1b;
+  --sky1:#1d3040; --sky2:#1b2619; --hill1:#3f7a35; --hill2:#2f6129; --hill3:#7a6a26;
+  --shadow:0 2px 10px rgba(0,0,0,.35);
+  color-scheme:dark}
 *{box-sizing:border-box}
-html,body{margin:0}
-body{background:var(--bg);color:var(--fg);font-family:var(--f);font-size:15px;line-height:1.45;padding-bottom:env(safe-area-inset-bottom,0px)}
-svg.lucide{width:18px;height:18px;stroke-width:2;flex:none}
-button,input,select{font:inherit;color:inherit}
-input,select{background:var(--sheet);border:1px solid var(--line);border-radius:12px;padding:10px 12px;width:100%;min-width:0}
+body{background:var(--bg);color:var(--fg);font-family:var(--f);font-size:15px;line-height:1.45}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--green)}
+svg.lucide{width:20px;height:20px;stroke-width:2;flex:none}
+select,input,textarea,button{font:inherit;color:inherit}
+select,input,textarea{background:var(--sheet);border:1px solid var(--line);border-radius:12px;padding:11px 12px;width:100%;min-width:0}
+textarea{resize:vertical}
 :focus-visible{outline:2px solid var(--green);outline-offset:2px}
-.app{max-width:560px;margin:0 auto}
-header{position:sticky;top:0;z-index:5;background:var(--green);color:var(--on-green);
-  padding:calc(12px + env(safe-area-inset-top,0px)) max(16px,env(safe-area-inset-right,0px)) 12px max(16px,env(safe-area-inset-left,0px));
-  display:flex;align-items:center;gap:10px}
-header h1{margin:0;font-size:20px;font-weight:800;flex:1}
-.hbtn{width:40px;height:40px;border-radius:50%;border:0;background:rgba(255,255,255,.2);color:var(--on-green);display:grid;place-items:center;cursor:pointer}
-.hbtn.spin svg{animation:spin 1s linear infinite}
-@keyframes spin{to{transform:rotate(360deg)}}
-main{padding:12px max(16px,env(safe-area-inset-right,0px)) 32px max(16px,env(safe-area-inset-left,0px));display:grid;gap:14px}
-.chips{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;padding-bottom:2px}
-.chips::-webkit-scrollbar{display:none}
-.chip{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);background:var(--sheet);border-radius:999px;padding:8px 14px;cursor:pointer;font-weight:600;font-size:14px;white-space:nowrap}
+.app{max-width:560px;margin:0 auto;min-height:100%;background:var(--bg);position:relative}
+@media (min-width:600px){.app{box-shadow:0 0 0 1px var(--line)}}
+
+/* header */
+.topbar{position:sticky;top:env(safe-area-inset-top,0px);z-index:6;background:var(--green);color:var(--on-green);
+  display:grid;grid-template-columns:44px 1fr 44px;align-items:center;gap:8px;
+  padding-block:10px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));
+  background-image:radial-gradient(circle at 8% 0%,rgba(255,255,255,.22) 0 60px,transparent 61px),radial-gradient(circle at 8% 0%,rgba(255,255,255,.10) 0 95px,transparent 96px)}
+.topbar h1{margin:0;text-align:center;font-size:21px;font-weight:800;letter-spacing:-.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.roundbtn{width:40px;height:40px;border-radius:50%;border:0;display:grid;place-items:center;cursor:pointer;background:rgba(255,255,255,.22);color:var(--on-green)}
+.roundbtn.plain{background:none}
+.roundbtn svg.lucide{width:22px;height:22px}
+
+/* banner */
+.banner{position:relative;height:210px;overflow:hidden;background:linear-gradient(180deg,var(--sky1),var(--sky2))}
+.banner svg.scene{position:absolute;inset:0;width:100%;height:100%}
+.greet{position:absolute;left:16px;top:16px;right:110px;background:var(--sheet);border-radius:18px;padding:12px 16px;box-shadow:var(--shadow);max-width:300px}
+.greet b{display:block;font-size:17px;line-height:1.3}
+.greet span{font-size:13px;color:var(--muted)}
+.wxbadge{position:absolute;right:16px;top:16px;width:84px;height:84px;border-radius:50%;background:var(--sheet);border:4px solid var(--green);display:grid;place-items:center;text-align:center;box-shadow:var(--shadow);cursor:pointer;line-height:1.1}
+.wxbadge svg.lucide{width:26px;height:26px;color:var(--amber)}
+.wxbadge b{font-size:16px}
+
+/* sheet */
+.sheet{background:var(--sheet);border-radius:22px 22px 0 0;margin-top:-22px;position:relative;z-index:2;
+  padding-block:6px 110px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));min-height:60vh}
+.sheet.flat{margin-top:0;border-radius:0}
+.section{padding-block:16px}
+.section+.section{border-top:10px solid var(--bg);margin-inline:calc(-1 * max(16px,env(safe-area-inset-left,0px)));padding-inline:max(16px,env(safe-area-inset-left,0px))}
+.section>h2{font-size:19px;font-weight:800;margin:0 0 12px;padding-bottom:12px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:8px}
+.section>h2 small{margin-left:auto;font-size:13px;font-weight:500;color:var(--muted)}
+.menu{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px 8px;padding-top:6px}
+.mi{display:grid;justify-items:center;gap:8px;background:none;border:0;cursor:pointer;text-align:center;padding:0;min-width:0}
+.mi .circ{width:72px;height:72px;border-radius:50%;display:grid;place-items:center;position:relative}
+.mi .circ svg.lucide{width:32px;height:32px;stroke-width:1.9}
+.mi .circ .badge{position:absolute;top:2px;right:0;min-width:22px;height:22px;border-radius:11px;background:var(--red);color:#fff;font-size:12px;font-weight:700;display:grid;place-items:center;padding:0 6px}
+.mi span.lbl{font-weight:700;font-size:15px;line-height:1.3}
+.c-green{background:var(--green-soft);color:var(--green)}
+.c-purple{background:var(--purple-soft);color:var(--purple)}
+.c-orange{background:var(--orange-soft);color:var(--orange)}
+.c-amber{background:var(--amber-soft);color:var(--amber)}
+.c-blue{background:var(--blue-soft);color:var(--blue)}
+.c-grey{background:var(--grey-soft);color:var(--grey)}
+.c-red{background:var(--red-soft);color:var(--red)}
+
+/* filter row */
+.filters{display:flex;gap:8px;overflow-x:auto;padding-block:12px 4px;scrollbar-width:none}
+.filters::-webkit-scrollbar{display:none}
+.chip{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);background:var(--sheet);border-radius:999px;padding:7px 14px;cursor:pointer;font-weight:600;font-size:14px;white-space:nowrap}
+.chip svg.lucide{width:16px;height:16px}
 .chip[aria-pressed="true"]{background:var(--green);border-color:var(--green);color:var(--on-green)}
-.card{background:var(--sheet);border-radius:20px;padding:16px;border:1px solid var(--line)}
-.card h2{margin:0 0 12px;font-size:17px;font-weight:800;display:flex;align-items:center;gap:8px}
-.card h2 small{margin-left:auto;font-size:12px;font-weight:500;color:var(--muted)}
-.now{border-radius:22px;padding:18px;color:#fff;background:linear-gradient(160deg,var(--sky1),var(--sky2));position:relative;overflow:hidden;display:grid;gap:4px}
-.now .loc{display:flex;align-items:center;gap:6px;font-weight:600;font-size:14px}
-.now .tmp{font-size:56px;font-weight:800;line-height:1;letter-spacing:-.03em}
-.now .cond{font-weight:600}
-.now .big{position:absolute;right:16px;top:30px}
-.now .big svg{width:80px;height:80px;stroke-width:1.4;color:#fff4c2}
-.now .meta{display:flex;flex-wrap:wrap;gap:12px;font-size:13px;margin-top:6px}
-.now .meta span{display:inline-flex;align-items:center;gap:5px}
-.now .meta svg{width:15px;height:15px}
-.row{display:flex;gap:8px;flex-wrap:wrap}
-.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border:1px solid var(--line);background:var(--sheet);border-radius:14px;padding:10px 14px;cursor:pointer;font-weight:700;text-decoration:none;color:var(--fg)}
-.btn.primary{background:var(--green);border-color:var(--green);color:var(--on-green)}
-.btn.grow{flex:1 1 180px}
-.status{font-size:13px;color:var(--muted);display:flex;align-items:center;gap:6px;flex-wrap:wrap}
-.note{display:flex;gap:8px;align-items:flex-start;padding:12px;border-radius:14px;font-size:14px;font-weight:600}
-.n-warn{background:var(--amber-soft);color:var(--amber)}
-.n-err{background:var(--red-soft);color:var(--red)}
-.alert{display:flex;gap:12px;align-items:flex-start;padding:14px;border-radius:16px}
-.alert .ic{width:40px;height:40px;border-radius:50%;display:grid;place-items:center;background:var(--sheet);flex:none}
-.alert b{display:block;font-size:16px}
+.filters select{width:auto;border-radius:999px;padding:7px 12px;font-weight:600;font-size:14px}
+
+/* stats */
+.totalrow{display:flex;align-items:baseline;gap:8px;margin-bottom:12px}
+.totalrow b{font-size:34px;font-weight:800;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+.totalrow span{color:var(--muted);font-weight:600}
+.grades{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.grade{display:flex;align-items:center;gap:10px;padding:12px;border-radius:16px;min-width:0}
+.grade .ic{width:42px;height:42px;border-radius:50%;background:var(--sheet);display:grid;place-items:center;flex:none}
+.grade .ic svg.lucide{width:22px;height:22px}
+.grade .v{font-size:19px;font-weight:800;font-variant-numeric:tabular-nums;color:var(--fg);line-height:1.1}
+.grade .n{font-size:13px;font-weight:600}
+.grade .p{font-size:12px;color:var(--muted)}
+.stack{display:flex;height:10px;border-radius:6px;overflow:hidden;background:var(--sunk);gap:2px;margin-top:12px}
+.stack span{display:block;height:100%;border-radius:3px}
+
+/* weather strip on home */
+.wxstrip{display:flex;align-items:center;gap:12px;padding:12px;border-radius:16px;background:var(--blue-soft);cursor:pointer;border:0;width:100%;text-align:left}
+.wxstrip .big{width:52px;height:52px;border-radius:50%;background:var(--sheet);display:grid;place-items:center;flex:none}
+.wxstrip .big svg.lucide{width:30px;height:30px;color:var(--amber)}
+.wxstrip .mid{flex:1;min-width:0}
+.wxstrip .mid b{font-size:22px;font-weight:800}
+.advice{display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:700;padding:4px 10px;border-radius:999px}
+.advice svg.lucide{width:15px;height:15px}
 .a-ok{background:var(--green-soft);color:var(--green)}
 .a-mid{background:var(--amber-soft);color:var(--amber)}
 .a-no{background:var(--red-soft);color:var(--red)}
-.alert span{color:var(--fg);font-size:14px}
+
+/* weather screen */
+.wxnow{border-radius:22px;padding:18px;color:var(--on-green);background:linear-gradient(160deg,#3a9be0,#1f6fb0);display:grid;gap:6px;position:relative;overflow:hidden}
+.wxnow .loc{display:flex;align-items:center;gap:6px;font-weight:600;font-size:14px;opacity:.95}
+.wxnow .loc svg.lucide{width:16px;height:16px}
+.wxnow .tmp{font-size:58px;font-weight:800;line-height:1;letter-spacing:-.03em}
+.wxnow .cond{font-size:16px;font-weight:600}
+.wxnow .icon{position:absolute;right:16px;top:28px}
+.wxnow .icon svg.lucide{width:84px;height:84px;stroke-width:1.4;color:#fff4c2}
+.wxnow .meta{display:flex;gap:14px;flex-wrap:wrap;font-size:13px;margin-top:6px}
+.wxnow .meta span{display:inline-flex;align-items:center;gap:5px}
+.wxnow .meta svg.lucide{width:15px;height:15px}
+.hours{display:grid;grid-auto-flow:column;grid-auto-columns:72px;gap:8px;overflow-x:auto;padding-block:4px}
+.hour{display:grid;justify-items:center;gap:4px;padding:10px 4px;border-radius:14px;background:var(--sunk);font-size:13px;font-variant-numeric:tabular-nums}
+.hour b{font-size:15px}
+.hour .rp{color:var(--blue);font-weight:700;font-size:12px}
+.days{list-style:none;margin:0;padding:0;display:grid}
+.day{display:grid;grid-template-columns:62px 34px 1fr auto;align-items:center;gap:10px;padding:12px 0;border-bottom:1px solid var(--line)}
+.day:last-child{border-bottom:0}
+.day .dn{font-weight:700;line-height:1.15}
+.day .dn small{display:block;font-weight:500;color:var(--muted);font-size:12px}
+.day .di svg.lucide{width:28px;height:28px}
+.day .dr{font-size:13px;color:var(--muted);min-width:0}
+.day .dr .rain{color:var(--blue);font-weight:700}
+.day .dt{font-weight:700;font-variant-numeric:tabular-nums;text-align:right}
+.day .dt small{color:var(--muted);font-weight:500}
+.alert{display:flex;gap:12px;align-items:flex-start;padding:14px;border-radius:16px}
+.alert .ic{width:40px;height:40px;border-radius:50%;display:grid;place-items:center;flex:none;background:var(--sheet)}
+.alert b{display:block;font-size:16px}
+.alert span{font-size:14px}
+.demo{display:flex;gap:8px;align-items:flex-start;font-size:13px;color:var(--muted);background:var(--sunk);padding:10px 12px;border-radius:12px;margin-top:12px}
+.demo svg.lucide{width:16px;height:16px}
+
+/* lists */
+.list{list-style:none;margin:0;padding:0;display:grid;gap:10px}
+.item{display:flex;gap:12px;align-items:center;padding:12px;border-radius:16px;background:var(--sunk);min-width:0}
+.item.plan{background:var(--sheet);border:1.5px dashed var(--line)}
+.datebox{width:50px;flex:none;text-align:center;border-radius:12px;background:var(--sheet);padding:5px 0;line-height:1.1}
+.item.plan .datebox{background:var(--green-soft)}
+.datebox b{display:block;font-size:19px;font-weight:800;font-variant-numeric:tabular-nums}
+.datebox span{font-size:11px;color:var(--muted);font-weight:700}
+.item .body{flex:1;min-width:0}
+.item .t{font-weight:700;overflow-wrap:anywhere}
+.item .d{font-size:13px;color:var(--muted);overflow-wrap:anywhere;display:flex;flex-wrap:wrap;gap:2px 10px}
+.item .d span{display:inline-flex;align-items:center;gap:4px}
+.item .d svg.lucide{width:13px;height:13px}
+.row{margin-top:5px;display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.pill{display:inline-flex;align-items:center;gap:4px;font-size:12px;font-weight:700;padding:3px 9px;border-radius:999px;white-space:nowrap}
+.pill svg.lucide{width:13px;height:13px}
+.p-plan{background:var(--green-soft);color:var(--green)}
+.p-done{background:var(--grey-soft);color:var(--grey)}
+.p-phi{background:var(--orange-soft);color:var(--orange)}
+.tico{width:40px;height:40px;border-radius:50%;display:grid;place-items:center;flex:none}
+.none{color:var(--muted);font-size:14px;display:flex;align-items:center;gap:8px;padding:12px;justify-content:center}
+
+/* farms */
+.farms{display:grid;gap:12px}
+.farm{border:1px solid var(--line);border-radius:18px;padding:14px;display:grid;gap:10px}
+.farm .fh{display:flex;align-items:center;gap:10px}
+.farm .fh b{font-size:17px;flex:1}
+.farm .ft{font-size:26px;font-weight:800;font-variant-numeric:tabular-nums}
+.farm .ft small{font-size:13px;color:var(--muted);font-weight:600}
+.farm dl{display:grid;grid-template-columns:auto 1fr;gap:5px 10px;margin:0;font-size:14px;font-variant-numeric:tabular-nums}
+.farm dt{display:flex;align-items:center;gap:7px;color:var(--muted)}
+.farm dd{margin:0;text-align:right;font-weight:700}
+.dot{width:9px;height:9px;border-radius:50%;display:inline-block}
+
+/* form */
+.types{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;margin-bottom:16px}
+.types button{display:grid;justify-items:center;gap:6px;border:0;background:none;cursor:pointer;font-weight:700;font-size:13px;padding:4px 0;border-radius:14px}
+.types button .circ{width:58px;height:58px;border-radius:50%;display:grid;place-items:center;border:3px solid transparent}
+.types button .circ svg.lucide{width:26px;height:26px}
+.types button[aria-pressed="true"] .circ{border-color:var(--green)}
+.types button[aria-pressed="true"]{color:var(--green)}
+.fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+label.f{display:grid;gap:5px;font-size:13px;font-weight:700;color:var(--muted);min-width:0}
+label.f .lt{display:flex;align-items:center;gap:6px}
+label.f .lt svg.lucide{width:15px;height:15px}
+.f.wide{grid-column:1/-1}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border:1px solid var(--line);background:var(--sheet);border-radius:14px;padding:11px 16px;cursor:pointer;font-weight:700}
+.btn.primary{background:var(--green);border-color:var(--green);color:var(--on-green)}
+.btn.block{width:100%}
+.btn.ghost{background:none}
+.btn.danger{color:var(--red)}
+.btn.sm{padding:6px 10px;font-size:13px;border-radius:10px}
+.btn:disabled{opacity:.55;cursor:default}
+.formmsg{margin-top:10px;font-weight:700;font-size:14px;display:flex;align-items:center;gap:6px}
+.ok{color:var(--green)} .err{color:var(--red)}
+.sample-bar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:10px 12px;border-radius:14px;background:var(--amber-soft);color:var(--amber);font-size:13px;font-weight:700;margin-top:12px}
+.sample-bar .msg{flex:1;display:flex;align-items:center;gap:8px;min-width:0}
+.emptybox{text-align:center;display:grid;gap:10px;justify-items:center;padding:14px 0}
+.emptybox p{margin:0;color:var(--muted)}
+
+/* ai */
+.convo{display:grid;gap:10px;margin-bottom:12px}
+.bubble{display:flex;gap:10px;align-items:flex-start}
+.bubble .msg{padding:12px 14px;border-radius:18px;background:var(--sunk);white-space:pre-wrap;min-width:0;flex:1;overflow-wrap:anywhere}
+.bubble.me{justify-content:flex-end}
+.bubble.me .msg{flex:0 1 auto;background:var(--green);color:var(--on-green);border-bottom-right-radius:6px}
+.bubble.bot .msg{border-top-left-radius:6px}
+.ask{display:flex;gap:8px}
+.ask input{flex:1;border-radius:999px;padding:12px 16px}
+.ask .btn{border-radius:50%;width:48px;height:48px;padding:0}
+.sugg{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px}
+.sugg .chip{font-weight:500}
+.hint{font-size:13px;color:var(--muted);display:flex;align-items:center;gap:6px;margin-top:10px}
+
+/* bottom nav */
+.tabbar{position:fixed;left:0;right:0;bottom:0;z-index:8;background:var(--sheet);border-top:1px solid var(--line);box-shadow:0 -4px 16px rgba(0,0,0,.06)}
+.tabbar .in{max-width:560px;margin:0 auto;display:grid;grid-template-columns:repeat(4,1fr);
+  padding:6px max(8px,env(safe-area-inset-right,0px)) calc(6px + env(safe-area-inset-bottom,0px)) max(8px,env(safe-area-inset-left,0px))}
+.tabbar button{display:grid;justify-items:center;gap:2px;border:0;background:none;cursor:pointer;font-size:12px;font-weight:700;color:var(--muted);padding:6px 2px;border-radius:12px}
+.tabbar button svg.lucide{width:24px;height:24px}
+.tabbar button[aria-current="page"]{color:var(--green)}
+.editing{display:flex;align-items:center;gap:8px;padding:10px 12px;border-radius:12px;background:var(--amber-soft);color:var(--amber);font-weight:700;font-size:14px;margin-bottom:14px}
+.editing span{flex:1}
+.who{font-size:12px;color:var(--muted);margin-top:4px;display:flex;align-items:center;gap:4px}
+.who svg.lucide{width:12px;height:12px}
+.p-due{background:var(--red-soft);color:var(--red)}
+.roundbtn{position:relative}
+.roundbtn .badge{position:absolute;top:0;right:0;min-width:18px;height:18px;border-radius:9px;background:#e53935;color:#fff;font-size:11px;font-weight:700;display:grid;place-items:center;padding:0 5px}
+.remform{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.remform .wide{grid-column:1/-1}
+.check{width:30px;height:30px;border-radius:50%;border:2px solid var(--line);background:var(--sheet);display:grid;place-items:center;cursor:pointer;flex:none;color:transparent;padding:0}
+.check svg.lucide{width:16px;height:16px}
+.check[aria-pressed="true"]{background:var(--green);border-color:var(--green);color:#fff}
+.item.done .t{text-decoration:line-through;color:var(--muted)}
+.acts{display:inline-flex;gap:6px;flex-wrap:wrap;align-items:center}
+.sec-link{margin-left:auto;background:none;border:0;color:var(--green);font-weight:700;font-size:14px;cursor:pointer;display:inline-flex;align-items:center;gap:2px}
+.wxbtns{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.wxbtns .btn{flex:1 1 200px;text-decoration:none;color:var(--fg)}
+.tip-box{margin-top:12px;display:flex;gap:8px;align-items:flex-start;font-size:14px;padding:12px;border-radius:14px;background:var(--amber-soft);color:var(--amber);font-weight:600}
+.pinform{display:grid;gap:12px;margin-top:12px;padding:14px;border-radius:16px;background:var(--sunk)}
+.pinbtns{display:flex;gap:8px;flex-wrap:wrap}
 .vpill{display:inline-flex;align-items:center;gap:5px;font-size:13px;font-weight:700;padding:4px 10px;border-radius:999px;white-space:nowrap}
-.vpill svg{width:15px;height:15px}
+.vpill svg.lucide{width:15px;height:15px}
 .v-mua{background:var(--blue-soft);color:var(--blue)}
 .v-kho{background:var(--green-soft);color:var(--green)}
 .v-chua{background:var(--amber-soft);color:var(--amber)}
 .v-thieu{background:var(--grey-soft);color:var(--grey)}
 .slots{display:grid;gap:8px}
-details.slot{border-radius:16px;background:var(--sunk);overflow:hidden}
-details.slot summary{list-style:none;cursor:pointer;display:grid;grid-template-columns:52px 1fr auto;gap:10px;align-items:center;padding:10px 12px}
-details.slot summary::-webkit-details-marker{display:none}
-.sh{font-weight:800;font-variant-numeric:tabular-nums;line-height:1.1}
-.sh small{display:block;font-weight:500;font-size:11px;color:var(--muted)}
-.mid{display:grid;gap:5px;min-width:0}
-.top{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
-.tnum{font-weight:700;font-variant-numeric:tabular-nums}
+.slot{border-radius:16px;background:var(--sunk);overflow:hidden}
+.slot summary{list-style:none;cursor:pointer;display:grid;grid-template-columns:44px 1fr auto;align-items:center;gap:10px;padding:10px 12px}
+.slot summary::-webkit-details-marker{display:none}
+.slot .sh{font-weight:800;font-size:16px;font-variant-numeric:tabular-nums}
+.slot .mid{display:grid;gap:5px;min-width:0}
+.slot .top{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.slot .tmp{font-weight:700;font-variant-numeric:tabular-nums}
 .votes{display:flex;gap:4px;align-items:center;flex-wrap:wrap;font-size:12px;color:var(--muted)}
-.vd{width:12px;height:12px;border-radius:50%;border:2px solid var(--line);background:var(--sheet);display:inline-block}
+.vd{width:12px;height:12px;border-radius:50%;display:inline-block;border:2px solid var(--line);background:var(--sheet)}
 .vd.r{background:var(--blue);border-color:var(--blue)}
 .vd.d{background:var(--green-soft);border-color:var(--green)}
 .vd.x{background:none;border-style:dashed}
-details.slot[open] .chev svg{transform:rotate(90deg)}
-.chev svg{color:var(--muted);transition:transform .15s}
-.tbl{overflow-x:auto}
-table{width:100%;border-collapse:collapse;font-size:13px;font-variant-numeric:tabular-nums;background:var(--sheet)}
-th,td{padding:7px 12px;text-align:left;border-top:1px solid var(--line);white-space:nowrap}
-th{font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted)}
-td.n{text-align:right}
-ul.days{list-style:none;margin:0;padding:0}
-.day{display:grid;grid-template-columns:62px 30px 1fr auto;gap:10px;align-items:center;padding:12px 0;border-bottom:1px solid var(--line)}
-.day:last-child{border-bottom:0}
-.day .dn{font-weight:700;line-height:1.15}
-.day .dn small{display:block;font-weight:500;font-size:12px;color:var(--muted)}
-.day .dr{font-size:13px;color:var(--muted);min-width:0}
-.day .dt{font-weight:700;text-align:right;font-variant-numeric:tabular-nums}
-.day .dt small{color:var(--muted);font-weight:500}
-.advice{display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:700;padding:3px 9px;border-radius:999px;margin-top:3px}
-.advice svg{width:14px;height:14px}
-.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-label.f{display:grid;gap:5px;font-size:13px;font-weight:700;color:var(--muted)}
-.hint{font-size:13px;color:var(--muted)}
-.srcs{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.slot .chev svg.lucide{transition:transform .15s;color:var(--muted)}
+.slot[open] .chev svg.lucide{transform:rotate(90deg)}
+.mtable{width:100%;border-collapse:collapse;font-size:13px;font-variant-numeric:tabular-nums;background:var(--sheet)}
+.mtable th,.mtable td{padding:7px 12px;text-align:left;border-top:1px solid var(--line)}
+.mtable th{font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted)}
+.mtable td.num{text-align:right}
+.rule{display:grid;gap:10px}
+.rule-row{display:grid;grid-template-columns:150px 1fr;gap:10px;align-items:center;font-size:14px}
+.models{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:14px}
+.model{display:flex;gap:8px;align-items:center;padding:8px 10px;border-radius:12px;background:var(--sunk);font-size:13px;min-width:0}
+.model b{font-size:14px}
+.model .cc{width:30px;height:30px;border-radius:50%;background:var(--sheet);display:grid;place-items:center;font-size:11px;font-weight:800;color:var(--muted);flex:none}
+@media (max-width:420px){.rule-row{grid-template-columns:1fr;gap:4px}}
+@media (prefers-reduced-motion:no-preference){.screen{animation:in .18s ease-out}@keyframes in{from{transform:translateY(6px);opacity:.6}to{transform:none;opacity:1}}}
+@media (max-width:380px){.mi .circ{width:62px;height:62px}.mi span.lbl{font-size:14px}.fields{grid-template-columns:1fr}}
+/* standalone page resets and pieces the merged weather screen needs */
+html{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+html,body{margin:0}
+img{max-width:100%}
+[hidden]{display:none!important}
+a{color:inherit}
+.tip-err{background:var(--red-soft);color:var(--red)}
+.wgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.srcs{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}
 .src{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:12px;background:var(--sunk);font-size:13px;min-width:0}
 .src b{font-size:14px}
-.src .dot{width:9px;height:9px;border-radius:50%;flex:none}
-.ok{background:var(--green)} .bad{background:var(--red)}
-footer{font-size:12px;color:var(--muted);text-align:center;padding:4px 16px 20px}
-footer a{color:inherit}
-[hidden]{display:none!important}
-@media (max-width:380px){.grid2,.srcs{grid-template-columns:1fr}}
-@media (prefers-reduced-motion:reduce){.hbtn.spin svg{animation:none}}
+.sdot{width:9px;height:9px;border-radius:50%;flex:none}
+.sdot.ok{background:var(--green)} .sdot.bad{background:var(--red)}
+.tblwrap{overflow-x:auto}
+.btn.spin svg.lucide{animation:spin 1s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.day .dr .sub{font-size:12px}
+@media (max-width:380px){.wgrid,.srcs{grid-template-columns:1fr}}
+@media (prefers-reduced-motion:reduce){.btn.spin svg.lucide{animation:none}}
 </style>
 </head>
 <body>
 <div class="app">
-<header>
-  <i data-lucide="cloud-sun-rain"></i>
-  <h1>Thời tiết farm</h1>
-  <button class="hbtn" id="refresh" type="button" aria-label="Tải lại dự báo"><i data-lucide="refresh-cw"></i></button>
-</header>
-<main>
-  <div class="chips" id="locs" role="group" aria-label="Chọn vị trí"></div>
-  <div id="msg"></div>
+  <header class="topbar">
+    <button class="roundbtn" id="backBtn" type="button" aria-label="Quay lại"><i data-lucide="user-round"></i></button>
+    <h1 id="screenTitle">Trang chủ</h1>
+    <button class="roundbtn plain" id="bellBtn" type="button" aria-label="Nhắc việc"><i data-lucide="bell"></i><span class="badge" id="bellBadge" hidden></span></button>
+  </header>
 
-  <section class="now" id="now" aria-live="polite"></section>
-  <div class="row">
-    <a class="btn grow" id="windy" href="https://www.windy.com/" target="_blank" rel="noopener"><i data-lucide="wind"></i>Mở Windy tại đây<i data-lucide="external-link"></i></a>
-    <button class="btn grow" type="button" id="editPin"><i data-lucide="map-pin-plus"></i>Sửa vị trí ghim</button>
-  </div>
-  <div class="status" id="status"></div>
-
-  <form class="card" id="pinForm" hidden novalidate>
-    <h2><i data-lucide="map-pinned"></i>Ghim vị trí</h2>
-    <div style="display:grid;gap:10px">
-      <label class="f">Tên vị trí<input id="pinName"></label>
-      <label class="f">Tọa độ hoặc link Google Maps<input id="pinCoord" placeholder="VD: 14.6125, 108.2710"></label>
-      <div class="hint">Mở Google Maps, nhấn giữ vào vườn, chép dãy số tọa độ rồi dán vào đây.</div>
-      <div class="row"><button class="btn primary" type="submit"><i data-lucide="map-pin-check"></i>Lưu</button><button class="btn" type="button" id="pinCancel">Hủy</button><button class="btn" type="button" id="pinHere"><i data-lucide="locate-fixed"></i>Lấy vị trí đang đứng</button></div>
-      <div id="pinMsg" class="hint" role="status"></div>
+  <!-- HOME -->
+  <section class="screen" data-screen="home">
+    <div class="banner">
+      <svg class="scene" viewBox="0 0 400 210" preserveAspectRatio="xMidYMax slice" aria-hidden="true">
+        <circle cx="330" cy="40" r="26" fill="var(--hill3)" opacity=".55"/>
+        <path d="M0 140 C70 110 140 120 210 132 C280 144 340 112 400 118 L400 210 L0 210Z" fill="var(--hill1)"/>
+        <path d="M0 165 C90 140 170 150 250 160 C320 168 360 150 400 152 L400 210 L0 210Z" fill="var(--hill2)"/>
+        <g stroke="var(--green-d)" stroke-width="3" fill="none" opacity=".9">
+          <line x1="40" y1="150" x2="40" y2="200"/><line x1="140" y1="148" x2="140" y2="200"/><line x1="240" y1="152" x2="240" y2="200"/><line x1="340" y1="150" x2="340" y2="200"/>
+          <path d="M30 152 L350 150"/>
+        </g>
+        <g stroke="var(--green-d)" stroke-width="2" fill="none">
+          <path d="M40 152 q15 10 30 0 t30 0 t30 0 t30 0 t30 0 t30 0 t30 0 t30 0 t30 0 t30 0 t10 0"/>
+        </g>
+        <g fill="var(--green)"><ellipse cx="62" cy="158" rx="9" ry="5"/><ellipse cx="118" cy="157" rx="9" ry="5"/><ellipse cx="185" cy="158" rx="9" ry="5"/><ellipse cx="262" cy="158" rx="9" ry="5"/><ellipse cx="318" cy="157" rx="9" ry="5"/></g>
+        <g fill="var(--purple)"><circle cx="78" cy="167" r="6"/><circle cx="101" cy="165" r="5.5"/><circle cx="162" cy="167" r="6"/><circle cx="210" cy="166" r="5.5"/><circle cx="283" cy="167" r="6"/><circle cx="305" cy="165" r="5"/></g>
+        <g fill="var(--hill3)"><circle cx="133" cy="166" r="5"/><circle cx="235" cy="167" r="5"/></g>
+      </svg>
+      <div class="greet"><b id="greetTitle">Chào anh,</b><span id="greetSub">Vườn chanh dây hôm nay</span></div>
+      <button class="wxbadge" type="button" data-go="weather" aria-label="Xem thời tiết"><span><span id="badgeIcon"><i data-lucide="cloud-sun-rain"></i></span><br><b id="badgeTemp" style="font-size:13px">Dự báo</b></span></button>
     </div>
-  </form>
+    <div class="sheet">
+      <div class="section">
+        <h2>Hôm nay ở vườn</h2>
+        <button class="wxstrip" type="button" data-go="weather">
+          <span class="big" id="stripIcon"><i data-lucide="cloud-sun-rain"></i></span>
+          <span class="mid"><b style="font-size:17px">Dự báo thời tiết 8 nguồn</b><br><span class="sub" id="stripCond">Mưa, gió, gợi ý phun thuốc cho từng farm</span></span>
+          <i data-lucide="chevron-right"></i>
+        </button>
+        <div id="sampleBar" class="sample-bar" hidden>
+          <span class="msg"><i data-lucide="flask-conical"></i>Đang xem dữ liệu mẫu</span>
+          <button class="btn sm ghost" id="clearSample" type="button"><i data-lucide="trash-2"></i>Xóa mẫu</button>
+          <span id="clearConfirm" hidden><button class="btn sm danger" id="clearYes" type="button">Xóa hết mẫu</button> <button class="btn sm ghost" id="clearNo" type="button">Thôi</button></span>
+        </div>
+      </div>
 
-  <section class="card"><h2><i data-lucide="spray-can"></i>Có nên phun thuốc hôm nay?</h2><div id="spray"></div></section>
-  <section class="card"><h2><i data-lucide="clock"></i>Theo khung 3 giờ <small>bấm để xem từng nguồn</small></h2><div class="slots" id="slots"></div></section>
-  <section class="card"><h2><i data-lucide="calendar-days"></i>7 ngày tới</h2><ul class="days" id="days"></ul></section>
+      <div class="section">
+        <h2>Việc cần làm<button class="sec-link" type="button" data-go="nhac">Xem tất cả<i data-lucide="chevron-right"></i></button></h2>
+        <ul class="list" id="todoList"></ul>
+      </div>
 
-  <section class="card">
-    <h2><i data-lucide="sliders-horizontal"></i>Quy tắc báo mưa <small>thử nghiệm, chưa chốt</small></h2>
-    <div class="note n-warn" style="margin-bottom:12px"><i data-lucide="flask-conical"></i><span>Các con số dưới đây chỉ để thử. Chỉnh lại sau khi đối chiếu với mưa thực tế ở farm.</span></div>
-    <div class="grid2">
-      <label class="f">Số nguồn tối thiểu<select id="rMin"></select></label>
-      <label class="f">Tỉ lệ đồng thuận<select id="rPct"></select></label>
-      <label class="f">Tính là mưa (3 giờ) từ<select id="rMm"></select></label>
-      <label class="f">Gió giật không nên phun từ<select id="rGust"></select></label>
+      <div class="section">
+        <h2>Sản lượng mùa này <small id="homeScope"></small></h2>
+        <div class="filters" id="homeFilters"></div>
+        <div id="emptyHome" class="emptybox" hidden>
+          <span class="tico c-green" style="width:64px;height:64px"><i data-lucide="sprout"></i></span>
+          <p>Sổ đang trống. Quản lý farm vào mục Nhập liệu để ghi chép.</p>
+          <button class="btn primary" id="loadSample" type="button"><i data-lucide="sparkles"></i>Nạp dữ liệu mẫu để xem thử</button>
+        </div>
+        <div id="homeStats">
+          <div class="totalrow"><b id="totalKg">0</b><span>kg đã xuất</span></div>
+          <div class="grades" id="grades"></div>
+          <div class="stack" id="stack" aria-hidden="true"></div>
+        </div>
+      </div>
+
+      <div class="section">
+        <h2>Quản lý vườn</h2>
+        <div class="menu">
+          <button class="mi" type="button" data-go="xuat"><span class="circ c-purple"><i data-lucide="truck"></i></span><span class="lbl">Xuất hàng</span></button>
+          <button class="mi" type="button" data-go="phun"><span class="circ c-blue"><i data-lucide="spray-can"></i><span class="badge" id="phunBadge" hidden></span></span><span class="lbl">Lịch phun thuốc</span></button>
+          <button class="mi" type="button" data-go="bon"><span class="circ c-orange"><i data-lucide="flask-round"></i></span><span class="lbl">Lịch bón phân</span></button>
+          <button class="mi" type="button" data-go="trong"><span class="circ c-green"><i data-lucide="sprout"></i></span><span class="lbl">Lịch trồng cây</span></button>
+          <button class="mi" type="button" data-go="farms"><span class="circ c-amber"><i data-lucide="warehouse"></i></span><span class="lbl">Farm 1 · 2 · 3</span></button>
+          <button class="mi" type="button" data-go="cachly"><span class="circ c-red"><i data-lucide="shield-alert"></i><span class="badge" id="phiBadge" hidden></span></span><span class="lbl">Lô đang cách ly</span></button>
+        </div>
+      </div>
+
+      <div class="section">
+        <h2>Tiện ích</h2>
+        <div class="menu">
+          <button class="mi" type="button" data-go="weather"><span class="circ c-blue"><i data-lucide="cloud-sun-rain"></i></span><span class="lbl">Dự báo thời tiết</span></button>
+          <button class="mi" type="button" data-go="ai"><span class="circ c-purple"><i data-lucide="bot"></i></span><span class="lbl">Hỏi AI</span></button>
+          <button class="mi" type="button" data-go="nhap"><span class="circ c-green"><i data-lucide="notebook-pen"></i></span><span class="lbl">Nhập liệu</span></button>
+          <button class="mi" type="button" data-go="nhac"><span class="circ c-red"><i data-lucide="bell-ring"></i><span class="badge" id="nhacBadge" hidden></span></span><span class="lbl">Nhắc việc</span></button>
+          <button class="mi" type="button" data-go="baove"><span class="circ c-grey"><i data-lucide="shield-check"></i></span><span class="lbl">Thùng rác & sao lưu</span></button>
+          <button class="mi" type="button" data-go="phanquyen" id="tilePq" hidden><span class="circ c-amber"><i data-lucide="users-round"></i></span><span class="lbl">Phân quyền farm</span></button>
+        </div>
+      </div>
     </div>
-    <p class="hint" id="ruleText"></p>
-    <h2 style="margin-top:16px"><i data-lucide="layers"></i>Nguồn dữ liệu</h2>
-    <div class="srcs" id="srcs"></div>
   </section>
-</main>
-<footer>Dữ liệu thời tiết: <a href="https://open-meteo.com/" target="_blank" rel="noopener">Open-Meteo.com</a> (CC BY 4.0), từ các cơ quan khí tượng ECMWF, NOAA, DWD, CMA, JMA, Met Office, Météo-France, ECCC.</footer>
+
+  <!-- GENERIC LIST SCREENS -->
+  <section class="screen" data-screen="list" hidden>
+    <div class="sheet flat">
+      <div class="filters" id="listFilters"></div>
+      <div class="section" style="padding-top:8px"><ul class="list" id="listBody"></ul></div>
+    </div>
+  </section>
+
+  <!-- XUAT -->
+  <section class="screen" data-screen="xuat" hidden>
+    <div class="sheet flat">
+      <div class="filters" id="xuatFilters"></div>
+      <div class="section" style="padding-top:8px">
+        <div class="totalrow"><b id="xTotal">0</b><span>kg · <span id="xScope"></span></span></div>
+        <div class="grades" id="xGrades"></div>
+      </div>
+      <div class="section"><h2>Các lần xuất gần đây</h2><ul class="list" id="xList"></ul></div>
+    </div>
+  </section>
+
+  <!-- FARMS -->
+  <section class="screen" data-screen="farms" hidden>
+    <div class="sheet flat">
+      <div class="filters" id="farmsFilters"></div>
+      <div class="section" style="padding-top:8px"><div class="farms" id="farms"></div></div>
+    </div>
+  </section>
+
+  <!-- WEATHER -->
+  <section class="screen" data-screen="weather" hidden>
+    <div class="sheet flat">
+      <div class="filters" id="wxLocs" role="group" aria-label="Chọn vị trí"></div>
+      <div id="wxMsg"></div>
+      <div class="section" style="padding-top:8px">
+        <div class="wxnow" id="wxNow"></div>
+        <div class="wxbtns">
+          <button class="btn" type="button" id="wxRefresh"><i data-lucide="refresh-cw"></i>Tải lại</button>
+          <a class="btn" id="windyLink" href="https://www.windy.com/" target="_blank" rel="noopener"><i data-lucide="wind"></i>Mở Windy<i data-lucide="external-link"></i></a>
+          <button class="btn ghost" type="button" id="pinEditBtn" hidden><i data-lucide="map-pin-plus"></i>Sửa vị trí ghim</button>
+        </div>
+        <div class="hint" id="wxStatus" style="margin-top:10px"></div>
+        <div id="gpsMsg" class="tip-box" hidden></div>
+        <form id="pinForm" class="pinform" hidden novalidate>
+          <label class="f"><span class="lt"><i data-lucide="tag"></i>Tên vị trí</span><input id="pin_name" placeholder="VD: Farm 1 - Đắk Long"></label>
+          <label class="f"><span class="lt"><i data-lucide="map-pinned"></i>Tọa độ hoặc link Google Maps</span><input id="pin_coord" placeholder="VD: 14.6125, 108.2710"></label>
+          <div class="hint"><i data-lucide="info"></i>Đứng ngay tại vườn thì bấm "Lấy vị trí đang đứng". Ở xa thì mở Google Maps, nhấn giữ vào vườn, chép dãy số tọa độ rồi dán vào đây.</div>
+          <div class="pinbtns"><button class="btn primary" type="submit" id="pinSave"><i data-lucide="map-pin-check"></i>Lưu vị trí ghim</button><button class="btn" type="button" id="pinHere"><i data-lucide="locate-fixed"></i>Lấy vị trí đang đứng</button><button class="btn ghost" type="button" id="pinCancel">Hủy</button></div>
+          <div id="pinMsg" class="formmsg" role="status"></div>
+        </form>
+      </div>
+      <div class="section"><h2>Có nên phun thuốc hôm nay?</h2><div id="wxAlert"></div></div>
+      <div class="section"><h2>Theo khung 3 giờ <small>bấm để xem từng nguồn</small></h2><div id="wxSlots" class="slots"></div></div>
+      <div class="section"><h2>7 ngày tới</h2><ul class="days" id="wxDays"></ul></div>
+      <div class="section"><h2>Ghi thời tiết thực tế <small>để kiểm chứng dự báo</small></h2>
+        <form id="ttForm" class="remform" novalidate>
+          <label class="f"><span class="lt"><i data-lucide="warehouse"></i>Farm</span><select id="tt_farm"><option value="1">Farm 1</option><option value="2">Farm 2</option><option value="3">Farm 3</option></select></label>
+          <label class="f"><span class="lt"><i data-lucide="calendar"></i>Ngày</span><input type="date" id="tt_date"></label>
+          <label class="f"><span class="lt"><i data-lucide="sunrise"></i>Buổi</span><select id="tt_buoi"><option value="sang">Sáng (6h–12h)</option><option value="chieu">Chiều (12h–18h)</option><option value="toi">Tối / đêm</option></select></label>
+          <label class="f"><span class="lt"><i data-lucide="cloud-rain"></i>Mưa</span><select id="tt_mua"><option value="khong">Không mưa</option><option value="nho">Mưa nhỏ, lất phất</option><option value="vua">Mưa vừa</option><option value="to">Mưa to</option></select></label>
+          <label class="f"><span class="lt"><i data-lucide="beaker"></i>Lượng mưa (mm)</span><input type="number" inputmode="decimal" min="0" step="0.1" id="tt_mm" placeholder="Nếu có ống đo"></label>
+          <label class="f"><span class="lt"><i data-lucide="wind"></i>Gió</span><select id="tt_gio"><option value="0">Lặng, lá đứng yên</option><option value="2">Lá xào xạc</option><option value="3">Lá, cành nhỏ lay liên tục</option><option value="4">Cành nhỏ đung đưa, bụi bay</option><option value="5">Cây nhỏ lắc cả thân</option></select></label>
+          <label class="f wide"><span class="lt"><i data-lucide="message-square-text"></i>Ghi chú</span><input id="tt_note" placeholder="Không bắt buộc"></label>
+          <div class="wide"><button class="btn primary block" type="submit" id="ttSave"><i data-lucide="save"></i>Lưu thời tiết thực tế</button></div>
+          <div id="ttMsg" class="formmsg wide" role="status"></div>
+        </form>
+        <ul class="list" id="ttList" style="margin-top:14px"></ul>
+      </div>
+      <div class="section"><h2>Quy tắc báo mưa <small>thử nghiệm, chưa chốt</small></h2>
+        <div class="tip-box" style="margin:0 0 12px"><i data-lucide="flask-conical"></i><span>Các con số dưới đây chỉ để thử. Chỉnh lại sau khi đối chiếu với thời tiết thực tế ghi ở farm. Cài đặt này lưu trên từng máy.</span></div>
+        <div class="wgrid">
+          <label class="f">Số nguồn tối thiểu<select id="rMin"></select></label>
+          <label class="f">Tỉ lệ đồng thuận<select id="rPct"></select></label>
+          <label class="f">Tính là mưa (3 giờ) từ<select id="rMm"></select></label>
+          <label class="f">Gió giật không nên phun từ<select id="rGust"></select></label>
+        </div>
+        <p class="hint" id="ruleText"></p>
+        <h2 style="margin-top:14px;border:0;padding:0">Nguồn dữ liệu</h2>
+        <div class="srcs" id="wxSrcs"></div>
+        <p class="hint" style="margin-top:12px">Dữ liệu thời tiết: <a href="https://open-meteo.com/" target="_blank" rel="noopener">Open-Meteo.com</a> (CC BY 4.0), từ ECMWF, NOAA, DWD, CMA, JMA, Met Office, Météo-France, ECCC.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- VAI TRO (demo) -->
+  <section class="screen" data-screen="vaitro" hidden>
+    <div class="sheet flat">
+      <div class="section"><h2>Xem thử theo vai trò</h2>
+        <p class="hint">Bản demo chưa có đăng nhập. Chọn vai trò để xem app hiện ra thế nào với từng người. Bản app thật mỗi người đăng nhập tài khoản riêng.</p>
+        <ul class="list" id="roleList" style="margin-top:12px"></ul>
+      </div>
+      <div class="section"><h2>Dữ liệu của bản demo</h2>
+        <div class="tip-box"><i data-lucide="smartphone"></i><span>Bản demo lưu dữ liệu ngay trên trình duyệt của máy này, chưa đồng bộ sang máy khác. Khi chuyển sang Firebase, dữ liệu sẽ đồng bộ giữa mọi máy. Muốn chuyển dữ liệu sang máy khác, dùng "Tải file sao lưu" trong mục Thùng rác & sao lưu.</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- NHAP -->
+  <section class="screen" data-screen="nhap" hidden>
+    <div class="sheet flat">
+      <div class="section" id="readOnlyNote" hidden><div class="hint"><i data-lucide="lock"></i>Vai trò Sếp chỉ xem, không nhập liệu được. Đổi vai trò bằng nút tròn góc trên bên trái ở Trang chủ.</div></div>
+      <form class="section" id="entryForm" novalidate>
+        <div class="editing" id="editBanner" hidden><i data-lucide="pencil"></i><span id="editText">Đang sửa ghi chép</span><button class="btn sm ghost" type="button" id="cancelEdit">Hủy sửa</button></div>
+        <div class="types" role="group" aria-label="Loại ghi chép">
+          <button type="button" data-type="xuat" aria-pressed="true"><span class="circ c-purple"><i data-lucide="truck"></i></span>Xuất hàng</button>
+          <button type="button" data-type="phun" aria-pressed="false"><span class="circ c-blue"><i data-lucide="spray-can"></i></span>Phun thuốc</button>
+          <button type="button" data-type="bon" aria-pressed="false"><span class="circ c-orange"><i data-lucide="flask-round"></i></span>Bón phân</button>
+          <button type="button" data-type="trong" aria-pressed="false"><span class="circ c-green"><i data-lucide="sprout"></i></span>Trồng cây</button>
+        </div>
+        <div class="fields">
+          <label class="f"><span class="lt"><i data-lucide="calendar"></i>Ngày</span><input type="date" id="f_date" required></label>
+          <label class="f"><span class="lt"><i data-lucide="warehouse"></i>Farm</span><select id="f_farm"><option value="1">Farm 1</option><option value="2">Farm 2</option><option value="3">Farm 3</option></select></label>
+          <label class="f"><span class="lt"><i data-lucide="grid-2x2"></i>Lô</span><input id="f_lot" placeholder="VD: Lô A2"></label>
+          <label class="f"><span class="lt"><i data-lucide="calendar-range"></i>Mùa vụ</span><input id="f_season" list="seasonList" placeholder="VD: Vụ 2026"></label>
+          <datalist id="seasonList"></datalist>
+          <label class="f" data-for="xuat"><span class="lt"><i data-lucide="tag"></i>Loại hàng</span><select id="f_grade"><option value="au">Hàng xuất Âu</option><option value="cho">Hàng chợ</option><option value="muc">Hàng múc</option><option value="xo">Hàng xô</option></select></label>
+          <label class="f" data-for="xuat"><span class="lt"><i data-lucide="weight"></i>Số kg</span><input type="number" inputmode="decimal" min="0" step="0.1" id="f_kg"></label>
+          <label class="f" data-for="xuat"><span class="lt"><i data-lucide="banknote"></i>Giá (đ/kg)</span><input type="number" inputmode="numeric" min="0" id="f_price" placeholder="Không bắt buộc"></label>
+          <label class="f" data-for="xuat"><span class="lt"><i data-lucide="user-round"></i>Người mua</span><input id="f_buyer" placeholder="Không bắt buộc"></label>
+          <label class="f" data-for="phun bon"><span class="lt"><i data-lucide="package"></i>Tên thuốc / phân</span><input id="f_product"></label>
+          <label class="f" data-for="phun bon"><span class="lt"><i data-lucide="beaker"></i>Liều / số lượng</span><input id="f_dose" placeholder="VD: 20 ml/bình 16L"></label>
+          <label class="f" data-for="phun"><span class="lt"><i data-lucide="shield-alert"></i>Cách ly (ngày)</span><input type="number" inputmode="numeric" min="0" id="f_phi" placeholder="Theo nhãn thuốc"></label>
+          <label class="f" data-for="phun"><span class="lt"><i data-lucide="bug"></i>Trị bệnh / sâu</span><input id="f_target" placeholder="VD: thối nhũn"></label>
+          <label class="f" data-for="trong"><span class="lt"><i data-lucide="sprout"></i>Giống</span><input id="f_variety" placeholder="VD: Đài Nông 1"></label>
+          <label class="f" data-for="trong"><span class="lt"><i data-lucide="hash"></i>Số cây</span><input type="number" inputmode="numeric" min="0" id="f_plants"></label>
+          <label class="f wide"><span class="lt"><i data-lucide="message-square-text"></i>Ghi chú</span><textarea id="f_note" rows="2"></textarea></label>
+        </div>
+        <div style="margin-top:16px"><button class="btn primary block" type="submit" id="saveBtn"><i data-lucide="save"></i>Lưu ghi chép</button></div>
+        <div id="formMsg" class="formmsg" role="status"></div>
+        <div class="hint"><i data-lucide="info"></i>Chọn ngày trong tương lai để tạo lịch kế hoạch.</div>
+      </form>
+      <div class="section"><h2>Ghi chép gần đây</h2><ul class="list" id="log"></ul></div>
+    </div>
+  </section>
+
+  <!-- AI -->
+  <section class="screen" data-screen="ai" hidden>
+    <div class="sheet flat">
+      <div class="section">
+        <div class="convo" id="convo">
+          <div class="bubble bot"><span class="tico c-purple"><i data-lucide="bot"></i></span><div class="msg">Chào anh, em đọc sổ vườn và trả lời theo đúng dữ liệu đã nhập. Anh hỏi về lịch phun, bón phân, trồng cây hay sản lượng đều được.</div></div>
+        </div>
+        <div class="sugg" id="sugg"></div>
+        <form class="ask" id="askForm">
+          <input id="q" placeholder="VD: Tuần trước phun thuốc gì?" autocomplete="off">
+          <button class="btn primary" type="submit" id="askBtn" aria-label="Gửi câu hỏi"><i data-lucide="send"></i></button>
+        </form>
+        <p class="hint" id="aiNote"><i data-lucide="shield-check"></i>Lần đầu hỏi, Claude sẽ xin phép dùng tài khoản của người hỏi.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- NHAC VIEC -->
+  <section class="screen" data-screen="nhac" hidden>
+    <div class="sheet flat">
+      <div class="section"><h2>Từ lịch vườn</h2><ul class="list" id="autoRem"></ul></div>
+      <div class="section"><h2>Nhắc việc riêng</h2>
+        <form id="remForm" class="remform" novalidate>
+          <label class="f wide"><span class="lt"><i data-lucide="bell-plus"></i>Nội dung</span><input id="r_title" placeholder="VD: Mua thêm thuốc, gọi thương lái"></label>
+          <label class="f"><span class="lt"><i data-lucide="calendar"></i>Ngày</span><input type="date" id="r_date"></label>
+          <label class="f"><span class="lt"><i data-lucide="warehouse"></i>Farm</span><select id="r_farm"><option value="0">Chung</option><option value="1">Farm 1</option><option value="2">Farm 2</option><option value="3">Farm 3</option></select></label>
+          <div class="wide"><button class="btn primary block" type="submit" id="remSave"><i data-lucide="bell-plus"></i>Thêm nhắc việc</button></div>
+          <div id="remMsg" class="formmsg wide" role="status"></div>
+        </form>
+        <ul class="list" id="remList" style="margin-top:14px"></ul>
+        <div class="demo"><i data-lucide="info"></i><span>Bản demo hiện nhắc việc khi mở app và đếm số việc ở chuông. Khi lên app thật sẽ có thông báo bật lên điện thoại mỗi sáng.</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- BAO VE -->
+  <section class="screen" data-screen="baove" hidden>
+    <div class="sheet flat">
+      <div class="section"><h2>Dữ liệu được bảo vệ thế nào</h2>
+        <ul class="list">
+          <li class="item"><span class="tico c-amber"><i data-lucide="trash-2"></i></span><div class="body"><div class="t">Xóa là vào thùng rác</div><div class="d">Ghi chép bị xóa vẫn còn ở đây và khôi phục được. Chỉ chủ farm mới xóa vĩnh viễn.</div></div></li>
+          <li class="item"><span class="tico c-blue"><i data-lucide="user-round-check"></i></span><div class="body"><div class="t">Ghi tên người nhập, người sửa, người xóa</div><div class="d">Mỗi ghi chép hiện ai làm và lúc nào, nên biết ngay ai nhập sai hay ai phá.</div></div></li>
+          <li class="item"><span class="tico c-green"><i data-lucide="database-backup"></i></span><div class="body"><div class="t">Sao lưu tự động mỗi ngày</div><div class="d">Tự sao lưu khi chủ farm mở app. Có thể tải file sao lưu về máy để cất giữ hoặc chuyển sang máy khác.</div></div></li>
+        </ul>
+      </div>
+      <div class="section"><h2>Thùng rác</h2><ul class="list" id="trashList"></ul></div>
+      <div class="section"><h2>Bản sao lưu</h2><div id="backupBox"></div><ul class="list" id="backupList" style="margin-top:12px"></ul></div>
+    </div>
+  </section>
+
+  <!-- PHAN QUYEN -->
+  <section class="screen" data-screen="phanquyen" hidden>
+    <div class="sheet flat">
+      <div class="section"><h2>Người quản lý từng farm</h2><ul class="list" id="pqList"></ul></div>
+      <div class="section"><h2>Thêm người</h2>
+        <label class="f"><span class="lt"><i data-lucide="search"></i>Tìm theo tên</span><input id="pqSearch" placeholder="Gõ tên người cần gán farm" autocomplete="off"></label>
+        <ul class="list" id="pqResults" style="margin-top:10px"></ul>
+        <div class="demo"><i data-lucide="info"></i><span>Bản demo: gõ "Quản lý" để thấy 3 tài khoản thử. Bản app thật: mỗi quản lý tự đăng ký tài khoản, anh tìm tên và bấm Farm 1, 2 hoặc 3. Người được gán farm chỉ thấy và chỉ nhập, sửa, xóa được farm của mình.</span></div>
+      </div>
+    </div>
+  </section>
+
+  <nav class="tabbar" aria-label="Điều hướng chính"><div class="in">
+    <button type="button" data-tab="home" aria-current="page"><i data-lucide="house"></i>Trang chủ</button>
+    <button type="button" data-tab="nhap"><i data-lucide="notebook-pen"></i>Nhập liệu</button>
+    <button type="button" data-tab="weather"><i data-lucide="cloud-sun"></i>Thời tiết</button>
+    <button type="button" data-tab="ai"><i data-lucide="bot"></i>Hỏi AI</button>
+  </div></nav>
 </div>
 
 <script>
 (() => {
-/* Each source lists API ids to try in order; the first one Open-Meteo accepts is used. */
-const MODELS = [
+const GRADES = [
+  {k:"au", n:"Xuất Âu", c:"var(--purple)", s:"var(--purple-soft)", i:"plane"},
+  {k:"cho", n:"Hàng chợ", c:"var(--green)", s:"var(--green-soft)", i:"store"},
+  {k:"muc", n:"Hàng múc", c:"var(--amber)", s:"var(--amber-soft)", i:"cup-soda"},
+  {k:"xo", n:"Hàng xô", c:"var(--grey)", s:"var(--grey-soft)", i:"shopping-basket"},
+];
+const TYPE = {
+  xuat:{n:"Xuất hàng", i:"truck", c:"c-purple"}, phun:{n:"Phun thuốc", i:"spray-can", c:"c-blue"},
+  bon:{n:"Bón phân", i:"flask-round", c:"c-orange"}, trong:{n:"Trồng cây", i:"sprout", c:"c-green"},
+};
+const TITLES = {home:"Trang chủ", xuat:"Xuất hàng", phun:"Lịch phun thuốc", bon:"Lịch bón phân", trong:"Lịch trồng cây", farms:"Theo farm", cachly:"Lô đang cách ly", weather:"Thời tiết", nhap:"Nhập liệu", ai:"Hỏi AI", nhac:"Nhắc việc", baove:"Thùng rác & sao lưu", phanquyen:"Phân quyền farm", vaitro:"Vai trò xem thử"};
+const $ = s => document.querySelector(s);
+const ic = n => `<i data-lucide="${n}"></i>`;
+const icons = () => { try { window.lucide && window.lucide.createIcons(); } catch(e){} };
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const fmt = n => (Math.round(n*10)/10).toLocaleString("vi-VN");
+const pad = n => String(n).padStart(2,"0");
+const iso = d => `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+const today = iso(new Date());
+const addDays = (s, n) => { const d = new Date(s+"T00:00:00"); d.setDate(d.getDate()+n); return iso(d); };
+const vnDate = s => s ? `${s.slice(8,10)}/${s.slice(5,7)}/${s.slice(0,4)}` : "";
+const vnShort = s => s ? `${s.slice(8,10)}/${s.slice(5,7)}` : "";
+const WD = ["Chủ nhật","Thứ hai","Thứ ba","Thứ tư","Thứ năm","Thứ sáu","Thứ bảy"];
+const WDS = ["CN","T2","T3","T4","T5","T6","T7"];
+
+let entries = [], farm = "all", season = "all", type = "xuat", screen = "home";
+let db = null, sample = null, canWrite = null, user = null;
+let allDocs = [], trash = [], reminders = [], backups = [], me = "", isOwner = false, names = {}, editingId = null;
+let gotEntries = false, gotRems = false, backupChecked = false;
+let assignments = {}, myFarm = null, myName = "";
+const visible = () => myFarm ? entries.filter(e => Number(e.farm) === myFarm) : entries;
+const visRems = () => myFarm ? reminders.filter(r => !Number(r.farm) || Number(r.farm) === myFarm) : reminders;
+const mine = x => !myFarm || Number(x.farm) === myFarm;
+function applyRole(){
+  const a = assignments[me];
+  myFarm = a && [1,2,3].includes(Number(a.farm)) ? Number(a.farm) : null;
+  if (myFarm) farm = String(myFarm);
+  ["#f_farm","#r_farm"].forEach(id => { const s = $(id); if (myFarm){ s.value = String(myFarm); s.disabled = true; } else s.disabled = false; });
+  $("#tilePq").hidden = !isOwner;
+}
+const stamp = () => ({updatedAt: Date.now(), updatedBy: me});
+const nameOf = id => id === me ? "bạn" : (names[id] || "thành viên");
+const hm = t => { const d = new Date(t); return `${pad(d.getHours())}:${pad(d.getMinutes())} ${pad(d.getDate())}/${pad(d.getMonth()+1)}`; };
+function whoLine(x){
+  if (x.deleted && x.deletedBy) return `<div class="who">${ic("trash-2")}Xóa bởi ${esc(nameOf(x.deletedBy))}${x.deletedAt?` · ${hm(x.deletedAt)}`:""}</div>`;
+  const by = x.updatedBy || x.createdBy; if (!by) return "";
+  const t = x.updatedBy ? x.updatedAt : x.createdAt;
+  return `<div class="who">${ic(x.updatedBy?"pencil":"user-round")}${x.updatedBy?"Sửa":"Nhập"} bởi ${esc(nameOf(by))}${t?` · ${hm(t)}`:""}</div>`;
+}
+try { const r = JSON.parse(localStorage.getItem("svcd-ui")||"{}"); farm = r.farm||"all"; season = r.season||"all"; } catch(e){}
+const saveUi = () => { try { localStorage.setItem("svcd-ui", JSON.stringify({farm, season})); } catch(e){} };
+
+/* ---------- navigation ---------- */
+function go(name){
+  screen = name;
+  const generic = ["phun","bon","trong","cachly"].includes(name);
+  document.querySelectorAll("[data-screen]").forEach(s => s.hidden = s.dataset.screen !== (generic ? "list" : name));
+  $("#screenTitle").textContent = TITLES[name] || "";
+  const isHome = name === "home";
+  $("#backBtn").innerHTML = ic(isHome ? "user-round" : "arrow-left");
+  $("#backBtn").setAttribute("aria-label", isHome ? "Vai trò xem thử" : "Quay lại");
+  const tab = ["home","nhap","weather","ai"].includes(name) ? name : "home";
+  document.querySelectorAll(".tabbar [data-tab]").forEach(b => b.dataset.tab===tab ? b.setAttribute("aria-current","page") : b.removeAttribute("aria-current"));
+  window.scrollTo({top:0});
+  render();
+  if (name === "weather") wEnsure();
+  if (name === "baove" && isOwner) loadBackups().then(render);
+}
+document.addEventListener("click", e => {
+  const g = e.target.closest("[data-go]"); if (g) go(g.dataset.go);
+  const t = e.target.closest(".tabbar [data-tab]"); if (t) go(t.dataset.tab);
+});
+$("#backBtn").addEventListener("click", () => go(screen === "home" ? "vaitro" : "home"));
+$("#bellBtn").addEventListener("click", () => go("nhac"));
+
+/* ---------- filters ---------- */
+const seasonsList = () => [...new Set(entries.map(e=>e.season).filter(Boolean))].sort().reverse();
+function filtersHTML(withFarm=true){
+  const list = seasonsList();
+  if (season !== "all" && !list.includes(season)) season = "all";
+  if (myFarm) return (withFarm ? `<span class="chip" aria-pressed="true">${ic("lock")}Farm ${myFarm} của bạn</span>` : "") + seasonSelect(list);
+  const farms = withFarm ? [["all","Tất cả"],["1","Farm 1"],["2","Farm 2"],["3","Farm 3"]].map(([v,l]) =>
+    `<button type="button" class="chip" data-farm="${v}" aria-pressed="${farm===v}">${v==="all"?ic("layers"):ic("warehouse")}${l}</button>`).join("") : "";
+  return farms + seasonSelect(list);
+}
+const seasonSelect = list => `<select data-season aria-label="Mùa vụ"><option value="all">Mọi mùa vụ</option>${list.map(s=>`<option ${s===season?"selected":""}>${esc(s)}</option>`).join("")}</select>`;
+document.addEventListener("click", e => { const b = e.target.closest("[data-farm]"); if (!b || myFarm) return; farm = b.dataset.farm; saveUi(); render(); });
+document.addEventListener("change", e => { if (e.target.matches("[data-season]")) { season = e.target.value; saveUi(); render(); } });
+const scoped = () => entries.filter(e => (farm==="all" || String(e.farm)===farm) && (season==="all" || e.season===season));
+const scopeLabel = () => `${farm==="all"?"Cả 3 farm":"Farm "+farm} · ${season==="all"?"mọi mùa vụ":season}`;
+
+/* ---------- items ---------- */
+function phiEnd(e){ return e.type==="phun" && Number(e.phi)>0 ? addDays(e.date, Number(e.phi)) : null; }
+function isPlan(e){ return e.plan === true || (e.plan === undefined && e.date > today); }
+function statusPill(e){
+  if (isPlan(e)) return e.date > today ? `<span class="pill p-plan">${ic("clock")}Kế hoạch</span>`
+    : `<span class="pill p-due">${ic("alarm-clock")}${e.date===today?"Hôm nay":"Quá hạn"} · chưa xác nhận</span>`;
+  const end = phiEnd(e);
+  if (end && end > today) return `<span class="pill p-phi">${ic("shield-alert")}Cách ly đến ${vnShort(end)}</span>`;
+  return `<span class="pill p-done">${ic("check")}Đã làm</span>`;
+}
+function details(e){
+  const bits = []; const add = (i,t) => t && bits.push(`<span>${ic(i)}${esc(t)}</span>`);
+  add("warehouse", `Farm ${e.farm}`); add("grid-2x2", e.lot);
+  if (e.type==="xuat"){ add("banknote", e.price?`${Number(e.price).toLocaleString("vi-VN")} đ/kg`:""); add("user-round", e.buyer); }
+  if (e.type==="phun"){ add("beaker", e.dose); add("bug", e.target); }
+  if (e.type==="bon") add("beaker", e.dose);
+  if (e.type==="trong") add("hash", e.plants?`${fmt(Number(e.plants))} cây`:"");
+  return bits.join("");
+}
+function title(e){
+  if (e.type==="xuat") return `${GRADES.find(g=>g.k===e.grade)?.n||"Xuất hàng"} · ${fmt(Number(e.kg)||0)} kg`;
+  if (e.type==="trong") return e.variety || "Trồng cây";
+  return e.product || TYPE[e.type].n;
+}
+function actsHTML(e, o){
+  const id = esc(e.id), a = [];
+  if (!mine(e)) return "";
+  if (o.trash){
+    if (canWrite !== false) a.push(`<button type="button" class="btn sm primary" data-act="restore" data-id="${id}">${ic("undo-2")}Khôi phục</button>`);
+    if (isOwner) a.push(`<button type="button" class="btn sm ghost danger" data-act="purge" data-id="${id}">${ic("x")}Xóa vĩnh viễn</button>`);
+  } else if (o.actions && canWrite !== false){
+    if (isPlan(e) && e.date <= today) a.push(`<button type="button" class="btn sm primary" data-act="done" data-id="${id}">${ic("check")}Đã làm</button>`);
+    a.push(`<button type="button" class="btn sm ghost" data-act="edit" data-id="${id}">${ic("pencil")}Sửa</button>`);
+    a.push(`<button type="button" class="btn sm ghost danger" data-act="del" data-id="${id}">${ic("trash-2")}Xóa</button>`);
+  }
+  return a.length ? `<span class="acts">${a.join("")}</span>` : "";
+}
+function itemHTML(e, o={}){
+  return `<li class="item ${isPlan(e)&&e.date>today?"plan":""}">
+    ${o.icon ? `<span class="tico ${TYPE[e.type].c}">${ic(TYPE[e.type].i)}</span>` : ""}
+    <div class="datebox"><b>${e.date.slice(8,10)}</b><span>TH ${Number(e.date.slice(5,7))}</span></div>
+    <div class="body"><div class="t">${esc(title(e))}</div><div class="d">${details(e)}</div>
+      ${e.note && !e.sample ? `<div class="d"><span>${ic("message-square-text")}${esc(e.note)}</span></div>`:""}
+      ${whoLine(e)}
+      <div class="row">${o.status!==false && !o.trash?statusPill(e):""}${actsHTML(e,o)}</div>
+    </div></li>`;
+}
+function remHTML(r){
+  const due = !r.done && r.date && r.date <= today;
+  return `<li class="item ${r.done?"done":""}">
+    <button type="button" class="check" data-act="rem-toggle" data-id="${esc(r.id)}" aria-pressed="${!!r.done}" aria-label="Đánh dấu xong">${ic("check")}</button>
+    <div class="datebox"><b>${r.date?r.date.slice(8,10):"--"}</b><span>${r.date?`TH ${Number(r.date.slice(5,7))}`:""}</span></div>
+    <div class="body"><div class="t">${esc(r.title)}</div>
+      <div class="d"><span>${ic("warehouse")}${Number(r.farm)?`Farm ${esc(r.farm)}`:"Chung"}</span></div>
+      ${whoLine(r)}
+      <div class="row">${due?`<span class="pill p-due">${ic("alarm-clock")}${r.date===today?"Hôm nay":"Quá hạn"}</span>`:""}${canWrite!==false && (!myFarm || Number(r.farm)===myFarm)?`<span class="acts"><button type="button" class="btn sm ghost danger" data-act="rem-del" data-id="${esc(r.id)}">${ic("trash-2")}Xóa</button></span>`:""}</div>
+    </div></li>`;
+}
+function phiDoneHTML(e, end){
+  return `<li class="item"><span class="tico c-green">${ic("shield-check")}</span>
+    <div class="datebox"><b>${end.slice(8,10)}</b><span>TH ${Number(end.slice(5,7))}</span></div>
+    <div class="body"><div class="t">Hết cách ly: ${esc(e.lot||"lô chưa ghi")}</div>
+    <div class="d"><span>${ic("warehouse")}Farm ${esc(e.farm)}</span><span>${ic("spray-can")}${esc(e.product)}</span></div>
+    <div class="row"><span class="pill p-plan">${ic("apple")}Được thu hái từ ${vnShort(end)}</span></div></div></li>`;
+}
+function dueCount(){
+  return visible().filter(e=>isPlan(e) && e.date<=today).length + visRems().filter(r=>!r.done && r.date && r.date<=today).length;
+}
+function autoItems(days){
+  const lim = addDays(today, days), out = [];
+  visible().filter(e=>isPlan(e) && e.date<=lim).forEach(e=>out.push({d:e.date, h:itemHTML(e,{icon:true,actions:true})}));
+  visible().forEach(e=>{ const end = phiEnd(e); if (end && e.date<=today && end>=today && end<=addDays(today,3)) out.push({d:end, h:phiDoneHTML(e,end)}); });
+  return out;
+}
+const schedule = list => [...list.filter(e=>e.date>today).sort((a,b)=>a.date.localeCompare(b.date)), ...list.filter(e=>e.date<=today).sort((a,b)=>b.date.localeCompare(a.date))];
+const inPhi = () => visible().filter(e => { const end = phiEnd(e); return end && e.date <= today && end > today; });
+
+function gradeTotals(list){
+  const by = Object.fromEntries(GRADES.map(g=>[g.k,0]));
+  list.filter(e=>e.type==="xuat").forEach(e => by[e.grade] = (by[e.grade]||0) + (Number(e.kg)||0));
+  return {by, total:Object.values(by).reduce((a,b)=>a+b,0)};
+}
+function gradesHTML({by,total}){
+  return GRADES.map(g => `<div class="grade" style="background:${g.s}"><span class="ic" style="color:${g.c}">${ic(g.i)}</span>
+    <div style="min-width:0"><div class="n" style="color:${g.c}">${g.n}</div><div class="v">${fmt(by[g.k])} kg</div><div class="p">${total?Math.round(by[g.k]/total*100):0}%</div></div></div>`).join("");
+}
+const stackHTML = ({by,total}) => total ? GRADES.filter(g=>by[g.k]).map(g=>`<span style="width:${by[g.k]/total*100}%;background:${g.c}"></span>`).join("") : "";
+
+/* ---------- local storage helpers ---------- */
+function lsGet(k, d){ try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : d; } catch(e){ return d; } }
+function lsSet(k, v){ try { localStorage.setItem(k, JSON.stringify(v)); return true; } catch(e){ return false; } }
+const norm = s => String(s||"").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/đ/g, "d");
+
+/* ---------- weather: live Open-Meteo, several sources, trial consensus rule ---------- */
+const W_MODELS = [
   {k:"ecmwf", n:"ECMWF", c:"Châu Âu", ids:["ecmwf_ifs025","ecmwf_ifs"]},
   {k:"gfs", n:"GFS", c:"Mỹ", ids:["gfs_seamless","ncep_gfs_seamless"]},
   {k:"icon", n:"ICON", c:"Đức", ids:["icon_seamless","icon_global"]},
@@ -190,259 +817,821 @@ const MODELS = [
   {k:"mf", n:"ARPEGE", c:"Pháp", ids:["meteofrance_seamless","meteofrance_arpege_world"]},
   {k:"gem", n:"GEM", c:"Canada", ids:["gem_seamless","gem_global"]},
 ];
-const VARS = "precipitation,temperature_2m,wind_speed_10m,wind_gusts_10m,relative_humidity_2m";
-const API = "https://api.open-meteo.com/v1/forecast";
-const CACHE_MIN = 60;
-const DEFAULT = {lat:14.61, lng:108.27};
-const WDS = ["CN","T2","T3","T4","T5","T6","T7"];
-const $ = s => document.querySelector(s);
-const ic = n => `<i data-lucide="${n}"></i>`;
-const icons = () => { try { window.lucide && lucide.createIcons(); } catch(e){} };
-const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
-const store = {
-  get(k, d){ try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : d; } catch(e){ return d; } },
-  set(k, v){ try { localStorage.setItem(k, JSON.stringify(v)); } catch(e){} },
-};
+const W_VARS = "precipitation,temperature_2m,wind_speed_10m,wind_gusts_10m,relative_humidity_2m";
+const W_API = "https://api.open-meteo.com/v1/forecast";
+const W_VERD = {mua:{n:"Mưa", i:"cloud-rain", c:"v-mua"}, kho:{n:"Không mưa", i:"sun", c:"v-kho"}, chua:{n:"Chưa chắc chắn", i:"circle-help", c:"v-chua"}, thieu:{n:"Thiếu nguồn", i:"circle-slash", c:"v-thieu"}};
+const DEFAULT_PIN = {lat:14.61, lng:108.27};
+let pins = {}, wxSel = lsGet("svcd-wx", null), gpsLoc = null, wData = null, wLoading = false;
+let wRules = Object.assign({min:3, pct:70, mm:0.5, gust:25}, lsGet("svcd-wrules", {}));
+let actuals = [];
 
-let pins = store.get("ttf-pins", {});
-let rules = Object.assign({min:3, pct:70, mm:0.5, gust:25}, store.get("ttf-rules", {}));
-let sel = store.get("ttf-sel", "1");
-let gps = null, data = null, loading = false;
+function pinOf(f){
+  const p = pins[f];
+  if (p && Number.isFinite(+p.lat) && Number.isFinite(+p.lng)) return {key:f, name:p.name || `Farm ${f}`, lat:+p.lat, lng:+p.lng, pinned:true};
+  return {key:f, name:`Farm ${f}`, lat:DEFAULT_PIN.lat, lng:DEFAULT_PIN.lng, pinned:false};
+}
+function curLoc(){
+  if (wxSel === "gps" && gpsLoc) return gpsLoc;
+  const f = ["1","2","3"].includes(wxSel) ? wxSel : (myFarm ? String(myFarm) : "1");
+  return pinOf(f);
+}
+const wKey = loc => `svcd-wcache-${loc.lat.toFixed(3)},${loc.lng.toFixed(3)}`;
+const wSame = (a, b) => a && b && Math.abs(a.lat-b.lat) < 1e-4 && Math.abs(a.lng-b.lng) < 1e-4;
+const wRound = (x, d=0) => x === null || x === undefined ? "–" : (Math.round(x*10**d)/10**d).toLocaleString("vi-VN");
+function wMedian(a){ if (!a.length) return null; const s = [...a].sort((x,y)=>x-y); return s[Math.floor(s.length/2)]; }
 
-/* ---------- locations ---------- */
-function pinOf(k){
-  const p = pins[k];
-  return p && Number.isFinite(p.lat) ? {key:k, name:p.name || `Farm ${k}`, lat:p.lat, lng:p.lng, pinned:true}
-    : {key:k, name:`Farm ${k}`, lat:DEFAULT.lat, lng:DEFAULT.lng, pinned:false};
-}
-const curLoc = () => sel === "gps" && gps ? gps : pinOf(sel === "gps" ? "1" : sel);
-function renderLocs(){
-  $("#locs").innerHTML = ["1","2","3"].map(k => { const p = pinOf(k);
-    return `<button type="button" class="chip" data-loc="${k}" aria-pressed="${sel===k}">${ic(p.pinned?"map-pin":"map-pin-off")}${esc(p.name)}</button>`; }).join("")
-    + `<button type="button" class="chip" data-loc="gps" aria-pressed="${sel==="gps"}">${ic("locate-fixed")}Vị trí của tôi</button>`;
-  $("#editPin").hidden = sel === "gps";
-}
-function locate(){
-  return new Promise((res, rej) => {
-    if (!navigator.geolocation) return rej(new Error("Trình duyệt không hỗ trợ định vị."));
-    navigator.geolocation.getCurrentPosition(
-      p => res({lat:+p.coords.latitude.toFixed(4), lng:+p.coords.longitude.toFixed(4)}),
-      e => rej(new Error(e.code === 1 ? "Bạn chưa cho phép truy cập vị trí. Bật quyền vị trí cho trình duyệt rồi thử lại." : "Không lấy được vị trí. Thử lại ở nơi có sóng GPS tốt hơn.")),
-      {enableHighAccuracy:true, timeout:15000, maximumAge:120000});
-  });
-}
-$("#locs").addEventListener("click", async ev => {
-  const b = ev.target.closest("[data-loc]"); if (!b) return;
-  $("#pinForm").hidden = true;
-  if (b.dataset.loc !== "gps"){ sel = b.dataset.loc; store.set("ttf-sel", sel); renderLocs(); load(); return; }
-  showMsg("warn", "locate-fixed", "Đang lấy vị trí của bạn…");
-  try { const p = await locate(); gps = {key:"gps", name:"Chỗ bạn đang đứng", ...p, pinned:true}; sel = "gps"; store.set("ttf-sel", "1"); showMsg(); renderLocs(); load(); }
-  catch(e){ showMsg("err", "locate-off", e.message); }
-});
-
-/* pin editing */
-function parseCoord(s){
-  const m = String(s).match(/(-?\d{1,2}\.\d+)\s*,\s*(-?\d{1,3}\.\d+)/);
-  if (!m) return null; const lat = +m[1], lng = +m[2];
-  return Math.abs(lat) <= 90 && Math.abs(lng) <= 180 ? {lat, lng} : null;
-}
-$("#editPin").addEventListener("click", () => {
-  const l = curLoc(); $("#pinName").value = l.name; $("#pinCoord").value = l.pinned ? `${l.lat}, ${l.lng}` : "";
-  $("#pinMsg").textContent = ""; $("#pinForm").hidden = false; $("#pinCoord").focus();
-});
-$("#pinCancel").addEventListener("click", () => { $("#pinForm").hidden = true; });
-$("#pinHere").addEventListener("click", async () => {
-  $("#pinMsg").textContent = "Đang lấy vị trí…";
-  try { const p = await locate(); $("#pinCoord").value = `${p.lat}, ${p.lng}`; $("#pinMsg").textContent = "Đã điền vị trí đang đứng. Bấm Lưu để ghim."; }
-  catch(e){ $("#pinMsg").textContent = e.message; }
-});
-$("#pinForm").addEventListener("submit", ev => {
-  ev.preventDefault();
-  const c = parseCoord($("#pinCoord").value);
-  if (!c){ $("#pinMsg").textContent = "Không đọc được tọa độ. Dán dạng 14.6125, 108.2710."; return; }
-  pins[sel] = {name:$("#pinName").value.trim() || `Farm ${sel}`, ...c};
-  store.set("ttf-pins", pins); $("#pinForm").hidden = true; renderLocs(); load(true);
-});
-
-/* ---------- fetching ---------- */
-async function fetchModel(m, loc){
+async function wFetchModel(m, loc){
   let lastErr = "";
   for (const id of m.ids){
-    const url = `${API}?latitude=${loc.lat}&longitude=${loc.lng}&hourly=${VARS}&models=${id}&forecast_days=7&timezone=auto`;
+    const url = `${W_API}?latitude=${loc.lat}&longitude=${loc.lng}&hourly=${W_VARS}&models=${id}&forecast_days=7&timezone=auto`;
     try {
       const r = await fetch(url);
       const j = await r.json().catch(() => ({}));
-      if (r.ok && j.hourly && j.hourly.time) return {ok:true, id, h:j.hourly, tz:j.timezone};
+      if (r.ok && j.hourly && j.hourly.time) return {ok:true, id, h:j.hourly};
       lastErr = j.reason || `Lỗi ${r.status}`;
       if (r.status === 429) break;
     } catch(e){ lastErr = "Không kết nối được"; break; }
   }
   return {ok:false, err:lastErr};
 }
-function showMsg(kind, icon, text){
-  $("#msg").innerHTML = kind ? `<div class="note ${kind==="err"?"n-err":"n-warn"}">${ic(icon)}<span>${esc(text)}</span></div>` : ""; icons();
+function wMsg(kind, icon, text){
+  $("#wxMsg").innerHTML = kind ? `<div class="section" style="padding-bottom:0"><div class="tip-box ${kind==="err"?"tip-err":""}">${ic(icon)}<span>${esc(text)}</span></div></div>` : "";
+  icons();
 }
-async function load(force){
+function wEnsure(){
   const loc = curLoc();
-  const key = `ttf-cache-${loc.lat.toFixed(3)},${loc.lng.toFixed(3)}`;
-  const cached = store.get(key, null);
-  if (cached){ data = cached; render(); }
-  if (!force && cached && Date.now() - cached.at < CACHE_MIN*60000) return;
-  if (loading) return; loading = true; $("#refresh").classList.add("spin");
-  const res = await Promise.all(MODELS.map(m => fetchModel(m, loc)));
-  loading = false; $("#refresh").classList.remove("spin");
-  const okN = res.filter(r => r.ok).length;
-  if (!okN){
-    showMsg("err", "wifi-off", cached ? "Không tải được dự báo mới. Đang hiện bản lưu lúc " + hm(cached.at) + "." : "Không tải được dự báo. Kiểm tra kết nối mạng rồi bấm nút tải lại.");
+  if (!wData || !wSame(wData.loc, loc) || Date.now() - wData.at > 3600e3) wLoad(false);
+}
+async function wLoad(force){
+  const loc = curLoc();
+  const cached = lsGet(wKey(loc), null);
+  wData = cached && wSame(cached.loc, loc) ? cached : null;
+  if (screen === "weather") renderWeather();
+  renderWeatherBits();
+  if (!force && wData && Date.now() - wData.at < 3600e3) return;
+  if (wLoading) return;
+  wLoading = true; $("#wxRefresh").classList.add("spin");
+  const res = await Promise.all(W_MODELS.map(m => wFetchModel(m, loc)));
+  wLoading = false; $("#wxRefresh").classList.remove("spin");
+  if (!res.some(r => r.ok)){
+    wMsg("err", "wifi-off", wData ? `Không tải được dự báo mới. Đang hiện bản lưu lúc ${hm(wData.at)}.` : "Không tải được dự báo. Kiểm tra mạng rồi bấm Tải lại.");
     return;
   }
-  showMsg();
-  data = {at:Date.now(), loc, res}; store.set(key, data); render();
+  wMsg();
+  if (!wSame(curLoc(), loc)) return; // user switched location while loading
+  wData = {at:Date.now(), loc:{key:loc.key, name:loc.name, lat:loc.lat, lng:loc.lng, pinned:loc.pinned}, res};
+  lsSet(wKey(loc), wData);
+  if (screen === "weather") renderWeather();
+  renderWeatherBits();
 }
-$("#refresh").addEventListener("click", () => load(true));
+$("#wxRefresh").addEventListener("click", () => wLoad(true));
 
-/* ---------- consensus ---------- */
-const hm = t => { const d = new Date(t); return `${String(d.getHours()).padStart(2,"0")}:${String(d.getMinutes()).padStart(2,"0")}`; };
-function median(a){ if (!a.length) return null; const s = [...a].sort((x,y)=>x-y); return s[Math.floor(s.length/2)]; }
-function decide(vals, thr){
+function wDecide(vals, thr){
   const av = vals.filter(v => v && v.mm !== null), n = av.length;
-  const rain = av.filter(v => v.mm >= thr).length, dry = n - rain, need = rules.pct/100;
-  const v = n < rules.min ? "thieu" : (rain >= rules.min && rain/n >= need) ? "mua" : (dry >= rules.min && dry/n >= need) ? "kho" : "chua";
-  return {v, n, rain, dry,
-    t: median(av.map(x=>x.t).filter(x=>x!==null)), tmax: median(av.map(x=>x.tmax).filter(x=>x!=null)), tmin: median(av.map(x=>x.tmin).filter(x=>x!=null)),
-    gust: median(av.map(x=>x.gust).filter(x=>x!==null)), wind: median(av.map(x=>x.wind).filter(x=>x!==null)),
-    hum: median(av.map(x=>x.hum).filter(x=>x!==null)), mm: median(av.filter(x=>x.mm>=thr).map(x=>x.mm))};
+  const rain = av.filter(v => v.mm >= thr).length, dry = n - rain, need = wRules.pct/100;
+  const v = n < wRules.min ? "thieu" : (rain >= wRules.min && rain/n >= need) ? "mua" : (dry >= wRules.min && dry/n >= need) ? "kho" : "chua";
+  const pick = k => av.map(x => x[k]).filter(x => x !== null && x !== undefined);
+  return {v, n, rain, dry, t:wMedian(pick("t")), tmax:wMedian(pick("tmax")), tmin:wMedian(pick("tmin")),
+    gust:wMedian(pick("gust")), wind:wMedian(pick("wind")), hum:wMedian(pick("hum")), mm:wMedian(av.filter(x => x.mm >= thr).map(x => x.mm))};
 }
-const VERD = {mua:{n:"Mưa", i:"cloud-rain", c:"v-mua"}, kho:{n:"Không mưa", i:"sun", c:"v-kho"}, chua:{n:"Chưa chắc chắn", i:"circle-help", c:"v-chua"}, thieu:{n:"Thiếu nguồn", i:"circle-slash", c:"v-thieu"}};
-const round = (x, d=0) => x === null || x === undefined ? "–" : (Math.round(x*10**d)/10**d).toLocaleString("vi-VN");
-function sliceModel(r, idx){
+function wSlice(r, idx){
   if (!r.ok) return null;
-  const H = r.h, pick = (arr) => idx.map(i => arr ? arr[i] : null);
-  const p = pick(H.precipitation), t = pick(H.temperature_2m), w = pick(H.wind_speed_10m), g = pick(H.wind_gusts_10m), u = pick(H.relative_humidity_2m);
-  if (p.every(x => x === null || x === undefined)) return null;
-  const nn = a => a.filter(x => x !== null && x !== undefined);
-  return {mm: nn(p).reduce((a,b)=>a+b, 0), t: nn(t).length ? nn(t)[Math.floor(nn(t).length/2)] : null,
-    tmax: nn(t).length ? Math.max(...nn(t)) : null, tmin: nn(t).length ? Math.min(...nn(t)) : null,
-    wind: nn(w).length ? Math.max(...nn(w)) : null, gust: nn(g).length ? Math.max(...nn(g)) : null, hum: nn(u).length ? Math.max(...nn(u)) : null};
+  const H = r.h, nn = a => a.filter(x => x !== null && x !== undefined);
+  const p = idx.map(i => H.precipitation ? H.precipitation[i] : null);
+  if (!nn(p).length) return null;
+  const t = nn(idx.map(i => H.temperature_2m?.[i])), w = nn(idx.map(i => H.wind_speed_10m?.[i])),
+        g = nn(idx.map(i => H.wind_gusts_10m?.[i])), u = nn(idx.map(i => H.relative_humidity_2m?.[i]));
+  return {mm:nn(p).reduce((a,b) => a+b, 0), t:t.length ? t[Math.floor(t.length/2)] : null,
+    tmax:t.length ? Math.max(...t) : null, tmin:t.length ? Math.min(...t) : null,
+    wind:w.length ? Math.max(...w) : null, gust:g.length ? Math.max(...g) : null, hum:u.length ? Math.max(...u) : null};
 }
-function build(){
-  const ref = data.res.find(r => r.ok); const times = ref.h.time;
-  const localNow = (() => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}T${String(d.getHours()).padStart(2,"0")}:00`; })();
+function wBuild(){
+  const ref = wData.res.find(r => r.ok), times = ref.h.time;
+  const d = new Date(), slotStart = `${iso(d)}T${pad(Math.floor(d.getHours()/3)*3)}:00`;
   const slots = [];
-  for (let i = 0; i < times.length; i += 1){
-    const hr = +times[i].slice(11,13);
-    if (hr % 3 !== 0) continue;
-    if (times[i] < localNow.slice(0,11) + String(Math.floor(+localNow.slice(11,13)/3)*3).padStart(2,"0") + ":00") continue;
+  for (let i = 0; i < times.length && slots.length < 16; i++){
+    if (+times[i].slice(11,13) % 3 !== 0 || times[i] < slotStart) continue;
     const idx = [i, i+1, i+2].filter(j => j < times.length);
-    const vals = data.res.map(r => sliceModel(r, idx));
-    slots.push({time:times[i], vals, d:decide(vals, rules.mm)});
-    if (slots.length >= 16) break;
+    const vals = wData.res.map(r => wSlice(r, idx));
+    slots.push({time:times[i], vals, d:wDecide(vals, wRules.mm)});
   }
   const byDay = {};
   times.forEach((t, i) => { (byDay[t.slice(0,10)] ||= []).push(i); });
   const days = Object.entries(byDay).slice(0,7).map(([date, idx]) => {
-    const vals = data.res.map(r => sliceModel(r, idx));
     const work = idx.filter(i => { const h = +times[i].slice(11,13); return h >= 6 && h <= 17; });
-    const wvals = data.res.map(r => sliceModel(r, work));
-    return {date, vals, d:decide(vals, 1), work:decide(wvals, 1)};
+    const vals = wData.res.map(r => wSlice(r, idx));
+    return {date, vals, d:wDecide(vals, 1), work:wDecide(wData.res.map(r => wSlice(r, work)), 1)};
   });
   return {slots, days};
 }
-function sprayDay(d){
-  const g = d.gust ?? 0, gtxt = `gió giật ${round(g)} km/h`;
+function wSprayDay(d){
+  const g = d.gust ?? 0, gtxt = `gió giật ${wRound(g)} km/h`;
   if (d.v === "mua") return {c:"a-no", i:"ban", t:"Không nên phun", why:`Mưa trong giờ làm việc (${d.rain}/${d.n} nguồn)`};
-  if (g >= rules.gust) return {c:"a-no", i:"ban", t:"Không nên phun", why:`Giờ làm việc ${gtxt}`};
+  if (g >= wRules.gust) return {c:"a-no", i:"ban", t:"Không nên phun", why:`Giờ làm việc ${gtxt}`};
   if (d.v === "thieu") return {c:"a-mid", i:"triangle-alert", t:"Cân nhắc", why:"Chưa đủ nguồn dự báo"};
   if (d.v !== "kho") return {c:"a-mid", i:"triangle-alert", t:"Cân nhắc", why:`Giờ làm việc chưa chắc có mưa (${d.rain}/${d.n} nguồn)`};
-  if (g >= rules.gust*0.7) return {c:"a-mid", i:"triangle-alert", t:"Cân nhắc", why:`Khô ráo nhưng ${gtxt}`};
+  if (g >= wRules.gust*0.7) return {c:"a-mid", i:"triangle-alert", t:"Cân nhắc", why:`Khô ráo nhưng ${gtxt}`};
   return {c:"a-ok", i:"circle-check", t:"Nên phun", why:`Khô ráo, ${gtxt}`};
 }
-const label = t => { const d = new Date(t.slice(0,10)+"T00:00"); return `${WDS[d.getDay()]} ${t.slice(8,10)}/${t.slice(5,7)}`; };
-function vicon(d, hr){ return d.v === "kho" ? (hr >= 18 || hr < 6 ? "moon" : "sun") : VERD[d.v].i; }
+function wSprayToday(B){
+  const today0 = B.days[0].date;
+  const day = B.slots.filter(s => s.time.startsWith(today0) && +s.time.slice(11,13) >= 6 && +s.time.slice(11,13) <= 15);
+  const hh = s => `${+s.time.slice(11,13)}h`;
+  const good = day.filter(s => s.d.v === "kho" && (s.d.gust ?? 0) < wRules.gust*0.7).map(hh);
+  const rainy = day.filter(s => s.d.v === "mua").map(hh), windy = day.filter(s => (s.d.gust ?? 0) >= wRules.gust).map(hh);
+  if (!day.length) return {c:"a-mid", i:"moon", t:"Hết giờ phun hôm nay", why:"Xem gợi ý các ngày tới bên dưới."};
+  if (good.length >= 2) return {c:"a-ok", i:"circle-check", t:"Nên phun", why:`Các nguồn thống nhất khô ráo, gió nhẹ vào ${good.join(", ")}.`};
+  if (good.length === 1) return {c:"a-mid", i:"triangle-alert", t:"Cân nhắc", why:`Chỉ khung ${good[0]} là khô ráo chắc chắn.`};
+  return {c:"a-no", i:"ban", t:"Không nên phun", why: rainy.length ? `Đủ nguồn đồng thuận có mưa lúc ${rainy.join(", ")}.` : windy.length ? `Gió giật mạnh lúc ${windy.join(", ")}.` : "Các nguồn chưa thống nhất, chưa đủ chắc để phun."};
+}
+const wLabel = t => { const d = new Date(t.slice(0,10)+"T00:00"); return `${WDS[d.getDay()]} ${t.slice(8,10)}/${t.slice(5,7)}`; };
+const wIcon = (d, h) => d.v === "kho" ? (h >= 18 || h < 6 ? "moon" : "sun") : W_VERD[d.v].i;
 
-/* ---------- render ---------- */
-function render(){
-  renderLocs();
-  const loc = data ? data.loc : curLoc();
-  $("#windy").href = `https://www.windy.com/?${loc.lat.toFixed(3)},${loc.lng.toFixed(3)},11`;
-  $("#ruleText").textContent = `Đang dùng: báo Mưa khi ít nhất ${rules.min} nguồn báo mưa và chiếm từ ${rules.pct}% số nguồn có dữ liệu. Không mưa cũng tính tương tự. Còn lại là Chưa chắc chắn.`;
-  if (!data){ $("#now").innerHTML = `<div class="loc">${ic("loader")}Đang tải dự báo…</div>`; icons(); return; }
-  const okN = data.res.filter(r=>r.ok).length;
-  $("#status").innerHTML = `${ic("clock")}Cập nhật ${hm(data.at)} · ${okN}/${MODELS.length} nguồn trả dữ liệu · ${loc.lat}, ${loc.lng}`;
-  $("#srcs").innerHTML = MODELS.map((m,i) => { const r = data.res[i];
-    return `<div class="src"><span class="dot ${r.ok?"ok":"bad"}"></span><div style="min-width:0"><b>${m.n}</b> · ${m.c}<br><span class="hint">${r.ok?"Có dữ liệu":esc(r.err||"Không có dữ liệu")}</span></div></div>`; }).join("");
-  const {slots, days} = build();
-  const s0 = slots[0], d0 = days[0];
+function renderWeatherBits(){
+  const now = new Date();
+  $("#greetTitle").textContent = myName ? `Chào ${myName},` : "Chào anh,";
+  $("#greetSub").textContent = `${myFarm?`Quản lý Farm ${myFarm} · `:""}${WD[now.getDay()]}, ${vnDate(today)}`;
+  if (!wData || !wSame(wData.loc, curLoc()) || !wData.res.some(r => r.ok)) return;
+  try {
+    const B = wBuild(), s0 = B.slots[0], a = wSprayToday(B);
+    if (s0){ $("#badgeIcon").innerHTML = ic(wIcon(s0.d, +s0.time.slice(11,13))); $("#badgeTemp").textContent = `${wRound(s0.d.t)}°`; }
+    $("#stripCond").innerHTML = `${esc(wData.loc.name)} · ${s0 ? W_VERD[s0.d.v].n : ""}<br><span class="advice ${a.c}">${ic(a.i)}${a.t} hôm nay</span>`;
+    icons();
+  } catch(e){}
+}
+function renderWeather(){
+  const loc = curLoc(), sel = wxSel === "gps" && gpsLoc ? "gps" : loc.key;
+  $("#wxLocs").innerHTML = ["1","2","3"].map(f => { const p = pinOf(f);
+      return `<button type="button" class="chip" data-wxloc="${f}" aria-pressed="${sel===f}">${ic(p.pinned?"map-pin":"map-pin-off")}${esc(p.name)}</button>`; }).join("")
+    + `<button type="button" class="chip" data-wxloc="gps" aria-pressed="${sel==="gps"}">${ic("locate-fixed")}Vị trí của tôi</button>`;
+  $("#windyLink").href = `https://www.windy.com/?${loc.lat.toFixed(3)},${loc.lng.toFixed(3)},11`;
+  $("#pinEditBtn").hidden = !isOwner || sel === "gps";
+  fillRuleSelects();
+  $("#ruleText").textContent = `Đang dùng: báo Mưa khi ít nhất ${wRules.min} nguồn báo mưa và chiếm từ ${wRules.pct}% số nguồn có dữ liệu. Không mưa cũng tính tương tự. Còn lại là Chưa chắc chắn.`;
+  renderActuals();
+  if (!wData || !wSame(wData.loc, loc)){
+    $("#wxNow").innerHTML = `<div class="loc">${ic("loader")}${esc(loc.name)} · đang tải dự báo…</div>`;
+    ["#wxAlert","#wxSlots","#wxDays","#wxSrcs"].forEach(id => $(id).innerHTML = ""); $("#wxStatus").textContent = "";
+    icons(); return;
+  }
+  const okN = wData.res.filter(r => r.ok).length;
+  $("#wxStatus").innerHTML = `${ic("clock")} Cập nhật ${hm(wData.at)} · ${okN}/${W_MODELS.length} nguồn có dữ liệu · ${loc.lat}, ${loc.lng}`;
+  $("#wxSrcs").innerHTML = W_MODELS.map((m, i) => { const r = wData.res[i];
+    return `<div class="src"><span class="sdot ${r.ok?"ok":"bad"}"></span><div style="min-width:0"><b>${m.n}</b> · ${m.c}<br><span class="sub">${r.ok?"Có dữ liệu":esc(r.err||"Không có dữ liệu")}</span></div></div>`; }).join("");
+  if (!okN){ icons(); return; }
+  const B = wBuild(), s0 = B.slots[0], d0 = B.days[0];
   if (s0){
     const hr = +s0.time.slice(11,13);
-    $("#now").innerHTML = `<div class="loc">${ic(loc.key==="gps"?"locate-fixed":"map-pin")}${esc(loc.name)}${loc.pinned?"":" · chưa ghim, đang dùng Măng Đen"}</div>
-      <div class="tmp">${round(s0.d.t)}°</div>
-      <div class="cond">${VERD[s0.d.v].n} · ${s0.d.rain}/${s0.d.n} nguồn báo mưa (${hr}h–${hr+3}h)</div>
-      <div class="big">${ic(vicon(s0.d, hr))}</div>
-      <div class="meta"><span>${ic("thermometer")}${round(d0.d.tmin)}° – ${round(d0.d.tmax)}°</span><span>${ic("wind")}Gió ${round(s0.d.wind)} km/h</span><span>${ic("tornado")}Giật ${round(s0.d.gust)} km/h</span><span>${ic("droplets")}Ẩm ${round(s0.d.hum)}%</span></div>`;
+    $("#wxNow").innerHTML = `<div class="loc">${ic(loc.key==="gps"?"locate-fixed":"map-pin")}${esc(loc.name)}${loc.pinned?"":" · chưa ghim, đang dùng Măng Đen"}</div>
+      <div class="tmp">${wRound(s0.d.t)}°</div>
+      <div class="cond">${W_VERD[s0.d.v].n} · ${s0.d.rain}/${s0.d.n} nguồn báo mưa (${hr}h–${hr+3}h)</div>
+      <div class="icon">${ic(wIcon(s0.d, hr))}</div>
+      <div class="meta"><span>${ic("thermometer")}${wRound(d0.d.tmin)}° – ${wRound(d0.d.tmax)}°</span><span>${ic("wind")}Gió ${wRound(s0.d.wind)} km/h</span><span>${ic("tornado")}Giật ${wRound(s0.d.gust)} km/h</span><span>${ic("droplets")}Ẩm ${wRound(s0.d.hum)}%</span></div>`;
   }
-  /* spray: daytime slots of today */
-  const today = d0.date, daySlots = slots.filter(s => s.time.startsWith(today) && +s.time.slice(11,13) >= 6 && +s.time.slice(11,13) <= 15);
-  const good = daySlots.filter(s => s.d.v === "kho" && (s.d.gust ?? 0) < rules.gust*0.7).map(s => `${+s.time.slice(11,13)}h`);
-  const rainy = daySlots.filter(s => s.d.v === "mua").map(s => `${+s.time.slice(11,13)}h`);
-  const windy = daySlots.filter(s => (s.d.gust ?? 0) >= rules.gust).map(s => `${+s.time.slice(11,13)}h`);
-  let a;
-  if (!daySlots.length) a = {c:"a-mid", i:"moon", t:"Hết giờ phun hôm nay", why:"Xem gợi ý cho các ngày tới ở bên dưới."};
-  else if (good.length >= 2) a = {c:"a-ok", i:"circle-check", t:"Nên phun", why:`Các nguồn thống nhất khô ráo, gió nhẹ vào ${good.join(", ")}.`};
-  else if (good.length === 1) a = {c:"a-mid", i:"triangle-alert", t:"Cân nhắc", why:`Chỉ khung ${good[0]} là khô ráo chắc chắn.`};
-  else a = {c:"a-no", i:"ban", t:"Không nên phun", why: rainy.length ? `Đủ nguồn đồng thuận có mưa lúc ${rainy.join(", ")}.` : windy.length ? `Gió giật mạnh lúc ${windy.join(", ")}.` : "Các nguồn chưa thống nhất, chưa đủ chắc chắn để phun."};
-  const next = days.slice(1).find(d => sprayDay(d.work).c === "a-ok");
-  $("#spray").innerHTML = `<div class="alert ${a.c}"><span class="ic">${ic(a.i)}</span><div><b>${a.t}</b><span>${a.why}${a.c!=="a-ok"&&next?` Ngày phun tốt tiếp theo: ${label(next.date)}.`:""}</span></div></div>`;
-
-  $("#slots").innerHTML = slots.map(s => { const hr = +s.time.slice(11,13);
+  const a = wSprayToday(B), next = B.days.slice(1).find(d => wSprayDay(d.work).c === "a-ok");
+  const bg = a.c==="a-no"?"var(--red-soft)":a.c==="a-mid"?"var(--amber-soft)":"var(--green-soft)", col = a.c==="a-no"?"var(--red)":a.c==="a-mid"?"var(--amber)":"var(--green)";
+  $("#wxAlert").innerHTML = `<div class="alert" style="background:${bg}"><span class="ic" style="color:${col}">${ic(a.i)}</span><div><b style="color:${col}">${a.t}</b><span>${a.why}${a.c!=="a-ok"&&next?` Ngày phun tốt tiếp theo: ${wLabel(next.date)}.`:""}</span></div></div>`;
+  $("#wxSlots").innerHTML = B.slots.map(s => { const hr = +s.time.slice(11,13);
     return `<details class="slot"><summary>
-      <span class="sh">${hr}h<small>${s.time.startsWith(today)?"Hôm nay":label(s.time)}</small></span>
-      <span class="mid"><span class="top"><span class="vpill ${VERD[s.d.v].c}">${ic(vicon(s.d,hr))}${VERD[s.d.v].n}</span><span class="tnum">${round(s.d.t)}°</span>${s.d.v==="mua"&&s.d.mm?`<span class="hint">~${round(s.d.mm,1)} mm</span>`:""}</span>
-        <span class="votes">${s.vals.map(v => `<span class="vd ${!v?"x":v.mm>=rules.mm?"r":"d"}"></span>`).join("")}<span>${s.d.rain}/${s.d.n} báo mưa</span></span></span>
+      <span class="sh">${hr}h<br><span class="sub" style="font-weight:500;font-size:11px">${s.time.startsWith(d0.date)?"Hôm nay":wLabel(s.time)}</span></span>
+      <span class="mid"><span class="top"><span class="vpill ${W_VERD[s.d.v].c}">${ic(wIcon(s.d,hr))}${W_VERD[s.d.v].n}</span><span class="tmp">${wRound(s.d.t)}°</span>${s.d.v==="mua"&&s.d.mm?`<span class="sub">~${wRound(s.d.mm,1)} mm</span>`:""}</span>
+        <span class="votes">${s.vals.map(v => `<span class="vd ${!v?"x":v.mm>=wRules.mm?"r":"d"}"></span>`).join("")}<span>${s.d.rain}/${s.d.n} báo mưa</span></span></span>
       <span class="chev">${ic("chevron-right")}</span></summary>
-      <div class="tbl"><table><thead><tr><th>Nguồn</th><th>Nước</th><th>Mưa 3h</th><th>Nhiệt</th><th>Gió giật</th></tr></thead><tbody>
-      ${MODELS.map((m,i) => { const v = s.vals[i]; return `<tr><td><b>${m.n}</b></td><td>${m.c}</td>${!v?`<td colspan="3">Không có dữ liệu</td>`:`<td class="n" style="${v.mm>=rules.mm?"color:var(--blue);font-weight:700":""}">${round(v.mm,1)} mm</td><td class="n">${round(v.t)}°</td><td class="n">${round(v.gust)} km/h</td>`}</tr>`; }).join("")}
+      <div class="tblwrap"><table class="mtable"><thead><tr><th>Nguồn</th><th>Nước</th><th class="num">Mưa 3h</th><th class="num">Nhiệt</th><th class="num">Gió giật</th></tr></thead><tbody>
+      ${W_MODELS.map((m, i) => { const v = s.vals[i]; return `<tr><td><b>${m.n}</b></td><td>${m.c}</td>${!v?`<td class="num" colspan="3">Không có dữ liệu</td>`:`<td class="num" style="${v.mm>=wRules.mm?"color:var(--blue);font-weight:700":""}">${wRound(v.mm,1)} mm</td><td class="num">${wRound(v.t)}°</td><td class="num">${wRound(v.gust)} km/h</td>`}</tr>`; }).join("")}
       </tbody></table></div></details>`; }).join("");
-
-  $("#days").innerHTML = days.map((d,i) => { const sp = sprayDay(d.work);
-    return `<li class="day"><div class="dn">${i===0?"Hôm nay":WDS[new Date(d.date+"T00:00").getDay()]}<small>${d.date.slice(8,10)}/${d.date.slice(5,7)}</small></div>
-      <div style="color:${d.d.v==="kho"?"var(--amber)":"var(--blue)"}">${ic(vicon(d.d,12))}</div>
-      <div class="dr"><b style="color:var(--fg)">${VERD[d.d.v].n}</b> · ${d.d.rain}/${d.d.n} báo mưa<br><span class="advice ${sp.c}">${ic(sp.i)}${sp.t}</span><br><span class="hint">${esc(sp.why)}</span></div>
-      <div class="dt">${round(d.d.tmax)}° <small>${round(d.d.tmin)}°</small></div></li>`; }).join("");
+  $("#wxDays").innerHTML = B.days.map((d, i) => { const sp = wSprayDay(d.work);
+    return `<li class="day"><div class="dn">${i===0?"Hôm nay":WDS[new Date(d.date+"T00:00").getDay()]}<small>${vnShort(d.date)}</small></div>
+      <div class="di" style="color:${d.d.v==="kho"?"var(--amber)":"var(--blue)"}">${ic(wIcon(d.d,12))}</div>
+      <div class="dr"><b style="color:var(--fg)">${W_VERD[d.d.v].n}</b> · ${d.d.rain}/${d.d.n} báo mưa<br><span class="advice ${sp.c}" style="margin-top:3px">${ic(sp.i)}${sp.t}</span><br><span class="sub">${esc(sp.why)}</span></div>
+      <div class="dt">${wRound(d.d.tmax)}° <small>${wRound(d.d.tmin)}°</small></div></li>`; }).join("");
   icons();
 }
 
-/* ---------- rule settings ---------- */
-function fillRules(){
-  const opt = (id, list, cur, fmt) => { $(id).innerHTML = list.map(v => `<option value="${v}" ${v==cur?"selected":""}>${fmt(v)}</option>`).join(""); };
-  opt("#rMin", [1,2,3,4,5], rules.min, v => `${v} nguồn`);
-  opt("#rPct", [50,60,70,80,90,100], rules.pct, v => `${v}%`);
-  opt("#rMm", [0.2,0.5,1,2,5], rules.mm, v => `${String(v).replace(".",",")} mm`);
-  opt("#rGust", [15,20,25,30,40], rules.gust, v => `${v} km/h`);
+/* rule settings (trial, per device) */
+function fillRuleSelects(){
+  const opt = (id, list, cur, f) => { $(id).innerHTML = list.map(v => `<option value="${v}" ${v==cur?"selected":""}>${f(v)}</option>`).join(""); };
+  opt("#rMin", [1,2,3,4,5], wRules.min, v => `${v} nguồn`);
+  opt("#rPct", [50,60,70,80,90,100], wRules.pct, v => `${v}%`);
+  opt("#rMm", [0.2,0.5,1,2,5], wRules.mm, v => `${String(v).replace(".",",")} mm`);
+  opt("#rGust", [15,20,25,30,40], wRules.gust, v => `${v} km/h`);
 }
 ["#rMin","#rPct","#rMm","#rGust"].forEach(id => $(id).addEventListener("change", () => {
-  rules = {min:+$("#rMin").value, pct:+$("#rPct").value, mm:+$("#rMm").value, gust:+$("#rGust").value};
-  store.set("ttf-rules", rules); render();
+  wRules = {min:+$("#rMin").value, pct:+$("#rPct").value, mm:+$("#rMm").value, gust:+$("#rGust").value};
+  lsSet("svcd-wrules", wRules); renderWeather(); renderWeatherBits();
 }));
 
-/* Pins sent from Sổ Vườn Chanh Dây arrive in the link (#chon=1&f1=lat,lng,name…) and replace this device's pins. */
-let fromSoVuon = false;
-(function readLink(){
+/* location picking: pinned farms or the phone's GPS */
+function locate(){
+  return new Promise((res, rej) => {
+    if (!navigator.geolocation) return rej(new Error("Trình duyệt không hỗ trợ định vị."));
+    navigator.geolocation.getCurrentPosition(
+      p => res({lat:+p.coords.latitude.toFixed(4), lng:+p.coords.longitude.toFixed(4)}),
+      e => rej(new Error(e.code === 1 ? "Chưa cho phép truy cập vị trí. Bật quyền vị trí cho trình duyệt (hoặc cho app) rồi thử lại." : "Không lấy được vị trí. Thử lại ở nơi có sóng GPS tốt hơn.")),
+      {enableHighAccuracy:true, timeout:15000, maximumAge:120000});
+  });
+}
+document.addEventListener("click", async ev => {
+  const b = ev.target.closest("[data-wxloc]"); if (!b) return;
+  const k = b.dataset.wxloc;
+  $("#gpsMsg").hidden = true; $("#pinForm").hidden = true;
+  if (k !== "gps"){ wxSel = k; lsSet("svcd-wx", k); wLoad(false); return; }
+  $("#gpsMsg").innerHTML = `${ic("locate-fixed")}<span>Đang lấy vị trí của bạn…</span>`; $("#gpsMsg").hidden = false; icons();
+  try {
+    const p = await locate();
+    gpsLoc = {key:"gps", name:"Chỗ bạn đang đứng", ...p, pinned:true}; wxSel = "gps";
+    $("#gpsMsg").hidden = true; wLoad(false);
+  } catch(e){ $("#gpsMsg").innerHTML = `${ic("locate-off")}<span>${esc(e.message)}</span>`; icons(); }
+});
+
+/* pin editing (owner only) */
+function parseCoord(s){
+  const m = String(s).match(/(-?\d{1,2}\.\d+)\s*,\s*(-?\d{1,3}\.\d+)/);
+  if (!m) return null;
+  const lat = +m[1], lng = +m[2];
+  return Math.abs(lat)<=90 && Math.abs(lng)<=180 ? {lat, lng} : null;
+}
+$("#pinEditBtn").addEventListener("click", () => {
+  const loc = curLoc();
+  $("#pin_name").value = loc.pinned ? loc.name : `Farm ${loc.key}`;
+  $("#pin_coord").value = loc.pinned ? `${loc.lat}, ${loc.lng}` : "";
+  $("#pinMsg").textContent = ""; $("#pinForm").hidden = false; $("#pin_coord").focus();
+});
+$("#pinCancel").addEventListener("click", () => { $("#pinForm").hidden = true; });
+$("#pinHere").addEventListener("click", async () => {
+  const msg = $("#pinMsg"); msg.className = "formmsg"; msg.textContent = "Đang lấy vị trí…";
+  try { const p = await locate(); $("#pin_coord").value = `${p.lat}, ${p.lng}`; msg.className = "formmsg ok"; msg.textContent = "Đã điền vị trí đang đứng. Bấm Lưu để ghim."; }
+  catch(e){ msg.className = "formmsg err"; msg.textContent = e.message; }
+});
+$("#pinForm").addEventListener("submit", async ev => {
+  ev.preventDefault();
+  const msg = $("#pinMsg"), loc = curLoc(), c = parseCoord($("#pin_coord").value);
+  if (!c){ msg.className = "formmsg err"; msg.textContent = "Không đọc được tọa độ. Dán dạng 14.6125, 108.2710 hoặc link Google Maps có tọa độ."; return; }
+  $("#pinSave").disabled = true;
+  try {
+    await db.doc("ghimvitri/"+loc.key).set({name:$("#pin_name").value.trim() || `Farm ${loc.key}`, lat:c.lat, lng:c.lng, at:Date.now(), by:me});
+    $("#pinForm").hidden = true; wLoad(false);
+  } catch(err){ msg.className = "formmsg err"; msg.textContent = "Không lưu được: " + (err?.message||"lỗi"); }
+  $("#pinSave").disabled = false;
+});
+
+/* actual weather log, to check forecasts against what really happened */
+const TT_MUA = {khong:"Không mưa", nho:"Mưa nhỏ", vua:"Mưa vừa", to:"Mưa to"};
+const TT_BUOI = {sang:"Sáng", chieu:"Chiều", toi:"Tối"};
+const TT_GIO = {"0":"Lặng gió","2":"Gió nhẹ (cấp 2)","3":"Gió vừa (cấp 3)","4":"Gió khá mạnh (cấp 4)","5":"Gió mạnh (cấp 5)"};
+function renderActuals(){
+  if (myFarm){ $("#tt_farm").value = String(myFarm); $("#tt_farm").disabled = true; }
+  else if (["1","2","3"].includes(wxSel) && document.activeElement !== $("#tt_farm")) $("#tt_farm").value = wxSel;
+  $("#ttForm").hidden = canWrite === false;
+  const list = actuals.filter(a => !myFarm || Number(a.farm) === myFarm).sort((a,b) => b.date.localeCompare(a.date) || (b.createdAt||0)-(a.createdAt||0)).slice(0, 12);
+  $("#ttList").innerHTML = list.length ? list.map(a => `<li class="item"><span class="tico ${a.mua==="khong"?"c-amber":"c-blue"}">${ic(a.mua==="khong"?"sun":"cloud-rain")}</span>
+    <div class="datebox"><b>${a.date.slice(8,10)}</b><span>TH ${Number(a.date.slice(5,7))}</span></div>
+    <div class="body"><div class="t">${TT_BUOI[a.buoi]||""} · ${TT_MUA[a.mua]||""}${a.mm?` · ${wRound(a.mm,1)} mm`:""}</div>
+    <div class="d"><span>${ic("warehouse")}Farm ${esc(a.farm)}</span><span>${ic("wind")}${TT_GIO[a.gio]||""}</span>${a.note?`<span>${ic("message-square-text")}${esc(a.note)}</span>`:""}</div>${whoLine(a)}</div></li>`).join("")
+    : `<li class="none">${ic("cloud-sun")}Chưa ghi ngày nào. Ghi đều mỗi ngày để sau vài tuần biết nguồn dự báo nào sát farm nhất.</li>`;
+}
+$("#tt_date").value = today;
+$("#ttForm").addEventListener("submit", async ev => {
+  ev.preventDefault();
+  const msg = $("#ttMsg"), date = $("#tt_date").value;
+  if (!date){ msg.className = "formmsg wide err"; msg.textContent = "Chọn ngày."; return; }
+  if (date > today){ msg.className = "formmsg wide err"; msg.textContent = "Chỉ ghi thời tiết đã xảy ra, không ghi ngày tương lai."; return; }
+  const rec = {date, farm:Number($("#tt_farm").value), buoi:$("#tt_buoi").value, mua:$("#tt_mua").value,
+    mm:Number($("#tt_mm").value)||0, gio:$("#tt_gio").value, note:$("#tt_note").value.trim(), createdAt:Date.now(), createdBy:me};
+  $("#ttSave").disabled = true;
+  try {
+    await db.collection("thucte").add(rec);
+    msg.className = "formmsg wide ok"; msg.textContent = `Đã lưu thời tiết ${TT_BUOI[rec.buoi].toLowerCase()} ${vnDate(date)}, Farm ${rec.farm}.`;
+    $("#tt_mm").value = ""; $("#tt_note").value = "";
+  } catch(err){ msg.className = "formmsg wide err"; msg.textContent = "Không lưu được: " + (err?.message||"lỗi"); }
+  $("#ttSave").disabled = false;
+});
+
+/* ---------- render ---------- */
+function render(){
+  const s = scoped();
+  const phiN = inPhi().length, upPhun = visible().filter(e=>e.type==="phun" && e.date>today && e.date<=addDays(today,7)).length;
+  $("#phiBadge").hidden = !phiN; $("#phiBadge").textContent = phiN;
+  $("#phunBadge").hidden = !upPhun; $("#phunBadge").textContent = upPhun;
+  const due = dueCount();
+  ["#bellBadge","#nhacBadge"].forEach(id => { $(id).hidden = !due; $(id).textContent = due; });
+
+  if (screen==="home"){
+    const items = [...autoItems(2), ...visRems().filter(r=>!r.done && r.date && r.date<=addDays(today,2)).map(r=>({d:r.date, h:remHTML(r)}))]
+      .sort((a,b)=>a.d.localeCompare(b.d)).slice(0,3);
+    $("#todoList").innerHTML = items.length ? items.map(x=>x.h).join("") : `<li class="none">${ic("circle-check")}Không có việc nào trong 2 ngày tới.</li>`;
+  }
+  if (screen==="nhac"){
+    const items = autoItems(7).sort((a,b)=>a.d.localeCompare(b.d));
+    $("#autoRem").innerHTML = items.length ? items.map(x=>x.h).join("") : `<li class="none">${ic("calendar-check")}Không có lịch nào trong 7 ngày tới.</li>`;
+    const rs = [...visRems()].sort((a,b)=>(a.done-b.done) || String(a.date).localeCompare(String(b.date)));
+    $("#remList").innerHTML = rs.length ? rs.map(remHTML).join("") : `<li class="none">${ic("bell-off")}Chưa có nhắc việc riêng.</li>`;
+    $("#remForm").hidden = canWrite === false;
+  }
+  if (screen==="baove"){
+    const t = [...trash].filter(mine).sort((a,b)=>(b.deletedAt||0)-(a.deletedAt||0));
+    $("#trashList").innerHTML = t.length ? t.map(e=>itemHTML(e,{icon:true,trash:true})).join("") : `<li class="none">${ic("trash")}Thùng rác trống.</li>`;
+    if (!isOwner){
+      $("#backupBox").innerHTML = `<div class="hint">${ic("lock")}Chỉ chủ farm xem và khôi phục được bản sao lưu.</div>`;
+      $("#backupList").innerHTML = "";
+    } else {
+      $("#backupBox").innerHTML = `<div style="display:grid;gap:8px"><button type="button" class="btn primary block" data-act="backup-now">${ic("database-backup")}Sao lưu ngay</button>
+        <button type="button" class="btn block" data-act="export-file">${ic("download")}Tải file sao lưu về máy</button>
+        <label class="btn block" style="cursor:pointer">${ic("upload")}Nạp file sao lưu<input type="file" id="importFile" accept="application/json,.json" hidden></label>
+        ${pendingImport ? (pendingImport.error ? `<div class="formmsg err">${esc(pendingImport.error)}</div>` :
+          `<div class="tip-box"><span>Thay toàn bộ dữ liệu hiện tại bằng file sao lưu ngày ${vnDate(new Date(pendingImport.at).toISOString().slice(0,10))}? App sẽ tự lưu một bản trước khi thay.</span></div>
+           <div class="acts"><button type="button" class="btn sm danger" data-act="import-yes">Thay bằng file này</button><button type="button" class="btn sm ghost" data-act="import-no">Thôi</button></div>`) : ""}</div>`;
+      $("#backupList").innerHTML = backups.length ? backups.map(b=>`<li class="item"><span class="tico c-grey">${ic("archive")}</span>
+        <div class="body"><div class="t">Bản ${b.id.length>10?"trước khi khôi phục":"ngày"} ${vnDate(b.id.slice(0,10))}</div>
+        <div class="d"><span>${ic("file-text")}${b.count} ghi chép</span><span>${ic("clock")}${hm(b.at)}</span></div>
+        <div class="row"><span class="acts"><button type="button" class="btn sm ghost" data-act="restore-backup" data-id="${esc(b.id)}">${ic("history")}Khôi phục về bản này</button></span></div></div></li>`).join("")
+        : `<li class="none">${ic("archive")}Chưa có bản sao lưu.</li>`;
+    }
+  }
+  $("#sampleBar").hidden = !entries.some(e=>e.sample) || canWrite === false;
+  $("#seasonList").innerHTML = seasonsList().map(x=>`<option value="${esc(x)}">`).join("");
+
+  if (screen==="home"){
+    renderWeatherBits();
+    $("#homeFilters").innerHTML = filtersHTML();
+    $("#homeScope").textContent = "";
+    const t = gradeTotals(s);
+    $("#totalKg").textContent = fmt(t.total);
+    $("#grades").innerHTML = gradesHTML(t);
+    $("#stack").innerHTML = stackHTML(t);
+    const empty = !entries.length;
+    $("#emptyHome").hidden = !empty || canWrite === false;
+    $("#homeStats").hidden = empty && canWrite !== false;
+  }
+  if (["phun","bon","trong","cachly"].includes(screen)){
+    $("#listFilters").innerHTML = filtersHTML();
+    let list, emptyMsg;
+    if (screen==="cachly"){ list = inPhi().filter(e => farm==="all"||String(e.farm)===farm).sort((a,b)=>phiEnd(b).localeCompare(phiEnd(a))); emptyMsg = "Không có lô nào đang trong thời gian cách ly."; }
+    else { list = schedule(s.filter(e=>e.type===screen)); emptyMsg = `Chưa có ghi chép ${TYPE[screen].n.toLowerCase()}.`; }
+    $("#listBody").innerHTML = list.length ? list.slice(0,40).map(e=>itemHTML(e,{icon:screen==="cachly", actions:true})).join("") : `<li class="none">${ic("calendar-x")}${emptyMsg}</li>`;
+  }
+  if (screen==="xuat"){
+    $("#xuatFilters").innerHTML = filtersHTML();
+    const t = gradeTotals(s);
+    $("#xTotal").textContent = fmt(t.total); $("#xScope").textContent = scopeLabel();
+    $("#xGrades").innerHTML = gradesHTML(t);
+    const list = s.filter(e=>e.type==="xuat").sort((a,b)=>b.date.localeCompare(a.date)).slice(0,30);
+    $("#xList").innerHTML = list.length ? list.map(e=>itemHTML(e,{status:false, actions:true})).join("") : `<li class="none">${ic("inbox")}Chưa có lần xuất nào.</li>`;
+  }
+  if (screen==="farms"){
+    $("#farmsFilters").innerHTML = filtersHTML(false);
+    const sx = entries.filter(e=>e.type==="xuat" && (season==="all"||e.season===season));
+    $("#farms").innerHTML = ["1","2","3"].filter(f => !myFarm || Number(f)===myFarm).map(f => {
+      const t = gradeTotals(sx.filter(e=>String(e.farm)===f));
+      const phun = entries.filter(e=>e.type==="phun" && String(e.farm)===f && e.date<=today).sort((a,b)=>b.date.localeCompare(a.date))[0];
+      return `<div class="farm"><div class="fh"><span class="tico c-amber">${ic("warehouse")}</span><b>Farm ${f}</b></div>
+        <div class="ft">${fmt(t.total)} <small>kg đã xuất</small></div>
+        <div class="stack" style="margin-top:0">${stackHTML(t)}</div>
+        <dl>${GRADES.map(g=>`<dt><span class="dot" style="background:${g.c}"></span>${g.n}</dt><dd>${fmt(t.by[g.k])}</dd>`).join("")}
+        <dt>${ic("spray-can")}Phun gần nhất</dt><dd>${phun?`${vnShort(phun.date)} · ${esc(phun.product)}`:"—"}</dd></dl></div>`;
+    }).join("");
+  }
+  if (screen==="phanquyen") renderPq();
+  if (screen==="weather") renderWeather();
+  if (screen==="vaitro") renderRoles();
+  if (screen==="nhap") renderLog();
+  icons();
+}
+function renderLog(){
+  const list = [...visible()].sort((a,b)=>b.date.localeCompare(a.date) || (b.createdAt||0)-(a.createdAt||0)).slice(0,25);
+  $("#log").innerHTML = list.length ? list.map(e=>itemHTML(e,{icon:true, actions:true})).join("") : `<li class="none">${ic("inbox")}Chưa có ghi chép nào.</li>`;
+}
+
+/* ---------- actions: confirm, edit, soft delete, restore, reminders, backups ---------- */
+function askInline(btn, yesAct, yesLabel){
+  const box = btn.closest(".acts"); if (!box) return;
+  box.innerHTML = `<button type="button" class="btn sm danger" data-act="${yesAct}" data-id="${esc(btn.dataset.id)}">${yesLabel}</button><button type="button" class="btn sm ghost" data-act="cancel">Thôi</button>`;
+}
+document.addEventListener("click", async ev => {
+  const b = ev.target.closest("[data-act]"); if (!b) return;
+  const act = b.dataset.act, id = b.dataset.id;
+  if (act === "cancel"){ render(); return; }
+  if (!db) return;
+  const box = b.closest(".acts");
+  try {
+    if (act==="done") await db.doc("nhatky/"+id).update({plan:false, ...stamp()});
+    else if (act==="edit") startEdit(allDocs.find(x=>x.id===id));
+    else if (act==="del") askInline(b, "del-yes", "Chuyển vào thùng rác");
+    else if (act==="del-yes") await db.doc("nhatky/"+id).update({deleted:true, deletedAt:Date.now(), deletedBy:me});
+    else if (act==="restore") await db.doc("nhatky/"+id).update({deleted:false, ...stamp()});
+    else if (act==="purge") askInline(b, "purge-yes", "Xóa hẳn, không lấy lại được");
+    else if (act==="purge-yes") await db.doc("nhatky/"+id).delete();
+    else if (act==="rem-toggle"){ const r = reminders.find(x=>x.id===id); await db.doc("nhacviec/"+id).update({done:!r.done, ...stamp()}); }
+    else if (act==="rem-del") askInline(b, "rem-del-yes", "Xóa nhắc việc");
+    else if (act==="rem-del-yes") await db.doc("nhacviec/"+id).delete();
+    else if (act==="backup-now"){ b.disabled = true; await doBackup(today); await loadBackups(); render(); }
+    else if (act==="restore-backup") askInline(b, "restore-yes", "Khôi phục, thay dữ liệu hiện tại");
+    else if (act==="pq-set"){ await setRole(id, b.dataset.farm); $("#pqSearch").value = ""; $("#pqResults").innerHTML = ""; }
+    else if (act==="pq-del") askInline(b, "pq-del-yes", "Bỏ gán farm");
+    else if (act==="pq-del-yes") await db.doc("phanquyen/"+id).delete();
+    else if (act==="export-file") exportFile();
+    else if (act==="import-no"){ pendingImport = null; render(); }
+    else if (act==="import-yes" && pendingImport && pendingImport.data){
+      await doBackup(`${today}-truoc-nap-file-${Date.now()}`);
+      LocalDB.importAll(pendingImport.data); pendingImport = null; await loadBackups(); render();
+    }
+    else if (act==="restore-yes"){ if (box) box.textContent = "Đang khôi phục…"; await restoreBackup(id); }
+  } catch(err){ if (box) box.innerHTML = `<span class="err">Không thực hiện được: ${esc(err?.message||"lỗi")}</span>`; }
+  if (["del","purge","rem-del","restore-backup"].includes(act)) icons();
+});
+
+function startEdit(e){
+  if (!e) return;
+  editingId = e.id;
+  go("nhap"); setType(e.type);
+  const set = (id, v) => { $(id).value = v ?? ""; };
+  set("#f_date", e.date); set("#f_farm", e.farm); set("#f_lot", e.lot); set("#f_season", e.season); set("#f_note", e.sample ? "" : e.note);
+  set("#f_grade", e.grade || "au"); set("#f_kg", e.kg || ""); set("#f_price", e.price || ""); set("#f_buyer", e.buyer);
+  set("#f_product", e.product); set("#f_dose", e.dose); set("#f_phi", e.phi || ""); set("#f_target", e.target);
+  set("#f_variety", e.variety); set("#f_plants", e.plants || "");
+  $("#editText").textContent = `Đang sửa: ${title(e)} (${vnDate(e.date)})`;
+  $("#editBanner").hidden = false;
+  $("#saveBtn").innerHTML = `${ic("save")}Lưu thay đổi`; icons();
+}
+function cancelEdit(){
+  editingId = null; $("#editBanner").hidden = true;
+  $("#saveBtn").innerHTML = `${ic("save")}Lưu ghi chép`;
+  ["#f_kg","#f_price","#f_buyer","#f_product","#f_dose","#f_phi","#f_target","#f_variety","#f_plants","#f_note","#f_lot"].forEach(id=>$(id).value="");
+  $("#f_date").value = today; icons();
+}
+$("#cancelEdit").addEventListener("click", cancelEdit);
+
+$("#remForm").addEventListener("submit", async ev => {
+  ev.preventDefault();
+  const msg = $("#remMsg"), t = $("#r_title").value.trim(), d = $("#r_date").value;
+  if (!t){ msg.className="formmsg wide err"; msg.textContent="Nhập nội dung cần nhắc."; return; }
+  if (!d){ msg.className="formmsg wide err"; msg.textContent="Chọn ngày nhắc."; return; }
+  if (!db) return;
+  $("#remSave").disabled = true;
+  try {
+    await db.collection("nhacviec").add({title:t, date:d, farm:Number($("#r_farm").value), done:false, createdAt:Date.now(), createdBy:me});
+    msg.className="formmsg wide ok"; msg.textContent = `Đã thêm nhắc việc ngày ${vnDate(d)}.`; $("#r_title").value = "";
+  } catch(err){ msg.className="formmsg wide err"; msg.textContent = "Không lưu được: " + (err?.message||"lỗi"); }
+  $("#remSave").disabled = false;
+});
+$("#r_date").value = today;
+
+/* ---------- backups (owner only; the rules let nobody else read or write them) ---------- */
+const packDocs = list => list.map(({id, ...d}) => ({id, d}));
+async function doBackup(docId){
+  await db.doc("saoluu/"+docId).set({at:Date.now(), by:me, count:allDocs.length, nhatky:packDocs(allDocs), nhacviec:packDocs(reminders)});
+  const all = await db.collection("saoluu").orderBy("at","desc").limit(1000).get();
+  for (const x of all.docs.slice(10)) await db.doc("saoluu/"+x.id).delete();
+}
+async function loadBackups(){
+  try {
+    const snap = await db.collection("saoluu").orderBy("at","desc").limit(30).get();
+    backups = snap.docs.map(x => { const d = x.data(); return {id:x.id, at:d.at, count:d.count}; });
+  } catch(e){ backups = []; }
+}
+async function maybeBackup(){
+  if (backupChecked || !isOwner || !gotEntries || !gotRems || !allDocs.length) return;
+  backupChecked = true;
+  await loadBackups();
+  if (allDocs.length && !backups.some(b=>b.id===today)){ try { await doBackup(today); await loadBackups(); } catch(e){} }
+  render();
+}
+async function restoreBackup(id){
+  const snap = await db.doc("saoluu/"+id).get(); const b = snap.data(); if (!b) throw new Error("Không đọc được bản sao lưu");
+  await doBackup(`${today}-truoc-khoi-phuc-${Date.now()}`);
+  const sync = async (col, saved, current) => {
+    const keep = new Set(saved.map(x=>x.id));
+    for (const x of saved) await db.doc(`${col}/${x.id}`).set(x.d);
+    for (const c of current) if (!keep.has(c.id)) await db.doc(`${col}/${c.id}`).delete();
+  };
+  await sync("nhatky", b.nhatky||[], [...allDocs]);
+  await sync("nhacviec", b.nhacviec||[], [...reminders]);
+  await loadBackups(); render();
+}
+
+/* ---------- farm assignments (only the owner can change them) ---------- */
+const ROLE_OPTS = [[1,"Farm 1"],[2,"Farm 2"],[3,"Farm 3"]];
+function renderPq(){
+  if (!isOwner){ $("#pqList").innerHTML = `<li class="none">${ic("lock")}Chỉ chủ farm phân quyền được.</li>`; $("#pqResults").innerHTML = ""; return; }
+  const rows = Object.entries(assignments).sort((a,b)=>Number(a[1].farm)-Number(b[1].farm));
+  $("#pqList").innerHTML = rows.length ? rows.map(([uid,a]) => `<li class="item"><span class="tico c-amber">${ic("user-round")}</span>
+    <div class="body"><div class="t" data-name="${esc(uid)}"></div>
+      <div class="row"><span class="acts">${ROLE_OPTS.map(([v,l])=>`<button type="button" class="btn sm ${Number(a.farm)===v?"primary":"ghost"}" data-act="pq-set" data-id="${esc(uid)}" data-farm="${v}">${l}</button>`).join("")}
+      <button type="button" class="btn sm ghost danger" data-act="pq-del" data-id="${esc(uid)}">${ic("user-x")}Bỏ</button></span></div></div></li>`).join("")
+    : `<li class="none">${ic("users-round")}Chưa gán ai. Người chưa gán farm sẽ thấy cả 3 farm.</li>`;
+  $("#pqList").querySelectorAll("[data-name]").forEach(el => { const id = el.dataset.name; el.textContent = id===me ? "Bạn" : (names[id] || "Thành viên"); });
+}
+let pqTimer = null;
+$("#pqSearch").addEventListener("input", () => {
+  clearTimeout(pqTimer);
+  pqTimer = setTimeout(async () => {
+    const q = $("#pqSearch").value.trim();
+    if (!user || !q){ $("#pqResults").innerHTML = ""; return; }
+    let hits = [];
+    try { hits = await user.search(q); } catch(e){}
+    hits.forEach(h => { if (h.id) names[h.id] = h.name || names[h.id] || ""; });
+    $("#pqResults").innerHTML = hits.length ? hits.filter(h=>h.id).slice(0,8).map(h => `<li class="item"><span class="tico c-grey">${ic("user-round-plus")}</span>
+      <div class="body"><div class="t" data-hit="${esc(h.id)}"></div>
+      <div class="row"><span class="acts">${ROLE_OPTS.map(([v,l])=>`<button type="button" class="btn sm ghost" data-act="pq-set" data-id="${esc(h.id)}" data-farm="${v}">${ic("plus")}${l}</button>`).join("")}</span></div></div></li>`).join("")
+      : `<li class="none">${ic("search-x")}Không tìm thấy. Kiểm tra người đó đã được chia sẻ trang chưa.</li>`;
+    $("#pqResults").querySelectorAll("[data-hit]").forEach(el => { const id = el.dataset.hit; el.textContent = names[id] || "Không rõ tên"; });
+    icons();
+  }, 300);
+});
+async function setRole(uid, f){ await db.doc("phanquyen/"+uid).set({farm:Number(f), at:Date.now(), by:me}); }
+
+async function resolveNames(){
+  if (!user) return;
+  const ids = [...new Set([...allDocs, ...reminders].flatMap(x=>[x.createdBy, x.updatedBy, x.deletedBy]).filter(Boolean))].filter(id => !(id in names) && id !== me);
+  if (!ids.length) return;
+  ids.forEach(id => names[id] = "");
+  try { const ps = await user.profiles(ids); ids.forEach(id => names[id] = ps[id]?.name || ""); render(); } catch(e){}
+}
+
+/* ---------- form ---------- */
+function setType(t){
+  type = t;
+  document.querySelectorAll(".types button").forEach(b => b.setAttribute("aria-pressed", b.dataset.type===t));
+  document.querySelectorAll("[data-for]").forEach(l => l.hidden = !l.dataset.for.split(" ").includes(t));
+}
+document.querySelector(".types").addEventListener("click", e => { const b=e.target.closest("[data-type]"); if(b) setType(b.dataset.type); });
+setType("xuat"); $("#f_date").value = today;
+$("#entryForm").addEventListener("submit", async ev => {
+  ev.preventDefault();
+  const msg = $("#formMsg"); msg.className="formmsg"; msg.textContent="";
+  const v = id => $(id).value.trim();
+  const fail = t => { msg.className="formmsg err"; msg.textContent=t; };
+  const rec = { type, date:v("#f_date"), farm:Number(v("#f_farm")), lot:v("#f_lot"), season:v("#f_season"), note:v("#f_note"), createdAt:Date.now() };
+  if (!rec.date) return fail("Chọn ngày trước khi lưu.");
+  if (type==="xuat"){ Object.assign(rec,{grade:v("#f_grade"), kg:Number(v("#f_kg"))||0, price:Number(v("#f_price"))||0, buyer:v("#f_buyer")}); if(!rec.kg) return fail("Nhập số kg."); }
+  if (type==="phun"||type==="bon"){ Object.assign(rec,{product:v("#f_product"), dose:v("#f_dose")}); if(!rec.product) return fail("Nhập tên thuốc hoặc phân."); }
+  if (type==="phun") Object.assign(rec,{phi:Number(v("#f_phi"))||0, target:v("#f_target")});
+  if (type==="trong") Object.assign(rec,{variety:v("#f_variety"), plants:Number(v("#f_plants"))||0});
+  if (!db) return fail("Chưa kết nối được nơi lưu dữ liệu. Mở lại trang trong Claude.");
+  rec.plan = rec.date > today;
+  $("#saveBtn").disabled = true;
+  try {
+    if (editingId){
+      const old = allDocs.find(x=>x.id===editingId) || {};
+      delete rec.createdAt;
+      rec.history = [...(old.history||[]), {at:Date.now(), by:me, truoc:`${old.date} · ${title(old)}`}].slice(-10);
+      await db.doc("nhatky/"+editingId).update({...rec, ...stamp(), sample:false});
+      cancelEdit();
+      msg.className="formmsg ok"; msg.innerHTML = `${ic("circle-check")}Đã sửa ghi chép ngày ${vnDate(rec.date)}.`; icons();
+    } else {
+      rec.createdBy = me;
+      await db.collection("nhatky").add(rec);
+      msg.className="formmsg ok"; msg.innerHTML = `${ic("circle-check")}Đã lưu ${TYPE[type].n.toLowerCase()} ngày ${vnDate(rec.date)}.`; icons();
+      ["#f_kg","#f_price","#f_buyer","#f_product","#f_dose","#f_phi","#f_target","#f_variety","#f_plants","#f_note"].forEach(id=>$(id).value="");
+    }
+  } catch(err){ fail("Không lưu được: " + (err?.message||"lỗi không rõ")); }
+  $("#saveBtn").disabled = false;
+});
+
+/* ---------- sample data ---------- */
+function makeSample(){
+  const S = "Vụ 2026 (mẫu)", out = [], d = n => addDays(today, n);
+  const base = {au:420,cho:300,muc:160,xo:90};
+  for (let f=1; f<=3; f++) for (let w=1; w<=6; w++) ["au","cho","muc","xo"].forEach((g,i)=>{
+    out.push({type:"xuat", date:d(-w*5-i), farm:f, lot:`Lô ${String.fromCharCode(64+f)}${(w%3)+1}`, season:S, grade:g, kg:Math.round(base[g]*(0.7+((f*7+w*3+i)%10)/15)), price:g==="au"?28000:g==="cho"?16000:g==="muc"?9000:5000, buyer:g==="au"?"Cty XK (mẫu)":"Thương lái (mẫu)"});
+  });
+  [[-9,1,"A1","Ridomil Gold 68WG","25 g/bình 16L","thối nhũn",7],[-8,2,"B2","Movento 150OD","10 ml/bình 16L","rệp sáp",21],[-4,3,"C1","Score 250EC","8 ml/bình 16L","đốm nâu",14],[-2,1,"A3","Chế phẩm Trichoderma","1 kg/200L","phòng nấm rễ",0],[3,2,"B1","Ridomil Gold 68WG","25 g/bình 16L","thối nhũn",7],[6,3,"C2","Movento 150OD","10 ml/bình 16L","rệp",21]]
+    .forEach(([n,f,l,p,dose,t,phi])=>out.push({type:"phun",date:d(n),farm:f,lot:"Lô "+l,season:S,product:p,dose,target:t,phi}));
+  [[-12,1,"A1","NPK 16-16-8","50 kg"],[-10,2,"B1","Phân hữu cơ vi sinh","300 kg"],[-5,3,"C1","Kali trắng (K2SO4)","20 kg"],[5,1,"A2","NPK 15-5-20","40 kg"],[9,2,"B2","Canxi Bo","10 kg"]]
+    .forEach(([n,f,l,p,dose])=>out.push({type:"bon",date:d(n),farm:f,lot:"Lô "+l,season:S,product:p,dose}));
+  [[-40,3,"C3","Đài Nông 1",800],[-20,2,"B3","Tím Úc",600],[12,1,"A4","Đài Nông 1",1000]]
+    .forEach(([n,f,l,v,p])=>out.push({type:"trong",date:d(n),farm:f,lot:"Lô "+l,season:S,variety:v,plants:p}));
+  return out.map((e,i)=>({...e, sample:true, note:"Dữ liệu mẫu", createdAt:Date.now()+i, createdBy:me}));
+}
+$("#loadSample").addEventListener("click", async () => {
+  if (!db) return;
+  const b = $("#loadSample"); b.disabled = true; b.textContent = "Đang nạp…";
+  try { for (const e of makeSample()) await db.collection("nhatky").add(e); } catch(err){ b.textContent = "Không nạp được"; }
+});
+$("#clearSample").addEventListener("click", ()=>{ $("#clearConfirm").hidden=false; $("#clearSample").hidden=true; });
+$("#clearNo").addEventListener("click", ()=>{ $("#clearConfirm").hidden=true; $("#clearSample").hidden=false; });
+$("#clearYes").addEventListener("click", async ()=>{
+  $("#clearYes").disabled = true;
+  for (const e of allDocs.filter(x=>x.sample)) { try { await db.doc("nhatky/"+e.id).delete(); } catch(err){} }
+  $("#clearYes").disabled = false; $("#clearConfirm").hidden=true; $("#clearSample").hidden=false;
+});
+
+/* ---------- quick answers (demo: built-in filters, no AI service yet) ---------- */
+const SUGG = [["spray-can","Tuần trước phun thuốc gì?"],["shield-alert","Lô nào đang cách ly?"],["plane","Farm 2 xuất bao nhiêu hàng Âu?"],["flask-round","Tuần tới bón phân gì?"],["chart-pie","Tỉ lệ hàng Âu từng farm?"],["bell","Còn việc gì chưa làm?"]];
+$("#sugg").innerHTML = SUGG.map(([i,s])=>`<button type="button" class="chip">${ic(i)}<span>${esc(s)}</span></button>`).join("");
+$("#sugg").addEventListener("click", e => { const b=e.target.closest(".chip"); if(!b) return; $("#q").value=b.textContent.trim(); $("#askForm").requestSubmit(); });
+function bubble(cls, text){
+  const div = document.createElement("div"); div.className = "bubble " + cls;
+  div.innerHTML = (cls==="bot" ? `<span class="tico c-purple">${ic("bot")}</span>` : "") + `<div class="msg"></div>`;
+  div.querySelector(".msg").textContent = text; $("#convo").appendChild(div); icons();
+  div.scrollIntoView({block:"end", behavior:"smooth"});
+  return div.querySelector(".msg");
+}
+function weekRange(offset){
+  const d = new Date(today+"T00:00:00"); const wd = (d.getDay()+6)%7;
+  d.setDate(d.getDate() - wd + offset*7); const s = iso(d); return [s, addDays(s, 6)];
+}
+function monthRange(offset){
+  const d = new Date(today+"T00:00:00"); d.setDate(1); d.setMonth(d.getMonth()+offset);
+  const s = iso(d); const e = new Date(d); e.setMonth(e.getMonth()+1); e.setDate(0); return [s, iso(e)];
+}
+function askRange(q){
+  if (/tuan (truoc|vua roi|qua)/.test(q)) return {r:weekRange(-1), t:"tuần trước"};
+  if (/tuan (toi|sau)/.test(q)) return {r:weekRange(1), t:"tuần tới"};
+  if (/tuan nay/.test(q)) return {r:weekRange(0), t:"tuần này"};
+  if (/hom qua/.test(q)) return {r:[addDays(today,-1), addDays(today,-1)], t:"hôm qua"};
+  if (/ngay mai/.test(q)) return {r:[addDays(today,1), addDays(today,1)], t:"ngày mai"};
+  if (/hom nay/.test(q)) return {r:[today, today], t:"hôm nay"};
+  if (/thang (truoc|roi)/.test(q)) return {r:monthRange(-1), t:"tháng trước"};
+  if (/thang nay/.test(q)) return {r:monthRange(0), t:"tháng này"};
+  if (/thang (toi|sau)/.test(q)) return {r:monthRange(1), t:"tháng tới"};
+  const m = q.match(/(\d+)\s*ngay (qua|truoc|vua qua)/); if (m) return {r:[addDays(today,-+m[1]), today], t:`${m[1]} ngày qua`};
+  return null;
+}
+const inRange = (d, R) => !R || (d >= R.r[0] && d <= R.r[1]);
+function lineOf(e){
+  const plan = isPlan(e) ? (e.date > today ? " (kế hoạch)" : " (kế hoạch, chưa xác nhận đã làm)") : "";
+  return `• ${vnShort(e.date)} · Farm ${e.farm}${e.lot?` · ${e.lot}`:""} · ${title(e)}${e.dose?` · ${e.dose}`:""}${e.target?` · trị ${e.target}`:""}${plan}`;
+}
+function quickAnswer(raw){
+  const q = norm(raw), R = askRange(q);
+  const fm = q.match(/farm\s*([123])/) || q.match(/\bf([123])\b/);
+  const F = fm ? +fm[1] : (myFarm || null);
+  const where = F ? `Farm ${F}` : "cả 3 farm", when = R ? R.t : "";
+  const pool = visible().filter(e => !F || Number(e.farm) === F);
+  if (/cach ly|thu hai duoc|hai duoc chua/.test(q)){
+    const L = inPhi().filter(e => !F || Number(e.farm) === F);
+    return L.length ? `Đang trong thời gian cách ly (${where}):\n` + L.map(e => `• Farm ${e.farm}${e.lot?` · ${e.lot}`:""} · phun ${e.product} ngày ${vnShort(e.date)} · được hái từ ${vnShort(phiEnd(e))}`).join("\n")
+      : `Hiện không có lô nào đang trong thời gian cách ly (${where}).`;
+  }
+  if (/nhac|viec gi|chua lam|can lam/.test(q)){
+    const due = visible().filter(e => isPlan(e) && e.date <= addDays(today, 7)).sort((a,b) => a.date.localeCompare(b.date));
+    const rem = visRems().filter(r => !r.done).sort((a,b) => String(a.date).localeCompare(String(b.date)));
+    if (!due.length && !rem.length) return "Không có việc nào đang chờ trong 7 ngày tới.";
+    return [due.length ? "Lịch vườn chưa xác nhận làm:\n" + due.map(lineOf).join("\n") : "", rem.length ? "Nhắc việc riêng:\n" + rem.map(r => `• ${r.date?vnShort(r.date):"--"} · ${r.title}${Number(r.farm)?` · Farm ${r.farm}`:""}`).join("\n") : ""].filter(Boolean).join("\n\n");
+  }
+  if (/ti le|ty le|phan tram|%/.test(q)){
+    const farms = F ? [F] : [1,2,3];
+    return `Tỉ lệ hàng xuất Âu${when?` ${when}`:""}:\n` + farms.map(f => {
+      const t = gradeTotals(visible().filter(e => Number(e.farm) === f && inRange(e.date, R)));
+      return `• Farm ${f}: ${t.total ? Math.round(t.by.au/t.total*100) : 0}% (${fmt(t.by.au)}/${fmt(t.total)} kg)`;
+    }).join("\n");
+  }
+  const wants = /phun|thuoc/.test(q) ? "phun" : /bon|phan bon|\bphan\b/.test(q) ? "bon" : /trong|giong|cay con/.test(q) ? "trong" : /xuat|san luong|\bkg\b|hang au|hang cho|hang muc|hang xo|ban duoc|thu hoach/.test(q) ? "xuat" : null;
+  if (wants === "xuat"){
+    const t = gradeTotals(pool.filter(e => inRange(e.date, R)));
+    const g = /au/.test(q) && !/tat ca/.test(q) ? "au" : /hang cho|\bcho\b/.test(q) ? "cho" : /muc/.test(q) ? "muc" : /\bxo\b/.test(q) ? "xo" : null;
+    if (!t.total) return `Sổ chưa ghi lần xuất hàng nào (${where}${when?`, ${when}`:""}).`;
+    if (g){ const G = GRADES.find(x => x.k === g); return `${G.n} ${where}${when?` ${when}`:" (toàn bộ sổ)"}: ${fmt(t.by[g])} kg, chiếm ${Math.round(t.by[g]/t.total*100)}% trên tổng ${fmt(t.total)} kg.`; }
+    return `Xuất hàng ${where}${when?` ${when}`:" (toàn bộ sổ)"}: tổng ${fmt(t.total)} kg\n` + GRADES.map(G => `• ${G.n}: ${fmt(t.by[G.k])} kg (${Math.round(t.by[G.k]/t.total*100)}%)`).join("\n");
+  }
+  if (wants){
+    let L = pool.filter(e => e.type === wants);
+    const R2 = R || {r:[addDays(today,-7), addDays(today,7)], t:"7 ngày qua và 7 ngày tới"};
+    L = L.filter(e => inRange(e.date, R2)).sort((a,b) => a.date.localeCompare(b.date));
+    const name = TYPE[wants].n.toLowerCase();
+    return L.length ? `Lịch ${name} ${where}, ${R2.t}:\n` + L.map(lineOf).join("\n") : `Sổ chưa ghi ${name} nào (${where}, ${R2.t}).`;
+  }
+  return "Bản demo chưa hiểu câu này. Anh thử hỏi theo mẫu:\n• Tuần trước phun thuốc gì?\n• Farm 2 tuần tới bón phân gì?\n• Lô nào đang cách ly?\n• Xuất hàng Âu tháng này bao nhiêu?\n• Tỉ lệ hàng Âu từng farm?\n• Còn việc gì chưa làm?";
+}
+$("#askForm").addEventListener("submit", ev => {
+  ev.preventDefault();
+  const q = $("#q").value.trim(); if(!q) return;
+  bubble("me", q); $("#q").value = "";
+  bubble("bot", entries.length ? quickAnswer(q) : "Sổ chưa có dữ liệu để trả lời.");
+});
+
+/* ---------- data layer: this browser for the demo; same calls map onto Firestore later ---------- */
+const LocalDB = (() => {
+  const KEY = "svcd-db";
+  let data = lsGet(KEY, {});
+  const subs = {};
+  const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+  const clone = x => x === undefined ? undefined : JSON.parse(JSON.stringify(x));
+  const snap = col => ({docs: Object.entries(data[col] || {}).map(([id, d]) => ({id, data: () => clone(d)}))});
+  function save(){ if (!lsSet(KEY, data)) throw new Error("Bộ nhớ trình duyệt đã đầy. Vào Thùng rác & sao lưu, tải file sao lưu rồi xóa bớt dữ liệu mẫu."); }
+  function emit(col){ (subs[col] || []).forEach(fn => { try { fn(snap(col)); } catch(e){ console.error(e); } }); }
+  function collection(col){
+    return {
+      async add(d){ (data[col] ||= {})[uid()] = clone(d); save(); emit(col); },
+      onSnapshot(fn){ (subs[col] ||= []).push(fn); setTimeout(() => fn(snap(col)), 0); return () => {}; },
+      orderBy(f, dir){ return {limit(n){ return {async get(){
+        const s = snap(col); s.docs.sort((a, b) => (a.data()[f] || 0) - (b.data()[f] || 0)); if (dir === "desc") s.docs.reverse();
+        s.docs = s.docs.slice(0, n); return s; }}; }}; },
+    };
+  }
+  function doc(path){
+    const [col, id] = path.split("/");
+    return {
+      async set(d){ (data[col] ||= {})[id] = clone(d); save(); emit(col); },
+      async update(d){ const c = data[col] || {}; if (!c[id]) throw new Error("Không tìm thấy ghi chép"); Object.assign(c[id], clone(d)); save(); emit(col); },
+      async delete(){ if (data[col]) delete data[col][id]; save(); emit(col); },
+      async get(){ return {id, data: () => clone(data[col] && data[col][id])}; },
+    };
+  }
+  /* another tab of this app changed the data */
+  window.addEventListener("storage", e => { if (e.key === KEY){ data = lsGet(KEY, {}); Object.keys(subs).forEach(emit); } });
+  return {
+    collection, doc,
+    exportAll(){ const out = clone(data); delete out.saoluu; return out; },
+    importAll(d){ const keep = data.saoluu; data = clone(d); if (keep) data.saoluu = keep; save(); Object.keys(subs).forEach(emit); },
+  };
+})();
+
+/* ---------- demo roles (the real app will use sign-in instead) ---------- */
+const DEMO_USERS = [
+  {id:"demo-chu", name:"Anh (chủ farm)", role:"chu", d:"Thấy cả 3 farm, nhập liệu, phân quyền, ghim vị trí, xóa vĩnh viễn, sao lưu."},
+  {id:"demo-sep", name:"Sếp", role:"sep", d:"Chỉ xem dashboard và lịch của cả 3 farm, không nhập được."},
+  {id:"demo-q1", name:"Quản lý Farm 1", role:"q", farm:1, d:"Chỉ thấy và nhập liệu cho Farm 1."},
+  {id:"demo-q2", name:"Quản lý Farm 2", role:"q", farm:2, d:"Chỉ thấy và nhập liệu cho Farm 2."},
+  {id:"demo-q3", name:"Quản lý Farm 3", role:"q", farm:3, d:"Chỉ thấy và nhập liệu cho Farm 3."},
+];
+function renderRoles(){
+  $("#roleList").innerHTML = DEMO_USERS.map(u => `<li class="item"><span class="tico ${u.id===me?"c-green":"c-grey"}">${ic(u.role==="chu"?"crown":u.role==="sep"?"eye":"user-round")}</span>
+    <div class="body"><div class="t">${esc(u.name)}${u.id===me?" · đang dùng":""}</div><div class="d"><span>${esc(u.d)}</span></div>
+    ${u.id===me?"":`<div class="row"><button type="button" class="btn sm primary" data-role="${u.id}">${ic("log-in")}Xem với vai trò này</button></div>`}</div></li>`).join("");
+}
+document.addEventListener("click", e => {
+  const b = e.target.closest("[data-role]"); if (!b) return;
+  lsSet("svcd-role", b.dataset.role); location.hash = ""; location.reload();
+});
+
+/* ---------- backup to a file on this phone ---------- */
+let pendingImport = null;
+function exportFile(){
+  const blob = new Blob([JSON.stringify({app:"so-vuon-chanh-day", at:Date.now(), data:LocalDB.exportAll()}, null, 1)], {type:"application/json"});
+  const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = `so-vuon-sao-luu-${today}.json`;
+  document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1000);
+}
+document.addEventListener("change", async e => {
+  if (e.target.id !== "importFile" || !e.target.files[0]) return;
+  try {
+    const j = JSON.parse(await e.target.files[0].text());
+    if (!j || !j.data || typeof j.data !== "object") throw new Error();
+    pendingImport = j; render();
+  } catch(err){ pendingImport = {error:"File này không phải file sao lưu của Sổ Vườn."}; render(); }
+  e.target.value = "";
+});
+
+/* ---------- boot ---------- */
+db = LocalDB;
+const meUser = DEMO_USERS.find(u => u.id === lsGet("svcd-role", "demo-chu")) || DEMO_USERS[0];
+me = meUser.id; isOwner = meUser.role === "chu"; canWrite = meUser.role !== "sep";
+myName = meUser.role === "chu" ? "" : meUser.name;
+DEMO_USERS.forEach(u => names[u.id] = u.name);
+user = {
+  async search(q){ const n = norm(q); return DEMO_USERS.filter(u => u.role === "q" && norm(u.name).includes(n)).map(u => ({id:u.id, name:u.name})); },
+  async profiles(ids){ return Object.fromEntries(ids.map(id => [id, {name:names[id] || ""}])); },
+};
+if (!lsGet("svcd-seeded", false)){
+  DEMO_USERS.filter(u => u.farm).forEach(u => LocalDB.doc("phanquyen/"+u.id).set({farm:u.farm, at:Date.now(), by:"demo-chu"}));
+  lsSet("svcd-seeded", true);
+}
+/* pins sent in a link (#chon=1&f1=lat,lng,name…) from the earlier Sổ Vườn page */
+function readLink(){
   let h; try { h = new URLSearchParams(location.hash.slice(1)); } catch(e){ return; }
+  let got = false;
   ["1","2","3"].forEach(k => {
     const v = h.get("f"+k); if (!v) return;
     const [la, ln, ...nm] = v.split(","); const lat = +la, lng = +ln;
     if (Number.isFinite(lat) && Number.isFinite(lng) && Math.abs(lat) <= 90 && Math.abs(lng) <= 180){
-      pins[k] = {name: nm.join(",").trim() || `Farm ${k}`, lat, lng}; fromSoVuon = true;
+      LocalDB.doc("ghimvitri/"+k).set({name:nm.join(",").trim() || `Farm ${k}`, lat, lng, at:Date.now(), by:me}); got = true;
     }
   });
-  const c = h.get("chon"); if (["1","2","3"].includes(c)){ sel = c; store.set("ttf-sel", sel); }
-  if (fromSoVuon) store.set("ttf-pins", pins);
-})();
+  const c = h.get("chon"); if (["1","2","3"].includes(c)){ wxSel = c; lsSet("svcd-wx", c); }
+  if (got || c){ try { history.replaceState(null, "", location.pathname); } catch(e){} setTimeout(() => go("weather"), 0); }
+}
+readLink();
+window.addEventListener("hashchange", readLink);
 
-fillRules(); renderLocs(); render(); load();
-if (fromSoVuon) showMsg("warn", "map-pin-check", "Đã nhận vị trí ghim các farm từ Sổ Vườn Chanh Dây.");
+applyRole();
+$("#aiNote").innerHTML = `${ic("info")}Bản demo trả lời bằng bộ lọc có sẵn, chưa dùng AI, nên hiểu các câu về lịch phun, bón, trồng, xuất hàng, cách ly, nhắc việc. Gõ không dấu cũng được.`;
+if (canWrite === false){ $("#entryForm").hidden = true; $("#readOnlyNote").hidden = false; }
+render();
 if (!window.lucide) window.addEventListener("load", icons);
+db.collection("nhatky").onSnapshot(snap => {
+  allDocs = snap.docs.map(x => ({id:x.id, ...x.data()})).filter(e => e && e.date && e.type);
+  entries = allDocs.filter(e => !e.deleted); trash = allDocs.filter(e => e.deleted);
+  gotEntries = true; render(); maybeBackup();
+});
+db.collection("phanquyen").onSnapshot(snap => {
+  assignments = Object.fromEntries(snap.docs.map(x => [x.id, x.data()]).filter(([,a]) => a && a.farm));
+  applyRole(); render();
+});
+db.collection("ghimvitri").onSnapshot(snap => {
+  pins = Object.fromEntries(snap.docs.map(x => [x.id, x.data()]));
+  render(); if (screen === "weather") wEnsure();
+});
+db.collection("nhacviec").onSnapshot(snap => {
+  reminders = snap.docs.map(x => ({id:x.id, ...x.data()})).filter(r => r && r.title);
+  gotRems = true; render(); maybeBackup();
+});
+db.collection("thucte").onSnapshot(snap => {
+  actuals = snap.docs.map(x => ({id:x.id, ...x.data()})).filter(a => a && a.date);
+  if (screen === "weather") renderActuals(), icons();
+});
+setTimeout(() => wLoad(false), 300);
+if ("serviceWorker" in navigator && location.protocol === "https:") navigator.serviceWorker.register("sw.js").catch(() => {});
 })();
 </script>
 </body>
