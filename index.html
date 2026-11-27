@@ -1606,7 +1606,11 @@ window.addEventListener("hashchange", readLink);
 
 applyRole();
 $("#aiNote").innerHTML = `${ic("info")}Bản demo trả lời bằng bộ lọc có sẵn, chưa dùng AI, nên hiểu các câu về lịch phun, bón, trồng, xuất hàng, cách ly, nhắc việc. Gõ không dấu cũng được.`;
-if (canWrite === false){ $("#entryForm").hidden = true; $("#readOnlyNote").hidden = false; }
+if (canWrite === false){
+  $("#entryForm").hidden = true; $("#readOnlyNote").hidden = false;
+  document.querySelectorAll('[data-go="nhap"], .tabbar [data-tab="nhap"]').forEach(el => el.hidden = true);
+  $(".tabbar .in").style.gridTemplateColumns = "repeat(3,1fr)";
+}
 render();
 if (!window.lucide) window.addEventListener("load", icons);
 db.collection("nhatky").onSnapshot(snap => {
