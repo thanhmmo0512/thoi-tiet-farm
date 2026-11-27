@@ -123,6 +123,7 @@ textarea{resize:vertical}
 .grade .v{font-size:19px;font-weight:800;font-variant-numeric:tabular-nums;color:var(--fg);line-height:1.1}
 .grade .n{font-size:13px;font-weight:600}
 .grade .p{font-size:12px;color:var(--muted)}
+input[readonly]{background:var(--sunk);color:var(--muted)}
 .stock{text-align:right;min-width:64px;flex:none}
 .stock b{display:block;font-size:22px;font-weight:800;font-variant-numeric:tabular-nums;line-height:1.1}
 .stock span{font-size:12px;color:var(--muted)}
@@ -554,14 +555,14 @@ a{color:inherit}
         <div class="fields">
           <label class="f"><span class="lt"><i data-lucide="calendar"></i>Ngày</span><input type="date" id="f_date" required></label>
           <label class="f"><span class="lt"><i data-lucide="warehouse"></i>Farm</span><select id="f_farm"><option value="1">Farm 1</option><option value="2">Farm 2</option><option value="3">Farm 3</option></select></label>
-          <label class="f"><span class="lt"><i data-lucide="grid-2x2"></i>Lô</span><input id="f_lot" placeholder="VD: Lô A2"></label>
-          <label class="f"><span class="lt"><i data-lucide="calendar-range"></i>Mùa vụ</span><input id="f_season" list="seasonList" placeholder="VD: Vụ 2026"></label>
+          <label class="f"><span class="lt"><i data-lucide="grid-2x2"></i>Lô</span><input id="f_lot" list="lotList" placeholder="VD: Lô A2" autocomplete="off"><datalist id="lotList"></datalist></label>
+          <label class="f"><span class="lt"><i data-lucide="calendar-range"></i>Mùa vụ</span><input id="f_season" list="seasonList" placeholder="VD: Vụ 2026" autocomplete="off"></label>
           <datalist id="seasonList"></datalist>
           <label class="f" data-for="xuat"><span class="lt"><i data-lucide="tag"></i>Loại hàng</span><select id="f_grade"><option value="au">Hàng xuất Âu</option><option value="cho">Hàng chợ</option><option value="muc">Hàng múc</option><option value="xo">Hàng xô</option></select></label>
           <label class="f" data-for="xuat"><span class="lt"><i data-lucide="weight"></i>Số kg</span><input type="number" inputmode="decimal" min="0" step="0.1" id="f_kg"></label>
           <label class="f" data-for="xuat"><span class="lt"><i data-lucide="banknote"></i>Giá (đ/kg)</span><input type="number" inputmode="numeric" min="0" id="f_price" placeholder="Không bắt buộc"></label>
-          <label class="f" data-for="xuat"><span class="lt"><i data-lucide="user-round"></i>Người mua</span><input id="f_buyer" placeholder="Không bắt buộc"></label>
-          <label class="f" data-for="phun bon"><span class="lt"><i data-lucide="package"></i>Tên thuốc / phân</span><input id="f_product"></label>
+          <label class="f" data-for="xuat"><span class="lt"><i data-lucide="user-round"></i>Người mua</span><input id="f_buyer" list="buyerList" placeholder="Không bắt buộc" autocomplete="off"><datalist id="buyerList"></datalist></label>
+          <label class="f" data-for="phun bon"><span class="lt"><i data-lucide="package"></i>Tên thuốc / phân</span><input id="f_product" list="prodList" autocomplete="off" placeholder="Chọn Lấy từ kho để tên luôn đúng"><datalist id="prodList"></datalist></label>
           <label class="f" data-for="phun bon"><span class="lt"><i data-lucide="beaker"></i>Liều / số lượng</span><input id="f_dose" placeholder="VD: 20 ml/bình 16L"></label>
           <label class="f" data-for="phun bon"><span class="lt"><i data-lucide="warehouse"></i>Lấy từ kho</span><select id="f_kho"><option value="">Không lấy từ kho</option></select></label>
           <label class="f" data-for="phun bon"><span class="lt"><i data-lucide="package-minus"></i>Số lượng lấy kho <span id="f_khounit"></span></span><input type="number" inputmode="decimal" min="0" step="0.1" id="f_khoqty" placeholder="VD: 2"></label>
@@ -1243,12 +1244,14 @@ function fillKhoSelect(){
   sel.innerHTML = `<option value="">Không lấy từ kho</option>` + list.map(v => `<option value="${esc(v.id)}">${esc(v.name)} (còn ${qtyFmt(stockOf(v.id), v.unit)})</option>`).join("");
   sel.value = list.some(v => v.id === cur) ? cur : "";
   const it = itemOf(sel.value); $("#f_khounit").textContent = it ? `(${it.unit})` : "";
+  $("#f_product").readOnly = !!it;
 }
 document.addEventListener("change", e => {
   if (e.target.id !== "f_kho") return;
   const it = itemOf(e.target.value);
   $("#f_khounit").textContent = it ? `(${it.unit})` : "";
-  if (it && !$("#f_product").value.trim()) $("#f_product").value = it.name;
+  if (it) $("#f_product").value = it.name;
+  $("#f_product").readOnly = !!it;
 });
 function khoAfterSave(rec){
   if (!rec.khoItem || isPlan(rec)) return "";
@@ -1344,7 +1347,11 @@ $("#khoForm").addEventListener("submit", async ev => {
     if (khoKind === "moi"){
       const name = v("#v_name");
       if (!name){ fail("Nhập tên vật tư."); return; }
-      if (vattu.some(x => norm(x.name) === norm(name))){ fail("Vật tư này đã có trong kho."); return; }
+      const same = vattu.find(x => sameName(x.name, name));
+      if (same){ fail(`${same.name} đã có trong kho. Chọn Nhập kho rồi chọn ${same.name}.`); return; }
+      const near = vattu.find(x => nearName(x.name, name));
+      if (near && confirmNew.vattu !== name){ confirmNew.vattu = name; fail(`"${name}" gần giống "${near.name}" đã có trong kho. Nếu gõ nhầm, dùng ${near.name}. Nếu đúng là loại khác, bấm Thêm vật tư lần nữa.`); return; }
+      confirmNew.vattu = null;
       const r = await db.collection("vattu").add({name, unit:$("#v_unit").value, kind:$("#v_kind").value, min:Number(v("#v_min"))||0, createdAt:Date.now(), createdBy:me});
       ok(`Đã thêm ${name}. Giờ ghi Nhập kho cho vật tư này.`);
       $("#v_name").value = ""; $("#v_min").value = "";
@@ -1449,6 +1456,78 @@ document.addEventListener("click", e => {
   const f = e.target.closest("[data-ssfarm]"); if (f){ ssFarm = f.dataset.ssfarm; renderSoSanh(); }
 });
 
+/* ---------- keep names consistent: reuse existing spellings, flag near-misses ("Amoni" vs "Amino") ---------- */
+function lev(a, b){
+  const m = a.length, n = b.length; if (!m) return n; if (!n) return m;
+  let prev = Array.from({length:n+1}, (_, j) => j);
+  for (let i = 1; i <= m; i++){
+    const cur = [i];
+    for (let j = 1; j <= n; j++) cur[j] = Math.min(prev[j] + 1, cur[j-1] + 1, prev[j-1] + (a[i-1] === b[j-1] ? 0 : 1));
+    prev = cur;
+  }
+  return prev[n];
+}
+const nkey = s => norm(s).replace(/[^a-z0-9]+/g, " ").trim();
+const sameName = (a, b) => nkey(a) === nkey(b);
+function nearName(a, b){
+  const x = nkey(a), y = nkey(b);
+  if (!x || !y || x === y) return false;
+  const short = Math.min(x.length, y.length);
+  if (lev(x, y) <= (short >= 6 ? 2 : 1)) return true;
+  /* swapped letters inside one word, e.g. amino / amoni */
+  const sx = x.split(" "), sy = y.split(" ");
+  if (sx.length === sy.length && sx.every((w, i) => w === sy[i] || (w.length >= 4 && [...w].sort().join("") === [...sy[i]].sort().join("")))) return true;
+  return false;
+}
+const canonName = (val, list) => list.find(x => sameName(x, val)) || val.replace(/\s+/g, " ").trim();
+const nearOf = (val, list) => list.find(x => nearName(x, val));
+let confirmNew = {};
+function nameLists(rec){
+  const uniq = a => [...new Set(a.filter(Boolean))];
+  return {
+    season: uniq(allDocs.map(e => e.season)),
+    lot: uniq(allDocs.filter(e => Number(e.farm) === Number(rec.farm)).map(e => e.lot)),
+    buyer: uniq(allDocs.map(e => e.buyer)),
+    product: uniq([...vattu.map(v => v.name), ...allDocs.filter(e => e.type === rec.type).map(e => e.product)]),
+  };
+}
+function checkNames(rec){
+  if ((rec.type === "phun" || rec.type === "bon") && rec.khoItem){ const it = itemOf(rec.khoItem); if (it) rec.product = it.name; }
+  const L = nameLists(rec);
+  const step = (field, label) => {
+    const val = String(rec[field] || "").trim(); if (!val) return null;
+    rec[field] = canonName(val, L[field]);
+    if (L[field].includes(rec[field])) return null;
+    const near = nearOf(rec[field], L[field]);
+    if (near && confirmNew[field] !== rec[field]){
+      confirmNew[field] = rec[field];
+      return `${label} "${rec[field]}" gần giống "${near}" đã có trong sổ. Nếu gõ nhầm, sửa thành "${near}". Nếu đúng là ${label.toLowerCase()} mới, bấm Lưu lần nữa.`;
+    }
+    return null;
+  };
+  const isPB = rec.type === "phun" || rec.type === "bon";
+  const err = step("season", "Mùa vụ") || step("lot", "Lô") || (rec.type === "xuat" ? step("buyer", "Người mua") : null)
+    || (isPB && !rec.khoItem ? step("product", rec.type === "phun" ? "Tên thuốc" : "Tên phân") : null);
+  if (err) return err;
+  if (isPB && !rec.khoItem && !isPlan(rec)){
+    const inKho = vattu.find(v => sameName(v.name, rec.product));
+    if (inKho && confirmNew.kho !== inKho.id){
+      confirmNew.kho = inKho.id;
+      return `${inKho.name} có trong kho. Muốn kho tự trừ thì chọn "Lấy từ kho: ${inKho.name}" và nhập số lượng. Nếu không lấy từ kho, bấm Lưu lần nữa.`;
+    }
+  }
+  return null;
+}
+function fillNameLists(){
+  const farmNow = Number($("#f_farm").value) || 1;
+  const L = nameLists({farm:farmNow, type});
+  $("#lotList").innerHTML = L.lot.map(x => `<option value="${esc(x)}">`).join("");
+  $("#buyerList").innerHTML = L.buyer.map(x => `<option value="${esc(x)}">`).join("");
+  $("#prodList").innerHTML = L.product.map(x => `<option value="${esc(x)}">`).join("");
+}
+document.addEventListener("change", e => { if (e.target.id === "f_farm") fillNameLists(); });
+document.addEventListener("input", e => { if (["f_season","f_lot","f_buyer","f_product"].includes(e.target.id)) confirmNew = {}; });
+
 /* ---------- render ---------- */
 function render(){
   const s = scoped();
@@ -1539,7 +1618,7 @@ function render(){
   if (screen==="phanquyen") renderPq();
   if (screen==="kho") renderKho();
   if (screen==="sosanh") renderSoSanh();
-  if (screen==="nhap") fillKhoSelect();
+  if (screen==="nhap"){ fillKhoSelect(); fillNameLists(); }
   if (screen==="weather") renderWeather();
   if (screen==="vaitro") renderRoles();
   if (screen==="nhap") renderLog();
@@ -1729,6 +1808,7 @@ $("#entryForm").addEventListener("submit", async ev => {
   if (type==="trong") Object.assign(rec,{variety:v("#f_variety"), plants:Number(v("#f_plants"))||0});
   if (!db) return fail("Chưa kết nối được nơi lưu dữ liệu. Mở lại trang trong Claude.");
   if (type === "xuat" && rec.date > today) return fail("Xuất hàng chỉ ghi ngày đã xuất (hôm nay hoặc trước đó). Muốn lên lịch thì dùng Nhắc việc.");
+  { const nameErr = checkNames(rec); if (nameErr) return fail(nameErr); confirmNew = {}; }
   rec.plan = type !== "xuat" && rec.date > today;
   $("#saveBtn").disabled = true;
   try {
