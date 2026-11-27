@@ -349,9 +349,13 @@ function build(){
   return {slots, days};
 }
 function sprayDay(d){
-  if (d.v === "mua" || (d.gust ?? 0) >= rules.gust) return {c:"a-no", i:"ban", t:"Không nên phun"};
-  if (d.v !== "kho" || (d.gust ?? 0) >= rules.gust*0.7) return {c:"a-mid", i:"triangle-alert", t:"Cân nhắc"};
-  return {c:"a-ok", i:"circle-check", t:"Nên phun"};
+  const g = d.gust ?? 0, gtxt = `gió giật ${round(g)} km/h`;
+  if (d.v === "mua") return {c:"a-no", i:"ban", t:"Không nên phun", why:`Mưa trong giờ làm việc (${d.rain}/${d.n} nguồn)`};
+  if (g >= rules.gust) return {c:"a-no", i:"ban", t:"Không nên phun", why:`Giờ làm việc ${gtxt}`};
+  if (d.v === "thieu") return {c:"a-mid", i:"triangle-alert", t:"Cân nhắc", why:"Chưa đủ nguồn dự báo"};
+  if (d.v !== "kho") return {c:"a-mid", i:"triangle-alert", t:"Cân nhắc", why:`Giờ làm việc chưa chắc có mưa (${d.rain}/${d.n} nguồn)`};
+  if (g >= rules.gust*0.7) return {c:"a-mid", i:"triangle-alert", t:"Cân nhắc", why:`Khô ráo nhưng ${gtxt}`};
+  return {c:"a-ok", i:"circle-check", t:"Nên phun", why:`Khô ráo, ${gtxt}`};
 }
 const label = t => { const d = new Date(t.slice(0,10)+"T00:00"); return `${WDS[d.getDay()]} ${t.slice(8,10)}/${t.slice(5,7)}`; };
 function vicon(d, hr){ return d.v === "kho" ? (hr >= 18 || hr < 6 ? "moon" : "sun") : VERD[d.v].i; }
@@ -403,7 +407,7 @@ function render(){
   $("#days").innerHTML = days.map((d,i) => { const sp = sprayDay(d.work);
     return `<li class="day"><div class="dn">${i===0?"Hôm nay":WDS[new Date(d.date+"T00:00").getDay()]}<small>${d.date.slice(8,10)}/${d.date.slice(5,7)}</small></div>
       <div style="color:${d.d.v==="kho"?"var(--amber)":"var(--blue)"}">${ic(vicon(d.d,12))}</div>
-      <div class="dr"><b style="color:var(--fg)">${VERD[d.d.v].n}</b> · ${d.d.rain}/${d.d.n} nguồn${d.d.n<rules.min?"":""}<br><span class="advice ${sp.c}">${ic(sp.i)}${sp.t}</span></div>
+      <div class="dr"><b style="color:var(--fg)">${VERD[d.d.v].n}</b> · ${d.d.rain}/${d.d.n} báo mưa<br><span class="advice ${sp.c}">${ic(sp.i)}${sp.t}</span><br><span class="hint">${esc(sp.why)}</span></div>
       <div class="dt">${round(d.d.tmax)}° <small>${round(d.d.tmin)}°</small></div></li>`; }).join("");
   icons();
 }
