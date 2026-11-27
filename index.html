@@ -544,7 +544,7 @@ a{color:inherit}
         </div>
         <div style="margin-top:16px"><button class="btn primary block" type="submit" id="saveBtn"><i data-lucide="save"></i>Lưu ghi chép</button></div>
         <div id="formMsg" class="formmsg" role="status"></div>
-        <div class="hint"><i data-lucide="info"></i>Chọn ngày trong tương lai để tạo lịch kế hoạch.</div>
+        <div class="hint"><i data-lucide="info"></i><span id="planHint">Chọn ngày trong tương lai để tạo lịch kế hoạch.</span></div>
       </form>
       <div class="section"><h2>Ghi chép gần đây</h2><ul class="list" id="log"></ul></div>
     </div>
@@ -715,7 +715,7 @@ const scopeLabel = () => `${farm==="all"?"Cả 3 farm":"Farm "+farm} · ${season
 
 /* ---------- items ---------- */
 function phiEnd(e){ return e.type==="phun" && Number(e.phi)>0 ? addDays(e.date, Number(e.phi)) : null; }
-function isPlan(e){ return e.plan === true || (e.plan === undefined && e.date > today); }
+function isPlan(e){ if (e.type === "xuat") return false; return e.plan === true || (e.plan === undefined && e.date > today); }
 function statusPill(e){
   if (isPlan(e)) return e.date > today ? `<span class="pill p-plan">${ic("clock")}Kế hoạch</span>`
     : `<span class="pill p-due">${ic("alarm-clock")}${e.date===today?"Hôm nay":"Quá hạn"} · chưa xác nhận</span>`;
@@ -1353,6 +1353,10 @@ function setType(t){
   type = t;
   document.querySelectorAll(".types button").forEach(b => b.setAttribute("aria-pressed", b.dataset.type===t));
   document.querySelectorAll("[data-for]").forEach(l => l.hidden = !l.dataset.for.split(" ").includes(t));
+  const fd = $("#f_date");
+  if (t === "xuat"){ fd.max = today; if (fd.value > today) fd.value = today; }
+  else fd.removeAttribute("max");
+  $("#planHint").textContent = t === "xuat" ? "Xuất hàng ghi theo ngày đã xuất thực tế, cộng ngay vào sản lượng." : "Chọn ngày trong tương lai để tạo lịch kế hoạch.";
 }
 document.querySelector(".types").addEventListener("click", e => { const b=e.target.closest("[data-type]"); if(b) setType(b.dataset.type); });
 setType("xuat"); $("#f_date").value = today;
@@ -1368,7 +1372,8 @@ $("#entryForm").addEventListener("submit", async ev => {
   if (type==="phun") Object.assign(rec,{phi:Number(v("#f_phi"))||0, target:v("#f_target")});
   if (type==="trong") Object.assign(rec,{variety:v("#f_variety"), plants:Number(v("#f_plants"))||0});
   if (!db) return fail("Chưa kết nối được nơi lưu dữ liệu. Mở lại trang trong Claude.");
-  rec.plan = rec.date > today;
+  if (type === "xuat" && rec.date > today) return fail("Xuất hàng chỉ ghi ngày đã xuất (hôm nay hoặc trước đó). Muốn lên lịch thì dùng Nhắc việc.");
+  rec.plan = type !== "xuat" && rec.date > today;
   $("#saveBtn").disabled = true;
   try {
     if (editingId){
