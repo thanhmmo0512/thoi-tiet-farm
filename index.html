@@ -123,6 +123,25 @@ textarea{resize:vertical}
 .grade .v{font-size:19px;font-weight:800;font-variant-numeric:tabular-nums;color:var(--fg);line-height:1.1}
 .grade .n{font-size:13px;font-weight:600}
 .grade .p{font-size:12px;color:var(--muted)}
+.stock{text-align:right;min-width:64px;flex:none}
+.stock b{display:block;font-size:22px;font-weight:800;font-variant-numeric:tabular-nums;line-height:1.1}
+.stock span{font-size:12px;color:var(--muted)}
+.stock.low b{color:var(--red)}
+.item[data-kitem]{cursor:pointer}
+.item.sel{outline:2px solid var(--green);outline-offset:-2px}
+.chips2{display:flex;flex-wrap:wrap;gap:8px}
+.ssbar{margin-bottom:14px}
+.ssh{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;font-size:14px;margin-bottom:6px}
+.ssh span{color:var(--muted);font-variant-numeric:tabular-nums}
+.sstrack{display:flex;height:16px;border-radius:8px;overflow:hidden;gap:2px;max-width:100%}
+.sstrack span{display:block;height:100%}
+.sslegend{display:flex;flex-wrap:wrap;gap:12px;font-size:12px;color:var(--muted)}
+.sslegend span{display:inline-flex;align-items:center;gap:5px}
+.sstable td small{display:block;font-size:11px;color:var(--muted)}
+.sstable td.num,.sstable th.num{white-space:nowrap}
+.sstable th:first-child,.sstable td:first-child{white-space:normal;min-width:120px}
+.up{color:var(--green);font-weight:700}
+.down{color:var(--red);font-weight:700}
 .money{display:flex;gap:12px;align-items:center;margin-top:12px;padding:12px;border-radius:16px;background:var(--green-soft)}
 .money .mi2{width:42px;height:42px;border-radius:50%;background:var(--sheet);display:grid;place-items:center;color:var(--green);flex:none}
 .money b{display:block;font-size:17px;font-variant-numeric:tabular-nums}
@@ -404,6 +423,8 @@ a{color:inherit}
           <button class="mi" type="button" data-go="trong"><span class="circ c-green"><i data-lucide="sprout"></i></span><span class="lbl">Lịch trồng cây</span></button>
           <button class="mi" type="button" data-go="farms"><span class="circ c-amber"><i data-lucide="warehouse"></i></span><span class="lbl">Farm 1 · 2 · 3</span></button>
           <button class="mi" type="button" data-go="cachly"><span class="circ c-red"><i data-lucide="shield-alert"></i><span class="badge" id="phiBadge" hidden></span></span><span class="lbl">Lô đang cách ly</span></button>
+          <button class="mi" type="button" data-go="kho"><span class="circ c-green"><i data-lucide="warehouse"></i><span class="badge" id="khoBadge" hidden></span></span><span class="lbl">Kho vật tư</span></button>
+          <button class="mi" type="button" data-go="sosanh"><span class="circ c-purple"><i data-lucide="chart-column"></i></span><span class="lbl">So sánh mùa vụ</span></button>
         </div>
       </div>
 
@@ -542,6 +563,8 @@ a{color:inherit}
           <label class="f" data-for="xuat"><span class="lt"><i data-lucide="user-round"></i>Người mua</span><input id="f_buyer" placeholder="Không bắt buộc"></label>
           <label class="f" data-for="phun bon"><span class="lt"><i data-lucide="package"></i>Tên thuốc / phân</span><input id="f_product"></label>
           <label class="f" data-for="phun bon"><span class="lt"><i data-lucide="beaker"></i>Liều / số lượng</span><input id="f_dose" placeholder="VD: 20 ml/bình 16L"></label>
+          <label class="f" data-for="phun bon"><span class="lt"><i data-lucide="warehouse"></i>Lấy từ kho</span><select id="f_kho"><option value="">Không lấy từ kho</option></select></label>
+          <label class="f" data-for="phun bon"><span class="lt"><i data-lucide="package-minus"></i>Số lượng lấy kho <span id="f_khounit"></span></span><input type="number" inputmode="decimal" min="0" step="0.1" id="f_khoqty" placeholder="VD: 2"></label>
           <label class="f" data-for="phun"><span class="lt"><i data-lucide="shield-alert"></i>Cách ly (ngày)</span><input type="number" inputmode="numeric" min="0" id="f_phi" placeholder="Theo nhãn thuốc"></label>
           <label class="f" data-for="phun"><span class="lt"><i data-lucide="bug"></i>Trị bệnh / sâu</span><input id="f_target" placeholder="VD: thối nhũn"></label>
           <label class="f" data-for="trong"><span class="lt"><i data-lucide="sprout"></i>Giống</span><input id="f_variety" placeholder="VD: Đài Nông 1"></label>
@@ -606,6 +629,60 @@ a{color:inherit}
     </div>
   </section>
 
+  <!-- KHO VAT TU -->
+  <section class="screen" data-screen="kho" hidden>
+    <div class="sheet flat">
+      <div class="section" id="khoWarnBox" hidden><h2>Cần chú ý</h2><ul class="list" id="khoWarn"></ul></div>
+      <div class="section"><h2>Tồn kho <small id="khoCount"></small></h2>
+        <ul class="list" id="khoList"></ul>
+      </div>
+      <div class="section" id="khoHistBox" hidden><h2 id="khoHistTitle">Lịch sử</h2><ul class="list" id="khoHist"></ul></div>
+      <form class="section" id="khoForm" novalidate>
+        <h2>Ghi kho</h2>
+        <div class="types" role="group" aria-label="Loại ghi kho" id="khoKinds">
+          <button type="button" data-kkind="nhap" aria-pressed="true"><span class="circ c-green"><i data-lucide="package-plus"></i></span>Nhập kho</button>
+          <button type="button" data-kkind="xuat" aria-pressed="false"><span class="circ c-orange"><i data-lucide="package-minus"></i></span>Xuất khác</button>
+          <button type="button" data-kkind="kiemke" aria-pressed="false"><span class="circ c-blue"><i data-lucide="clipboard-check"></i></span>Kiểm kê</button>
+          <button type="button" data-kkind="moi" aria-pressed="false"><span class="circ c-purple"><i data-lucide="plus"></i></span>Vật tư mới</button>
+        </div>
+        <div class="fields">
+          <label class="f" data-kfor="nhap xuat kiemke"><span class="lt"><i data-lucide="package"></i>Vật tư</span><select id="k_item"></select></label>
+          <label class="f" data-kfor="nhap xuat kiemke"><span class="lt"><i data-lucide="calendar"></i>Ngày</span><input type="date" id="k_date"></label>
+          <label class="f" data-kfor="nhap xuat"><span class="lt"><i data-lucide="hash"></i>Số lượng <span id="k_unit1"></span></span><input type="number" inputmode="decimal" min="0" step="0.1" id="k_qty" placeholder="VD: 10"></label>
+          <label class="f" data-kfor="kiemke"><span class="lt"><i data-lucide="clipboard-check"></i>Đếm thực tế còn <span id="k_unit2"></span></span><input type="number" inputmode="decimal" min="0" step="0.1" id="k_count"></label>
+          <label class="f" data-kfor="nhap"><span class="lt"><i data-lucide="banknote"></i>Giá nhập (đ/đơn vị)</span><input type="number" inputmode="numeric" min="0" id="k_price" placeholder="Không bắt buộc"></label>
+          <label class="f" data-kfor="nhap"><span class="lt"><i data-lucide="barcode"></i>Số lô hàng</span><input id="k_lot" placeholder="Không bắt buộc"></label>
+          <label class="f" data-kfor="nhap"><span class="lt"><i data-lucide="calendar-x"></i>Hạn dùng</span><input type="date" id="k_exp"></label>
+          <label class="f" data-kfor="nhap"><span class="lt"><i data-lucide="truck"></i>Nơi mua / người giao</span><input id="k_from" placeholder="Không bắt buộc"></label>
+          <label class="f" data-kfor="xuat"><span class="lt"><i data-lucide="warehouse"></i>Cho farm</span><select id="k_farm"><option value="0">Không theo farm</option><option value="1">Farm 1</option><option value="2">Farm 2</option><option value="3">Farm 3</option></select></label>
+          <label class="f wide" data-kfor="nhap xuat kiemke"><span class="lt"><i data-lucide="message-square-text"></i>Ghi chú</span><input id="k_note" placeholder="VD: lý do xuất, hàng hỏng, cho mượn"></label>
+          <label class="f" data-kfor="moi"><span class="lt"><i data-lucide="tag"></i>Tên vật tư</span><input id="v_name" placeholder="VD: Amino"></label>
+          <label class="f" data-kfor="moi"><span class="lt"><i data-lucide="ruler"></i>Đơn vị</span><select id="v_unit"></select></label>
+          <label class="f" data-kfor="moi"><span class="lt"><i data-lucide="layers"></i>Loại</span><select id="v_kind"><option value="thuoc">Thuốc BVTV</option><option value="phan">Phân bón</option><option value="khac">Khác</option></select></label>
+          <label class="f" data-kfor="moi"><span class="lt"><i data-lucide="triangle-alert"></i>Báo sắp hết khi còn</span><input type="number" inputmode="decimal" min="0" step="0.1" id="v_min" placeholder="VD: 2"></label>
+        </div>
+        <div style="margin-top:16px"><button class="btn primary block" type="submit" id="khoSave"><i data-lucide="save"></i><span id="khoSaveText">Nhập kho</span></button></div>
+        <div id="khoMsg" class="formmsg" role="status"></div>
+        <div class="hint"><i data-lucide="info"></i>Khi ghi phun thuốc hoặc bón phân, chọn "Lấy từ kho" để tồn kho tự trừ lúc việc đó đã làm.</div>
+      </form>
+    </div>
+  </section>
+
+  <!-- SO SANH MUA VU -->
+  <section class="screen" data-screen="sosanh" hidden>
+    <div class="sheet flat">
+      <div class="filters" id="ssFarms"></div>
+      <div class="section" style="padding-top:8px"><h2>Chọn mùa vụ để so sánh <small>tối đa 4</small></h2>
+        <div class="chips2" id="ssSeasons"></div>
+        <p class="hint" id="ssNoSeason"></p>
+      </div>
+      <div class="section"><h2>Sản lượng</h2><div id="ssBars"></div></div>
+      <div class="section"><h2>Bảng so sánh</h2><div class="tblwrap"><table class="mtable sstable" id="ssTable"></table></div>
+        <p class="hint" style="margin-top:10px">Chi phí vật tư tính từ những lần phun, bón có chọn "Lấy từ kho" và vật tư có ghi giá nhập.</p>
+      </div>
+    </div>
+  </section>
+
   <!-- PHAN QUYEN -->
   <section class="screen" data-screen="phanquyen" hidden>
     <div class="sheet flat">
@@ -638,7 +715,7 @@ const TYPE = {
   xuat:{n:"Xuất hàng", i:"truck", c:"c-purple"}, phun:{n:"Phun thuốc", i:"spray-can", c:"c-blue"},
   bon:{n:"Bón phân", i:"flask-round", c:"c-orange"}, trong:{n:"Trồng cây", i:"sprout", c:"c-green"},
 };
-const TITLES = {home:"Trang chủ", xuat:"Xuất hàng", phun:"Lịch phun thuốc", bon:"Lịch bón phân", trong:"Lịch trồng cây", farms:"Theo farm", cachly:"Lô đang cách ly", weather:"Thời tiết", nhap:"Nhập liệu", ai:"Hỏi AI", nhac:"Nhắc việc", baove:"Thùng rác & sao lưu", phanquyen:"Phân quyền farm", vaitro:"Vai trò xem thử"};
+const TITLES = {home:"Trang chủ", xuat:"Xuất hàng", phun:"Lịch phun thuốc", bon:"Lịch bón phân", trong:"Lịch trồng cây", farms:"Theo farm", cachly:"Lô đang cách ly", weather:"Thời tiết", nhap:"Nhập liệu", ai:"Hỏi AI", kho:"Kho vật tư", sosanh:"So sánh mùa vụ", nhac:"Nhắc việc", baove:"Thùng rác & sao lưu", phanquyen:"Phân quyền farm", vaitro:"Vai trò xem thử"};
 const $ = s => document.querySelector(s);
 const ic = n => `<i data-lucide="${n}"></i>`;
 const icons = () => { try { window.lucide && window.lucide.createIcons(); } catch(e){} };
@@ -735,6 +812,7 @@ function details(e){
   if (e.type==="xuat"){ add("banknote", e.price?`${Number(e.price).toLocaleString("vi-VN")} đ/kg`:""); add("user-round", e.buyer); }
   if (e.type==="phun"){ add("beaker", e.dose); add("bug", e.target); }
   if (e.type==="bon") add("beaker", e.dose);
+  if ((e.type==="phun"||e.type==="bon") && e.khoItem && +e.khoQty){ const it = itemOf(e.khoItem); add("package-minus", it ? `Kho: ${qtyFmt(e.khoQty, it.unit)} ${it.name}` : ""); }
   if (e.type==="trong") add("hash", e.plants?`${fmt(Number(e.plants))} cây`:"");
   return bits.join("");
 }
@@ -1130,12 +1208,254 @@ $("#ttForm").addEventListener("submit", async ev => {
   $("#ttSave").disabled = false;
 });
 
+/* ---------- warehouse: stock = received − used by done spray/fertiliser records − other issues ± stock-count adjustments ---------- */
+const UNITS = ["hộp","chai","gói","bao","kg","lít","ml","g","cái"];
+const VKIND = {thuoc:"Thuốc BVTV", phan:"Phân bón", khac:"Khác"};
+let vattu = [], khoMoves = [], khoSel = null, khoKind = "nhap";
+const itemOf = id => vattu.find(x => x.id === id);
+const qtyFmt = (n, u) => `${(Math.round((+n||0)*100)/100).toLocaleString("vi-VN")}${u?` ${u}`:""}`;
+const usesOf = id => entries.filter(e => e.khoItem === id && Number(e.khoQty) > 0 && !isPlan(e));
+function stockOf(id){
+  let s = 0;
+  khoMoves.filter(m => m.item === id).forEach(m => { s += m.kind === "nhap" ? (+m.qty||0) : m.kind === "xuat" ? -(+m.qty||0) : (+m.qty||0); });
+  usesOf(id).forEach(e => { s -= +e.khoQty || 0; });
+  return Math.round(s*1000)/1000;
+}
+function avgCost(id){
+  let q = 0, m = 0;
+  khoMoves.filter(x => x.item === id && x.kind === "nhap" && +x.price > 0).forEach(x => { q += +x.qty; m += +x.qty * +x.price; });
+  return q ? m/q : null;
+}
+const plannedNeed = (id, days = 14) => entries.filter(e => e.khoItem === id && isPlan(e) && e.date <= addDays(today, days)).reduce((a, e) => a + (+e.khoQty||0), 0);
+function khoAlerts(){
+  return vattu.map(v => {
+    const s = stockOf(v.id), need = plannedNeed(v.id), min = +v.min || 0;
+    if (s < 0) return {v, s, t:`Tồn kho âm ${qtyFmt(s, v.unit)}. Có lần dùng chưa được nhập kho, cần kiểm kê lại.`, c:"c-red"};
+    if (need > s) return {v, s, t:`Lịch 14 ngày tới cần ${qtyFmt(need, v.unit)}, kho chỉ còn ${qtyFmt(s, v.unit)}.`, c:"c-red"};
+    if (min && s <= min) return {v, s, t:`Sắp hết: còn ${qtyFmt(s, v.unit)} (báo khi còn ${qtyFmt(min, v.unit)}).`, c:"c-amber"};
+    return null;
+  }).filter(Boolean);
+}
+function fillKhoSelect(){
+  const sel = $("#f_kho"); if (!sel) return;
+  const cur = sel.value, want = type === "bon" ? "phan" : "thuoc";
+  const list = [...vattu].sort((a, b) => (a.kind === want ? 0 : 1) - (b.kind === want ? 0 : 1) || a.name.localeCompare(b.name, "vi"));
+  sel.innerHTML = `<option value="">Không lấy từ kho</option>` + list.map(v => `<option value="${esc(v.id)}">${esc(v.name)} (còn ${qtyFmt(stockOf(v.id), v.unit)})</option>`).join("");
+  sel.value = list.some(v => v.id === cur) ? cur : "";
+  const it = itemOf(sel.value); $("#f_khounit").textContent = it ? `(${it.unit})` : "";
+}
+document.addEventListener("change", e => {
+  if (e.target.id !== "f_kho") return;
+  const it = itemOf(e.target.value);
+  $("#f_khounit").textContent = it ? `(${it.unit})` : "";
+  if (it && !$("#f_product").value.trim()) $("#f_product").value = it.name;
+});
+function khoAfterSave(rec){
+  if (!rec.khoItem || isPlan(rec)) return "";
+  const it = itemOf(rec.khoItem); if (!it) return "";
+  const s = stockOf(it.id);
+  return s < 0 ? ` Kho ${it.name} đang âm ${qtyFmt(s, it.unit)}, cần nhập kho hoặc kiểm kê.` : ` Kho ${it.name} còn ${qtyFmt(s, it.unit)}.`;
+}
+
+function setKhoKind(k){
+  khoKind = k;
+  document.querySelectorAll("#khoKinds [data-kkind]").forEach(b => b.setAttribute("aria-pressed", b.dataset.kkind === k));
+  document.querySelectorAll("[data-kfor]").forEach(l => l.hidden = !l.dataset.kfor.split(" ").includes(k));
+  $("#khoSaveText").textContent = {nhap:"Nhập kho", xuat:"Xuất kho", kiemke:"Lưu kiểm kê", moi:"Thêm vật tư"}[k];
+  $("#khoMsg").textContent = "";
+}
+document.querySelector("#khoKinds").addEventListener("click", e => { const b = e.target.closest("[data-kkind]"); if (b) setKhoKind(b.dataset.kkind); });
+$("#v_unit").innerHTML = UNITS.map(u => `<option>${u}</option>`).join("");
+$("#k_date").value = today;
+setKhoKind("nhap");
+document.addEventListener("change", e => {
+  if (e.target.id !== "k_item") return;
+  const it = itemOf(e.target.value); const u = it ? `(${it.unit})` : "";
+  $("#k_unit1").textContent = u; $("#k_unit2").textContent = u;
+  if (it){ khoSel = it.id; renderKho(); }
+});
+
+function renderKho(){
+  const alerts = khoAlerts();
+  $("#khoWarnBox").hidden = !alerts.length;
+  $("#khoWarn").innerHTML = alerts.map(a => `<li class="item"><span class="tico ${a.c}">${ic("triangle-alert")}</span><div class="body"><div class="t">${esc(a.v.name)}</div><div class="d"><span>${esc(a.t)}</span></div></div></li>`).join("");
+  const list = [...vattu].sort((a, b) => a.name.localeCompare(b.name, "vi"));
+  $("#khoCount").textContent = list.length ? `${list.length} loại` : "";
+  $("#khoList").innerHTML = list.length ? list.map(v => {
+    const s = stockOf(v.id), need = plannedNeed(v.id), low = s < 0 || need > s || ((+v.min||0) && s <= +v.min);
+    return `<li class="item ${khoSel===v.id?"sel":""}" data-kitem="${esc(v.id)}" role="button" tabindex="0">
+      <span class="tico ${v.kind==="phan"?"c-orange":v.kind==="thuoc"?"c-blue":"c-grey"}">${ic(v.kind==="phan"?"flask-round":v.kind==="thuoc"?"spray-can":"package")}</span>
+      <div class="body"><div class="t">${esc(v.name)}</div><div class="d"><span>${VKIND[v.kind]||""}</span>${need?`<span>${ic("calendar-clock")}Lịch 14 ngày cần ${qtyFmt(need, v.unit)}</span>`:""}</div></div>
+      <div class="stock ${low?"low":""}"><b>${qtyFmt(s)}</b><span>${esc(v.unit)}</span></div></li>`;
+  }).join("") : `<li class="none">${ic("package-open")}Kho chưa có vật tư. Bấm "Vật tư mới" bên dưới để thêm, ví dụ Amino, đơn vị hộp.</li>`;
+  const opts = list.map(v => `<option value="${esc(v.id)}">${esc(v.name)} (còn ${qtyFmt(stockOf(v.id), v.unit)})</option>`).join("");
+  const ki = $("#k_item"), cur = ki.value || khoSel || "";
+  ki.innerHTML = opts || `<option value="">Chưa có vật tư</option>`;
+  if (list.some(v => v.id === cur)) ki.value = cur;
+  const it = itemOf(ki.value); $("#k_unit1").textContent = it ? `(${it.unit})` : ""; $("#k_unit2").textContent = it ? `(${it.unit})` : "";
+  if (myFarm){ $("#k_farm").value = String(myFarm); $("#k_farm").disabled = true; }
+  $("#khoForm").hidden = canWrite === false;
+  /* history of the selected item */
+  const sel = itemOf(khoSel);
+  $("#khoHistBox").hidden = !sel;
+  if (sel){
+    $("#khoHistTitle").textContent = `Lịch sử: ${sel.name}`;
+    const rows = [
+      ...khoMoves.filter(m => m.item === sel.id).map(m => ({date:m.date, at:m.createdAt||0, m})),
+      ...entries.filter(e => e.khoItem === sel.id && Number(e.khoQty) > 0).map(e => ({date:e.date, at:e.createdAt||0, e})),
+    ].sort((a, b) => b.date.localeCompare(a.date) || b.at - a.at).slice(0, 40);
+    $("#khoHist").innerHTML = rows.length ? rows.map(r => {
+      if (r.e){
+        const plan = isPlan(r.e);
+        return `<li class="item ${plan?"plan":""}"><span class="tico ${TYPE[r.e.type].c}">${ic(TYPE[r.e.type].i)}</span>
+          <div class="datebox"><b>${r.date.slice(8,10)}</b><span>TH ${Number(r.date.slice(5,7))}</span></div>
+          <div class="body"><div class="t">${plan?"Sẽ dùng":"−"} ${qtyFmt(r.e.khoQty, sel.unit)} · ${TYPE[r.e.type].n.toLowerCase()}</div>
+          <div class="d"><span>${ic("warehouse")}Farm ${esc(r.e.farm)}</span>${r.e.lot?`<span>${ic("grid-2x2")}${esc(r.e.lot)}</span>`:""}</div>
+          <div class="row">${plan?`<span class="pill p-plan">${ic("clock")}Chưa trừ kho, còn là kế hoạch</span>`:`<span class="pill p-done">${ic("check")}Đã trừ kho</span>`}</div></div></li>`;
+      }
+      const m = r.m, sign = m.kind === "nhap" ? "+" : m.kind === "xuat" ? "−" : (+m.qty >= 0 ? "+" : "−");
+      const label = m.kind === "nhap" ? "Nhập kho" : m.kind === "xuat" ? "Xuất khác" : "Kiểm kê, điều chỉnh";
+      return `<li class="item"><span class="tico ${m.kind==="nhap"?"c-green":m.kind==="xuat"?"c-orange":"c-blue"}">${ic(m.kind==="nhap"?"package-plus":m.kind==="xuat"?"package-minus":"clipboard-check")}</span>
+        <div class="datebox"><b>${m.date.slice(8,10)}</b><span>TH ${Number(m.date.slice(5,7))}</span></div>
+        <div class="body"><div class="t">${sign} ${qtyFmt(Math.abs(+m.qty), sel.unit)} · ${label}</div>
+        <div class="d">${m.price?`<span>${ic("banknote")}${Number(m.price).toLocaleString("vi-VN")} đ/${esc(sel.unit)}</span>`:""}${m.lot?`<span>${ic("barcode")}Lô ${esc(m.lot)}</span>`:""}${m.exp?`<span>${ic("calendar-x")}HSD ${vnDate(m.exp)}</span>`:""}${m.from?`<span>${ic("truck")}${esc(m.from)}</span>`:""}${Number(m.farm)?`<span>${ic("warehouse")}Farm ${esc(m.farm)}</span>`:""}${m.note?`<span>${ic("message-square-text")}${esc(m.note)}</span>`:""}</div>
+        ${whoLine(m)}
+        ${isOwner?`<div class="row"><span class="kacts"><button type="button" class="btn sm ghost danger" data-kact="del" data-id="${esc(m.id)}">${ic("trash-2")}Xóa dòng này</button></span></div>`:""}</div></li>`;
+    }).join("") : `<li class="none">${ic("history")}Chưa có lần nhập, xuất nào.</li>`;
+  }
+  icons();
+}
+document.addEventListener("click", async e => {
+  const it = e.target.closest("[data-kitem]");
+  if (it && !e.target.closest("button")){ khoSel = khoSel === it.dataset.kitem ? null : it.dataset.kitem; if (khoSel) $("#k_item").value = khoSel; renderKho(); if (khoSel) $("#khoHistBox").scrollIntoView({behavior:"smooth", block:"start"}); return; }
+  const b = e.target.closest("[data-kact]"); if (!b) return;
+  const box = b.closest(".kacts");
+  if (b.dataset.kact === "del"){ box.innerHTML = `<button type="button" class="btn sm danger" data-kact="del-yes" data-id="${esc(b.dataset.id)}">Xóa hẳn dòng này</button><button type="button" class="btn sm ghost" data-kact="cancel">Thôi</button>`; return; }
+  if (b.dataset.kact === "cancel"){ renderKho(); return; }
+  if (b.dataset.kact === "del-yes"){ try { await db.doc("kho/"+b.dataset.id).delete(); } catch(err){ box.innerHTML = `<span class="err">Không xóa được</span>`; } }
+});
+$("#khoForm").addEventListener("submit", async ev => {
+  ev.preventDefault();
+  const msg = $("#khoMsg"), fail = t => { msg.className = "formmsg err"; msg.textContent = t; };
+  const ok = t => { msg.className = "formmsg ok"; msg.textContent = t; };
+  const v = id => $(id).value.trim();
+  $("#khoSave").disabled = true;
+  try {
+    if (khoKind === "moi"){
+      const name = v("#v_name");
+      if (!name){ fail("Nhập tên vật tư."); return; }
+      if (vattu.some(x => norm(x.name) === norm(name))){ fail("Vật tư này đã có trong kho."); return; }
+      const r = await db.collection("vattu").add({name, unit:$("#v_unit").value, kind:$("#v_kind").value, min:Number(v("#v_min"))||0, createdAt:Date.now(), createdBy:me});
+      ok(`Đã thêm ${name}. Giờ ghi Nhập kho cho vật tư này.`);
+      $("#v_name").value = ""; $("#v_min").value = "";
+      khoSel = r && r.id || null; setKhoKind("nhap"); renderKho(); if (khoSel) $("#k_item").value = khoSel;
+      msg.className = "formmsg ok"; msg.textContent = `Đã thêm ${name}. Giờ nhập số lượng về kho.`;
+      return;
+    }
+    const item = itemOf($("#k_item").value), date = v("#k_date");
+    if (!item){ fail("Chọn vật tư. Chưa có thì bấm Vật tư mới."); return; }
+    if (!date){ fail("Chọn ngày."); return; }
+    const base = {item:item.id, date, note:v("#k_note"), createdAt:Date.now(), createdBy:me};
+    if (khoKind === "kiemke"){
+      if ($("#k_count").value === ""){ fail("Nhập số lượng đếm được thực tế."); return; }
+      const diff = Math.round((Number(v("#k_count")) - stockOf(item.id))*1000)/1000;
+      if (!diff){ ok(`Khớp sổ: ${item.name} còn ${qtyFmt(stockOf(item.id), item.unit)}. Không cần điều chỉnh.`); return; }
+      await db.collection("kho").add({...base, kind:"kiemke", qty:diff});
+      ok(`Đã kiểm kê ${item.name}: điều chỉnh ${diff > 0 ? "+" : ""}${qtyFmt(diff, item.unit)}, còn ${qtyFmt(stockOf(item.id), item.unit)}.`);
+      $("#k_count").value = ""; $("#k_note").value = ""; return;
+    }
+    const qty = Number(v("#k_qty"));
+    if (!(qty > 0)){ fail("Nhập số lượng lớn hơn 0."); return; }
+    if (khoKind === "nhap"){
+      await db.collection("kho").add({...base, kind:"nhap", qty, price:Number(v("#k_price"))||0, lot:v("#k_lot"), exp:v("#k_exp"), from:v("#k_from")});
+      ok(`Đã nhập ${qtyFmt(qty, item.unit)} ${item.name}. Kho còn ${qtyFmt(stockOf(item.id), item.unit)}.`);
+      ["#k_qty","#k_price","#k_lot","#k_exp","#k_from","#k_note"].forEach(id => $(id).value = "");
+    } else {
+      await db.collection("kho").add({...base, kind:"xuat", qty, farm:Number($("#k_farm").value)||0});
+      const s = stockOf(item.id);
+      ok(`Đã xuất ${qtyFmt(qty, item.unit)} ${item.name}. Kho còn ${qtyFmt(s, item.unit)}.${s < 0 ? " Tồn kho đang âm, cần kiểm kê." : ""}`);
+      ["#k_qty","#k_note"].forEach(id => $(id).value = "");
+    }
+    khoSel = item.id; renderKho();
+  } catch(err){ fail("Không lưu được: " + (err?.message||"lỗi")); }
+  finally { $("#khoSave").disabled = false; }
+});
+async function khoSeedSample(){
+  const V = [["mau-ridomil","Ridomil Gold 68WG","gói","thuoc",2],["mau-movento","Movento 150OD","chai","thuoc",1],["mau-score","Score 250EC","chai","thuoc",1],
+    ["mau-amino","Amino (phân bón lá)","hộp","phan",3],["mau-npk16","NPK 16-16-8","bao","phan",2],["mau-kali","Kali trắng (K2SO4)","bao","phan",1],["mau-canxibo","Canxi Bo","gói","phan",2]];
+  for (const [id, name, unit, kind, min] of V) await db.doc("vattu/"+id).set({name, unit, kind, min, sample:true, createdAt:Date.now(), createdBy:me});
+  const M = [[-400,"mau-ridomil",6,85000],[-400,"mau-movento",3,420000],[-400,"mau-score",3,180000],[-400,"mau-npk16",4,650000],
+    [-30,"mau-ridomil",4,90000],[-30,"mau-movento",2,430000],[-30,"mau-score",2,185000],[-30,"mau-amino",10,120000],[-30,"mau-kali",2,900000],[-30,"mau-canxibo",3,60000],[-30,"mau-npk16",2,680000]];
+  for (const [n, item, qty, price] of M) await db.collection("kho").add({kind:"nhap", item, qty, price, date:addDays(today, n), from:"Đại lý vật tư (mẫu)", sample:true, createdAt:Date.now(), createdBy:me});
+}
+
+/* ---------- season comparison ---------- */
+let ssSel = null, ssFarm = "all";
+const seasonKey = e => e.season || "";
+function seasonList(){
+  const m = {};
+  entries.forEach(e => { const k = seasonKey(e); (m[k] ||= {k, first:e.date, last:e.date, n:0}); m[k].n++; if (e.date < m[k].first) m[k].first = e.date; if (e.date > m[k].last) m[k].last = e.date; });
+  return Object.values(m).sort((a, b) => a.first.localeCompare(b.first));
+}
+function seasonStats(k){
+  const F = myFarm || (ssFarm === "all" ? null : +ssFarm);
+  const list = entries.filter(e => seasonKey(e) === k && (!F || Number(e.farm) === F));
+  const ex = list.filter(e => e.type === "xuat"), t = gradeTotals(ex), done = list.filter(e => !isPlan(e));
+  let cost = 0, costN = 0, useN = 0;
+  done.filter(e => e.khoItem && +e.khoQty > 0).forEach(e => { useN++; const c = avgCost(e.khoItem); if (c !== null){ cost += c * +e.khoQty; costN++; } });
+  const dates = ex.map(e => e.date).sort();
+  return {t, phun:done.filter(e => e.type === "phun").length, bon:done.filter(e => e.type === "bon").length,
+    trong:done.filter(e => e.type === "trong").reduce((a, e) => a + (+e.plants||0), 0), cost, costN, useN,
+    from:dates[0], to:dates[dates.length-1], avg:t.priced ? t.revenue / Object.values(t.pkg).reduce((a, b) => a + b, 0) : null};
+}
+function renderSoSanh(){
+  const all = seasonList();
+  if (!ssSel) ssSel = all.slice(-2).map(s => s.k);
+  ssSel = ssSel.filter(k => all.some(s => s.k === k));
+  $("#ssFarms").innerHTML = myFarm ? `<span class="chip" aria-pressed="true">${ic("lock")}Farm ${myFarm} của bạn</span>`
+    : [["all","Cả 3 farm"],["1","Farm 1"],["2","Farm 2"],["3","Farm 3"]].map(([v, l]) => `<button type="button" class="chip" data-ssfarm="${v}" aria-pressed="${ssFarm===v}">${ic(v==="all"?"layers":"warehouse")}${l}</button>`).join("");
+  $("#ssSeasons").innerHTML = all.length ? all.map(s => `<button type="button" class="chip" data-ss="${esc(s.k)}" aria-pressed="${ssSel.includes(s.k)}">${ic(ssSel.includes(s.k)?"circle-check":"circle")}${esc(s.k || "Chưa ghi mùa vụ")}</button>`).join("")
+    : `<span class="hint">Sổ chưa có ghi chép.</span>`;
+  const noSeason = entries.filter(e => !e.season).length;
+  $("#ssNoSeason").textContent = noSeason ? `${noSeason} ghi chép chưa ghi mùa vụ, đang gom vào nhóm "Chưa ghi mùa vụ". Khi nhập liệu nhớ điền ô Mùa vụ để so sánh chính xác.` : "";
+  const cols = all.filter(s => ssSel.includes(s.k));
+  if (!cols.length){ $("#ssBars").innerHTML = `<p class="hint">Chọn ít nhất một mùa vụ ở trên.</p>`; $("#ssTable").innerHTML = ""; icons(); return; }
+  const S = cols.map(s => ({s, st:seasonStats(s.k)}));
+  const maxKg = Math.max(1, ...S.map(x => x.st.t.total));
+  $("#ssBars").innerHTML = S.map(({s, st}) => `<div class="ssbar"><div class="ssh"><b>${esc(s.k || "Chưa ghi mùa vụ")}</b><span>${fmt(st.t.total)} kg · Âu ${st.t.total?Math.round(st.t.by.au/st.t.total*100):0}%</span></div>
+    <div class="sstrack" style="width:${Math.max(4, st.t.total/maxKg*100)}%">${st.t.total?GRADES.filter(g => st.t.by[g.k]).map(g => `<span style="width:${st.t.by[g.k]/st.t.total*100}%;background:${g.c}"></span>`).join(""):""}</div></div>`).join("")
+    + `<div class="sslegend">${GRADES.map(g => `<span><i class="dot" style="background:${g.c}"></i>${g.n}</span>`).join("")}</div>`;
+  const two = S.length === 2;
+  const diff = (a, b, good = 1) => { if (!a && !b) return ""; if (!a) return `<span class="up">mới</span>`; const p = Math.round((b - a)/a*100); return `<span class="${p*good >= 0 ? "up" : "down"}">${p > 0 ? "+" : ""}${p}%</span>`; };
+  const R = [
+    ["Tổng sản lượng", x => `${fmt(x.t.total)} kg`, x => x.t.total],
+    ...GRADES.map(g => [g.n, x => `${fmt(x.t.by[g.k])} kg<small>${x.t.total?Math.round(x.t.by[g.k]/x.t.total*100):0}%</small>`, x => x.t.by[g.k], g.k === "xo" ? -1 : 1]),
+    ["Doanh thu", x => x.t.priced ? vnd(x.t.revenue) : "—", x => x.t.revenue],
+    ["Giá bán trung bình", x => x.avg ? `${Math.round(x.avg).toLocaleString("vi-VN")} đ/kg` : "—", x => x.avg || 0],
+    ["Chi phí vật tư (từ kho)", x => x.costN ? vnd(x.cost) : "—", x => x.cost, -1],
+    ["Doanh thu trừ vật tư", x => x.t.priced && x.costN ? vnd(x.t.revenue - x.cost) : "—", x => x.t.revenue - x.cost],
+    ["Lần phun thuốc", x => fmt(x.phun), x => x.phun, -1],
+    ["Lần bón phân", x => fmt(x.bon), x => x.bon, 0],
+    ["Cây trồng mới", x => fmt(x.trong), x => x.trong, 0],
+    ["Thời gian xuất hàng", x => x.from ? `${vnShort(x.from)}/${x.from.slice(2,4)} – ${vnShort(x.to)}/${x.to.slice(2,4)}` : "—", null],
+  ];
+  $("#ssTable").innerHTML = `<thead><tr><th></th>${S.map(({s}) => `<th class="num">${esc(s.k || "Chưa ghi")}</th>`).join("")}${two?`<th class="num">Chênh lệch</th>`:""}</tr></thead><tbody>`
+    + R.map(([label, f, num, good]) => `<tr><td><b>${label}</b></td>${S.map(({st}) => `<td class="num">${f(st)}</td>`).join("")}${two?`<td class="num">${num && good !== 0 ? diff(num(S[0].st), num(S[1].st), good) : ""}</td>`:""}</tr>`).join("") + `</tbody>`;
+  icons();
+}
+document.addEventListener("click", e => {
+  const s = e.target.closest("[data-ss]");
+  if (s){ const k = s.dataset.ss; ssSel = ssSel.includes(k) ? ssSel.filter(x => x !== k) : [...ssSel, k].slice(-4); renderSoSanh(); return; }
+  const f = e.target.closest("[data-ssfarm]"); if (f){ ssFarm = f.dataset.ssfarm; renderSoSanh(); }
+});
+
 /* ---------- render ---------- */
 function render(){
   const s = scoped();
   const phiN = inPhi().length, upPhun = visible().filter(e=>e.type==="phun" && e.date>today && e.date<=addDays(today,7)).length;
   $("#phiBadge").hidden = !phiN; $("#phiBadge").textContent = phiN;
   $("#phunBadge").hidden = !upPhun; $("#phunBadge").textContent = upPhun;
+  { const kn = khoAlerts().length; $("#khoBadge").hidden = !kn; $("#khoBadge").textContent = kn; }
   const due = dueCount();
   ["#bellBadge","#nhacBadge"].forEach(id => { $(id).hidden = !due; $(id).textContent = due; });
 
@@ -1217,6 +1537,9 @@ function render(){
     }).join("");
   }
   if (screen==="phanquyen") renderPq();
+  if (screen==="kho") renderKho();
+  if (screen==="sosanh") renderSoSanh();
+  if (screen==="nhap") fillKhoSelect();
   if (screen==="weather") renderWeather();
   if (screen==="vaitro") renderRoles();
   if (screen==="nhap") renderLog();
@@ -1274,6 +1597,7 @@ function startEdit(e){
   set("#f_grade", e.grade || "au"); set("#f_kg", e.kg || ""); set("#f_price", e.price || ""); set("#f_buyer", e.buyer);
   set("#f_product", e.product); set("#f_dose", e.dose); set("#f_phi", e.phi || ""); set("#f_target", e.target);
   set("#f_variety", e.variety); set("#f_plants", e.plants || "");
+  fillKhoSelect(); set("#f_kho", e.khoItem || ""); set("#f_khoqty", e.khoQty || ""); fillKhoSelect();
   $("#editText").textContent = `Đang sửa: ${title(e)} (${vnDate(e.date)})`;
   $("#editBanner").hidden = false;
   $("#saveBtn").innerHTML = `${ic("save")}Lưu thay đổi`; icons();
@@ -1281,7 +1605,7 @@ function startEdit(e){
 function cancelEdit(){
   editingId = null; $("#editBanner").hidden = true;
   $("#saveBtn").innerHTML = `${ic("save")}Lưu ghi chép`;
-  ["#f_kg","#f_price","#f_buyer","#f_product","#f_dose","#f_phi","#f_target","#f_variety","#f_plants","#f_note","#f_lot"].forEach(id=>$(id).value="");
+  ["#f_kg","#f_price","#f_buyer","#f_product","#f_dose","#f_phi","#f_target","#f_variety","#f_plants","#f_note","#f_lot","#f_khoqty"].forEach(id=>$(id).value=""); $("#f_kho").value=""; $("#f_khounit").textContent="";
   $("#f_date").value = today; icons();
 }
 $("#cancelEdit").addEventListener("click", cancelEdit);
@@ -1304,7 +1628,7 @@ $("#r_date").value = today;
 /* ---------- backups (owner only; the rules let nobody else read or write them) ---------- */
 const packDocs = list => list.map(({id, ...d}) => ({id, d}));
 async function doBackup(docId){
-  await db.doc("saoluu/"+docId).set({at:Date.now(), by:me, count:allDocs.length, nhatky:packDocs(allDocs), nhacviec:packDocs(reminders)});
+  await db.doc("saoluu/"+docId).set({at:Date.now(), by:me, count:allDocs.length, nhatky:packDocs(allDocs), nhacviec:packDocs(reminders), vattu:packDocs(vattu), kho:packDocs(khoMoves)});
   const all = await db.collection("saoluu").orderBy("at","desc").limit(1000).get();
   for (const x of all.docs.slice(10)) await db.doc("saoluu/"+x.id).delete();
 }
@@ -1331,6 +1655,8 @@ async function restoreBackup(id){
   };
   await sync("nhatky", b.nhatky||[], [...allDocs]);
   await sync("nhacviec", b.nhacviec||[], [...reminders]);
+  if (b.vattu) await sync("vattu", b.vattu, [...vattu]);
+  if (b.kho) await sync("kho", b.kho, [...khoMoves]);
   await loadBackups(); render();
 }
 
@@ -1383,7 +1709,7 @@ function setType(t){
   else fd.removeAttribute("max");
   $("#planHint").textContent = t === "xuat" ? "Xuất hàng ghi theo ngày đã xuất thực tế, cộng ngay vào sản lượng." : "Chọn ngày trong tương lai để tạo lịch kế hoạch.";
 }
-document.querySelector(".types").addEventListener("click", e => { const b=e.target.closest("[data-type]"); if(b) setType(b.dataset.type); });
+document.querySelector(".types").addEventListener("click", e => { const b=e.target.closest("[data-type]"); if(b){ setType(b.dataset.type); fillKhoSelect(); } });
 setType("xuat"); $("#f_date").value = today;
 $("#entryForm").addEventListener("submit", async ev => {
   ev.preventDefault();
@@ -1393,7 +1719,12 @@ $("#entryForm").addEventListener("submit", async ev => {
   const rec = { type, date:v("#f_date"), farm:Number(v("#f_farm")), lot:v("#f_lot"), season:v("#f_season"), note:v("#f_note"), createdAt:Date.now() };
   if (!rec.date) return fail("Chọn ngày trước khi lưu.");
   if (type==="xuat"){ Object.assign(rec,{grade:v("#f_grade"), kg:Number(v("#f_kg"))||0, price:Number(v("#f_price"))||0, buyer:v("#f_buyer")}); if(!rec.kg) return fail("Nhập số kg."); }
-  if (type==="phun"||type==="bon"){ Object.assign(rec,{product:v("#f_product"), dose:v("#f_dose")}); if(!rec.product) return fail("Nhập tên thuốc hoặc phân."); }
+  if (type==="phun"||type==="bon"){
+    Object.assign(rec,{product:v("#f_product"), dose:v("#f_dose"), khoItem:$("#f_kho").value||"", khoQty:Number(v("#f_khoqty"))||0});
+    if(!rec.product) return fail("Nhập tên thuốc hoặc phân.");
+    if(rec.khoItem && !(rec.khoQty > 0)) return fail("Nhập số lượng lấy từ kho, hoặc chọn Không lấy từ kho.");
+    if(!rec.khoItem) rec.khoQty = 0;
+  }
   if (type==="phun") Object.assign(rec,{phi:Number(v("#f_phi"))||0, target:v("#f_target")});
   if (type==="trong") Object.assign(rec,{variety:v("#f_variety"), plants:Number(v("#f_plants"))||0});
   if (!db) return fail("Chưa kết nối được nơi lưu dữ liệu. Mở lại trang trong Claude.");
@@ -1407,12 +1738,12 @@ $("#entryForm").addEventListener("submit", async ev => {
       rec.history = [...(old.history||[]), {at:Date.now(), by:me, truoc:`${old.date} · ${title(old)}`}].slice(-10);
       await db.doc("nhatky/"+editingId).update({...rec, ...stamp(), sample:false});
       cancelEdit();
-      msg.className="formmsg ok"; msg.innerHTML = `${ic("circle-check")}Đã sửa ghi chép ngày ${vnDate(rec.date)}.`; icons();
+      msg.className="formmsg ok"; msg.innerHTML = `${ic("circle-check")}Đã sửa ghi chép ngày ${vnDate(rec.date)}.${esc(khoAfterSave(rec))}`; icons();
     } else {
       rec.createdBy = me;
       await db.collection("nhatky").add(rec);
-      msg.className="formmsg ok"; msg.innerHTML = `${ic("circle-check")}Đã lưu ${TYPE[type].n.toLowerCase()} ngày ${vnDate(rec.date)}.`; icons();
-      ["#f_kg","#f_price","#f_buyer","#f_product","#f_dose","#f_phi","#f_target","#f_variety","#f_plants","#f_note"].forEach(id=>$(id).value="");
+      msg.className="formmsg ok"; msg.innerHTML = `${ic("circle-check")}Đã lưu ${TYPE[type].n.toLowerCase()} ngày ${vnDate(rec.date)}.${esc(khoAfterSave(rec))}`; icons();
+      ["#f_kg","#f_price","#f_buyer","#f_product","#f_dose","#f_phi","#f_target","#f_variety","#f_plants","#f_note","#f_khoqty"].forEach(id=>$(id).value=""); $("#f_kho").value=""; $("#f_khounit").textContent="";
     }
   } catch(err){ fail("Không lưu được: " + (err?.message||"lỗi không rõ")); }
   $("#saveBtn").disabled = false;
@@ -1431,23 +1762,34 @@ function makeSample(){
     .forEach(([n,f,l,p,dose])=>out.push({type:"bon",date:d(n),farm:f,lot:"Lô "+l,season:S,product:p,dose}));
   [[-40,3,"C3","Đài Nông 1",800],[-20,2,"B3","Tím Úc",600],[12,1,"A4","Đài Nông 1",1000]]
     .forEach(([n,f,l,v,p])=>out.push({type:"trong",date:d(n),farm:f,lot:"Lô "+l,season:S,variety:v,plants:p}));
+  const P = "Vụ 2025 (mẫu)", PB = {au:330,cho:330,muc:190,xo:120};
+  for (let f=1; f<=3; f++) for (let w=1; w<=6; w++) ["au","cho","muc","xo"].forEach((g,i)=>{
+    out.push({type:"xuat", date:d(-365-w*5-i), farm:f, lot:`Lô ${String.fromCharCode(64+f)}${(w%3)+1}`, season:P, grade:g, kg:Math.round(PB[g]*(0.7+((f*5+w*7+i)%10)/15)), price:g==="au"?25000:g==="cho"?15000:g==="muc"?8000:4500, buyer:g==="au"?"Cty XK (mẫu)":"Thương lái (mẫu)"});
+  });
+  [[-382,1,"A1","Ridomil Gold 68WG"],[-376,2,"B2","Movento 150OD"],[-371,3,"C1","Score 250EC"],[-366,1,"A2","Ridomil Gold 68WG"],[-361,2,"B1","Score 250EC"],[-356,3,"C2","Ridomil Gold 68WG"]]
+    .forEach(([n,f,l,p])=>out.push({type:"phun",date:d(n),farm:f,lot:"Lô "+l,season:P,product:p,dose:"",target:"",phi:7}));
+  [[-385,1,"A1","NPK 16-16-8","50 kg"],[-370,3,"C2","NPK 16-16-8","50 kg"]].forEach(([n,f,l,p,dose])=>out.push({type:"bon",date:d(n),farm:f,lot:"Lô "+l,season:P,product:p,dose}));
+  const K = {"Ridomil Gold 68WG":["mau-ridomil",1],"Movento 150OD":["mau-movento",1],"Score 250EC":["mau-score",1],"NPK 16-16-8":["mau-npk16",1],"Kali trắng (K2SO4)":["mau-kali",1],"Canxi Bo":["mau-canxibo",2]};
+  out.forEach(e => { const k = K[e.product]; if (k && (e.type==="phun"||e.type==="bon")){ e.khoItem = k[0]; e.khoQty = k[1]; } });
   return out.map((e,i)=>({...e, sample:true, note:"Dữ liệu mẫu", createdAt:Date.now()+i, createdBy:me}));
 }
 $("#loadSample").addEventListener("click", async () => {
   if (!db) return;
   const b = $("#loadSample"); b.disabled = true; b.textContent = "Đang nạp…";
-  try { for (const e of makeSample()) await db.collection("nhatky").add(e); } catch(err){ b.textContent = "Không nạp được"; }
+  try { await khoSeedSample(); for (const e of makeSample()) await db.collection("nhatky").add(e); } catch(err){ b.textContent = "Không nạp được"; }
 });
 $("#clearSample").addEventListener("click", ()=>{ $("#clearConfirm").hidden=false; $("#clearSample").hidden=true; });
 $("#clearNo").addEventListener("click", ()=>{ $("#clearConfirm").hidden=true; $("#clearSample").hidden=false; });
 $("#clearYes").addEventListener("click", async ()=>{
   $("#clearYes").disabled = true;
   for (const e of allDocs.filter(x=>x.sample)) { try { await db.doc("nhatky/"+e.id).delete(); } catch(err){} }
+  for (const m of khoMoves.filter(x=>x.sample)) { try { await db.doc("kho/"+m.id).delete(); } catch(err){} }
+  for (const x of vattu.filter(x=>x.sample)) { try { await db.doc("vattu/"+x.id).delete(); } catch(err){} }
   $("#clearYes").disabled = false; $("#clearConfirm").hidden=true; $("#clearSample").hidden=false;
 });
 
 /* ---------- quick answers (demo: built-in filters, no AI service yet) ---------- */
-const SUGG = [["spray-can","Tuần trước phun thuốc gì?"],["shield-alert","Lô nào đang cách ly?"],["plane","Farm 2 xuất bao nhiêu hàng Âu?"],["flask-round","Tuần tới bón phân gì?"],["chart-pie","Tỉ lệ hàng Âu từng farm?"],["bell","Còn việc gì chưa làm?"]];
+const SUGG = [["spray-can","Tuần trước phun thuốc gì?"],["shield-alert","Lô nào đang cách ly?"],["plane","Farm 2 xuất bao nhiêu hàng Âu?"],["flask-round","Tuần tới bón phân gì?"],["chart-pie","Tỉ lệ hàng Âu từng farm?"],["bell","Còn việc gì chưa làm?"],["package","Kho còn bao nhiêu Amino?"]];
 $("#sugg").innerHTML = SUGG.map(([i,s])=>`<button type="button" class="chip">${ic(i)}<span>${esc(s)}</span></button>`).join("");
 $("#sugg").addEventListener("click", e => { const b=e.target.closest(".chip"); if(!b) return; $("#q").value=b.textContent.trim(); $("#askForm").requestSubmit(); });
 function bubble(cls, text){
@@ -1493,6 +1835,12 @@ function quickAnswer(raw){
     const L = inPhi().filter(e => !F || Number(e.farm) === F);
     return L.length ? `Đang trong thời gian cách ly (${where}):\n` + L.map(e => `• Farm ${e.farm}${e.lot?` · ${e.lot}`:""} · phun ${e.product} ngày ${vnShort(e.date)} · được hái từ ${vnShort(phiEnd(e))}`).join("\n")
       : `Hiện không có lô nào đang trong thời gian cách ly (${where}).`;
+  }
+  if (/ton kho|trong kho|kho con|\bkho\b|con bao nhieu|con may|het chua/.test(q)){
+    const hit = vattu.filter(v => { const w = norm(v.name).split(/[\s(]/)[0]; return w.length >= 3 && q.includes(w); });
+    const L = hit.length ? hit : vattu;
+    if (!L.length) return "Kho chưa có vật tư nào.";
+    return (hit.length ? "" : "Tồn kho hiện tại:\n") + L.map(v => { const need = plannedNeed(v.id); return `• ${v.name}: còn ${qtyFmt(stockOf(v.id), v.unit)}${need?` · lịch 14 ngày tới cần ${qtyFmt(need, v.unit)}`:""}`; }).join("\n");
   }
   if (/nhac|viec gi|chua lam|can lam/.test(q)){
     const due = visible().filter(e => isPlan(e) && e.date <= addDays(today, 7)).sort((a,b) => a.date.localeCompare(b.date));
@@ -1543,7 +1891,7 @@ const LocalDB = (() => {
   function emit(col){ (subs[col] || []).forEach(fn => { try { fn(snap(col)); } catch(e){ console.error(e); } }); }
   function collection(col){
     return {
-      async add(d){ (data[col] ||= {})[uid()] = clone(d); save(); emit(col); },
+      async add(d){ const id = uid(); (data[col] ||= {})[id] = clone(d); save(); emit(col); return {id}; },
       onSnapshot(fn){ (subs[col] ||= []).push(fn); setTimeout(() => fn(snap(col)), 0); return () => {}; },
       orderBy(f, dir){ return {limit(n){ return {async get(){
         const s = snap(col); s.docs.sort((a, b) => (a.data()[f] || 0) - (b.data()[f] || 0)); if (dir === "desc") s.docs.reverse();
@@ -1659,6 +2007,14 @@ db.collection("ghimvitri").onSnapshot(snap => {
 db.collection("nhacviec").onSnapshot(snap => {
   reminders = snap.docs.map(x => ({id:x.id, ...x.data()})).filter(r => r && r.title);
   gotRems = true; render(); maybeBackup();
+});
+db.collection("vattu").onSnapshot(snap => {
+  vattu = snap.docs.map(x => ({id:x.id, ...x.data()})).filter(v => v && v.name);
+  render();
+});
+db.collection("kho").onSnapshot(snap => {
+  khoMoves = snap.docs.map(x => ({id:x.id, ...x.data()})).filter(m => m && m.item && m.date);
+  render();
 });
 db.collection("thucte").onSnapshot(snap => {
   actuals = snap.docs.map(x => ({id:x.id, ...x.data()})).filter(a => a && a.date);
