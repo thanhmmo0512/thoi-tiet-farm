@@ -1482,7 +1482,7 @@ function quickAnswer(raw){
       return `• Farm ${f}: ${t.total ? Math.round(t.by.au/t.total*100) : 0}% (${fmt(t.by.au)}/${fmt(t.total)} kg)`;
     }).join("\n");
   }
-  const wants = /phun|thuoc/.test(q) ? "phun" : /bon|phan bon|\bphan\b/.test(q) ? "bon" : /trong|giong|cay con/.test(q) ? "trong" : /xuat|san luong|\bkg\b|hang au|hang cho|hang muc|hang xo|ban duoc|thu hoach/.test(q) ? "xuat" : null;
+  const wants = /phun|thuoc|xit/.test(q) ? "phun" : /bon|phan bon|\bphan\b/.test(q) ? "bon" : /trong|giong|cay con/.test(q) ? "trong" : /xuat|suat|san luong|\bkg\b|\bky\b|\bkilo|\btan\b|hang au|hang cho|hang muc|hang xo|ban duoc|ban bao nhieu|thu hoach|bao nhieu hang|\bhang\b.*bao nhieu|bao nhieu.*\bhang\b/.test(q) ? "xuat" : null;
   if (wants === "xuat"){
     const t = gradeTotals(pool.filter(e => inRange(e.date, R)));
     const g = /au/.test(q) && !/tat ca/.test(q) ? "au" : /hang cho|\bcho\b/.test(q) ? "cho" : /muc/.test(q) ? "muc" : /\bxo\b/.test(q) ? "xo" : null;
