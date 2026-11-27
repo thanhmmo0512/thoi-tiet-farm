@@ -435,6 +435,7 @@ a{color:inherit}
           <button class="mi" type="button" data-go="weather"><span class="circ c-blue"><i data-lucide="cloud-sun-rain"></i></span><span class="lbl">Dự báo thời tiết</span></button>
           <button class="mi" type="button" data-go="ai"><span class="circ c-purple"><i data-lucide="bot"></i></span><span class="lbl">Hỏi AI</span></button>
           <button class="mi" type="button" data-go="nhap"><span class="circ c-green"><i data-lucide="notebook-pen"></i></span><span class="lbl">Nhập liệu</span></button>
+          <button class="mi" type="button" data-go="kho" data-kscroll><span class="circ c-green"><i data-lucide="package-plus"></i></span><span class="lbl">Nhập kho</span></button>
           <button class="mi" type="button" data-go="nhac"><span class="circ c-red"><i data-lucide="bell-ring"></i><span class="badge" id="nhacBadge" hidden></span></span><span class="lbl">Nhắc việc</span></button>
           <button class="mi" type="button" data-go="baove"><span class="circ c-grey"><i data-lucide="shield-check"></i></span><span class="lbl">Thùng rác & sao lưu</span></button>
           <button class="mi" type="button" data-go="phanquyen" id="tilePq" hidden><span class="circ c-amber"><i data-lucide="users-round"></i></span><span class="lbl">Phân quyền farm</span></button>
@@ -1528,6 +1529,11 @@ function fillNameLists(){
 document.addEventListener("change", e => { if (e.target.id === "f_farm") fillNameLists(); });
 document.addEventListener("input", e => { if (["f_season","f_lot","f_buyer","f_product"].includes(e.target.id)) confirmNew = {}; });
 
+/* "Nhập kho" shortcut: open the stock screen straight at the entry form */
+document.addEventListener("click", e => {
+  if (!e.target.closest("[data-kscroll]")) return;
+  setTimeout(() => { const b = document.querySelector('[data-kkind="nhap"]'); if (b) b.click(); const f = $("#khoForm"); if (f && !f.hidden) f.scrollIntoView({behavior:"smooth", block:"start"}); }, 80);
+});
 /* ---------- render ---------- */
 function render(){
   const s = scoped();
@@ -2066,7 +2072,7 @@ applyRole();
 $("#aiNote").innerHTML = `${ic("info")}Bản demo trả lời bằng bộ lọc có sẵn, chưa dùng AI, nên hiểu các câu về lịch phun, bón, trồng, xuất hàng, cách ly, nhắc việc. Gõ không dấu cũng được.`;
 if (canWrite === false){
   $("#entryForm").hidden = true; $("#readOnlyNote").hidden = false;
-  document.querySelectorAll('[data-go="nhap"], .tabbar [data-tab="nhap"]').forEach(el => el.hidden = true);
+  document.querySelectorAll('[data-go="nhap"], [data-kscroll], .tabbar [data-tab="nhap"]').forEach(el => el.hidden = true);
   $(".tabbar .in").style.gridTemplateColumns = "repeat(3,1fr)";
 }
 render();
