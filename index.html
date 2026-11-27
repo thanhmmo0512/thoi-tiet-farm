@@ -425,7 +425,23 @@ function fillRules(){
   store.set("ttf-rules", rules); render();
 }));
 
+/* Pins sent from Sổ Vườn Chanh Dây arrive in the link (#chon=1&f1=lat,lng,name…) and replace this device's pins. */
+let fromSoVuon = false;
+(function readLink(){
+  let h; try { h = new URLSearchParams(location.hash.slice(1)); } catch(e){ return; }
+  ["1","2","3"].forEach(k => {
+    const v = h.get("f"+k); if (!v) return;
+    const [la, ln, ...nm] = v.split(","); const lat = +la, lng = +ln;
+    if (Number.isFinite(lat) && Number.isFinite(lng) && Math.abs(lat) <= 90 && Math.abs(lng) <= 180){
+      pins[k] = {name: nm.join(",").trim() || `Farm ${k}`, lat, lng}; fromSoVuon = true;
+    }
+  });
+  const c = h.get("chon"); if (["1","2","3"].includes(c)){ sel = c; store.set("ttf-sel", sel); }
+  if (fromSoVuon) store.set("ttf-pins", pins);
+})();
+
 fillRules(); renderLocs(); render(); load();
+if (fromSoVuon) showMsg("warn", "map-pin-check", "Đã nhận vị trí ghim các farm từ Sổ Vườn Chanh Dây.");
 if (!window.lucide) window.addEventListener("load", icons);
 })();
 </script>
