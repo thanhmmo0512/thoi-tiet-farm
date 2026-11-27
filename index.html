@@ -123,6 +123,10 @@ textarea{resize:vertical}
 .grade .v{font-size:19px;font-weight:800;font-variant-numeric:tabular-nums;color:var(--fg);line-height:1.1}
 .grade .n{font-size:13px;font-weight:600}
 .grade .p{font-size:12px;color:var(--muted)}
+.money{display:flex;gap:12px;align-items:center;margin-top:12px;padding:12px;border-radius:16px;background:var(--green-soft)}
+.money .mi2{width:42px;height:42px;border-radius:50%;background:var(--sheet);display:grid;place-items:center;color:var(--green);flex:none}
+.money b{display:block;font-size:17px;font-variant-numeric:tabular-nums}
+.money span{font-size:13px;color:var(--muted)}
 .stack{display:flex;height:10px;border-radius:6px;overflow:hidden;background:var(--sunk);gap:2px;margin-top:12px}
 .stack span{display:block;height:100%;border-radius:3px}
 
@@ -387,6 +391,7 @@ a{color:inherit}
           <div class="totalrow"><b id="totalKg">0</b><span>kg đã xuất</span></div>
           <div class="grades" id="grades"></div>
           <div class="stack" id="stack" aria-hidden="true"></div>
+          <div id="money"></div>
         </div>
       </div>
 
@@ -431,6 +436,7 @@ a{color:inherit}
       <div class="section" style="padding-top:8px">
         <div class="totalrow"><b id="xTotal">0</b><span>kg · <span id="xScope"></span></span></div>
         <div class="grades" id="xGrades"></div>
+        <div id="xMoney"></div>
       </div>
       <div class="section"><h2>Các lần xuất gần đây</h2><ul class="list" id="xList"></ul></div>
     </div>
@@ -791,13 +797,30 @@ const schedule = list => [...list.filter(e=>e.date>today).sort((a,b)=>a.date.loc
 const inPhi = () => visible().filter(e => { const end = phiEnd(e); return end && e.date <= today && end > today; });
 
 function gradeTotals(list){
-  const by = Object.fromEntries(GRADES.map(g=>[g.k,0]));
-  list.filter(e=>e.type==="xuat").forEach(e => by[e.grade] = (by[e.grade]||0) + (Number(e.kg)||0));
-  return {by, total:Object.values(by).reduce((a,b)=>a+b,0)};
+  const by = Object.fromEntries(GRADES.map(g=>[g.k,0])), money = Object.fromEntries(GRADES.map(g=>[g.k,0])), pkg = Object.fromEntries(GRADES.map(g=>[g.k,0]));
+  let n = 0, priced = 0;
+  list.filter(e=>e.type==="xuat").forEach(e => {
+    const kg = Number(e.kg)||0, p = Number(e.price)||0; n++;
+    by[e.grade] = (by[e.grade]||0) + kg;
+    if (p > 0){ priced++; money[e.grade] = (money[e.grade]||0) + kg*p; pkg[e.grade] = (pkg[e.grade]||0) + kg; }
+  });
+  return {by, money, pkg, n, priced, total:Object.values(by).reduce((a,b)=>a+b,0), revenue:Object.values(money).reduce((a,b)=>a+b,0)};
+}
+function vnd(x){
+  if (x >= 1e9) return `${(Math.round(x/1e7)/100).toLocaleString("vi-VN")} tỷ đ`;
+  if (x >= 1e6) return `${(Math.round(x/1e5)/10).toLocaleString("vi-VN")} triệu đ`;
+  return `${Math.round(x).toLocaleString("vi-VN")} đ`;
+}
+function moneyHTML(t){
+  if (!t.n) return "";
+  if (!t.priced) return `<div class="money"><span class="mi2">${ic("banknote")}</span><div><b>Chưa có giá bán</b><span>Nhập giá (đ/kg) khi ghi xuất hàng để app tính doanh thu.</span></div></div>`;
+  const avg = t.revenue / Object.values(t.pkg).reduce((a,b)=>a+b,0);
+  return `<div class="money"><span class="mi2">${ic("banknote")}</span><div><b>Doanh thu ${vnd(t.revenue)}</b>`
+    + `<span>Giá trung bình ${Math.round(avg).toLocaleString("vi-VN")} đ/kg · tính từ ${t.priced}/${t.n} lần xuất có ghi giá</span></div></div>`;
 }
 function gradesHTML({by,total}){
   return GRADES.map(g => `<div class="grade" style="background:${g.s}"><span class="ic" style="color:${g.c}">${ic(g.i)}</span>
-    <div style="min-width:0"><div class="n" style="color:${g.c}">${g.n}</div><div class="v">${fmt(by[g.k])} kg</div><div class="p">${total?Math.round(by[g.k]/total*100):0}%</div></div></div>`).join("");
+    <div style="min-width:0"><div class="n" style="color:${g.c}">${g.n}</div><div class="v">${fmt(by[g.k])} kg</div><div class="p">${total?Math.round(by[g.k]/total*100):0}%</div>${arguments[0].pkg && arguments[0].pkg[g.k] ? `<div class="p">TB ${Math.round(arguments[0].money[g.k]/arguments[0].pkg[g.k]).toLocaleString("vi-VN")} đ/kg</div>` : ""}</div></div>`).join("");
 }
 const stackHTML = ({by,total}) => total ? GRADES.filter(g=>by[g.k]).map(g=>`<span style="width:${by[g.k]/total*100}%;background:${g.c}"></span>`).join("") : "";
 
@@ -1159,6 +1182,7 @@ function render(){
     $("#totalKg").textContent = fmt(t.total);
     $("#grades").innerHTML = gradesHTML(t);
     $("#stack").innerHTML = stackHTML(t);
+    $("#money").innerHTML = moneyHTML(t);
     const empty = !entries.length;
     $("#emptyHome").hidden = !empty || canWrite === false;
     $("#homeStats").hidden = empty && canWrite !== false;
@@ -1175,6 +1199,7 @@ function render(){
     const t = gradeTotals(s);
     $("#xTotal").textContent = fmt(t.total); $("#xScope").textContent = scopeLabel();
     $("#xGrades").innerHTML = gradesHTML(t);
+    $("#xMoney").innerHTML = moneyHTML(t);
     const list = s.filter(e=>e.type==="xuat").sort((a,b)=>b.date.localeCompare(a.date)).slice(0,30);
     $("#xList").innerHTML = list.length ? list.map(e=>itemHTML(e,{status:false, actions:true})).join("") : `<li class="none">${ic("inbox")}Chưa có lần xuất nào.</li>`;
   }
@@ -1188,7 +1213,7 @@ function render(){
         <div class="ft">${fmt(t.total)} <small>kg đã xuất</small></div>
         <div class="stack" style="margin-top:0">${stackHTML(t)}</div>
         <dl>${GRADES.map(g=>`<dt><span class="dot" style="background:${g.c}"></span>${g.n}</dt><dd>${fmt(t.by[g.k])}</dd>`).join("")}
-        <dt>${ic("spray-can")}Phun gần nhất</dt><dd>${phun?`${vnShort(phun.date)} · ${esc(phun.product)}`:"—"}</dd></dl></div>`;
+        ${t.priced ? `<dt>${ic("banknote")}Doanh thu</dt><dd>${vnd(t.revenue)}</dd>` : ""}<dt>${ic("spray-can")}Phun gần nhất</dt><dd>${phun?`${vnShort(phun.date)} · ${esc(phun.product)}`:"—"}</dd></dl></div>`;
     }).join("");
   }
   if (screen==="phanquyen") renderPq();
