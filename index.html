@@ -147,6 +147,16 @@ button.dcard{cursor:pointer}
 .miss{color:var(--red);font-weight:700}
 .warn{color:var(--amber);font-weight:700}
 .hint.err{color:var(--red);font-weight:600}
+.types.five{grid-template-columns:repeat(5,minmax(0,1fr));gap:2px}
+.types.five button{font-size:12px}
+.types.five button .circ{width:50px;height:50px}
+.d .split{display:flex;flex-wrap:wrap;gap:4px}
+.split b{font-weight:700;font-size:12px;background:var(--sheet);border-radius:999px;padding:1px 8px;display:inline-flex;align-items:center;gap:3px;font-variant-numeric:tabular-nums}
+.split b svg.lucide{width:12px;height:12px}
+.recv{display:flex;flex-wrap:wrap;gap:8px;align-items:flex-end;margin-top:8px}
+.recv label{display:grid;gap:4px;font-size:12px;color:var(--muted);font-weight:600}
+.recv input{width:110px}
+.recv .err{color:var(--red);font-size:13px;font-weight:600;width:100%}
 body.partner .tabbar,body.partner #bellBtn{display:none!important}
 @media print{body{background:#fff!important}.app{max-width:none!important;background:#fff!important}.dthead .btn{display:none!important}.topbar,.tabbar,.noprint,.banner,#dtMissBox{display:none!important}.screen:not([data-screen="doitac"]){display:none!important}.sheet{box-shadow:none!important;margin:0!important}.dttable{font-size:10px}.tblwrap{overflow:visible}}
 input[readonly]{background:var(--sunk);color:var(--muted)}
@@ -677,6 +687,8 @@ a{color:inherit}
   <!-- KHO VAT TU -->
   <section class="screen" data-screen="kho" hidden>
     <div class="sheet flat">
+      <div class="filters" id="khoFarms"></div>
+      <div class="section" id="khoInBox" hidden><h2>Hàng đang chuyển đến</h2><ul class="list" id="khoIn"></ul></div>
       <div class="section" id="khoWarnBox" hidden><h2>Cần chú ý</h2><ul class="list" id="khoWarn"></ul></div>
       <div class="section"><h2>Tồn kho <small id="khoCount"></small></h2>
         <div class="filters" id="khoFilters" style="padding:0 0 12px"></div>
@@ -685,16 +697,19 @@ a{color:inherit}
       <div class="section" id="khoHistBox" hidden><h2 id="khoHistTitle">Lịch sử</h2><ul class="list" id="khoHist"></ul></div>
       <form class="section" id="khoForm" novalidate>
         <h2>Ghi kho</h2>
-        <div class="types" role="group" aria-label="Loại ghi kho" id="khoKinds">
+        <div class="types five" role="group" aria-label="Loại ghi kho" id="khoKinds">
           <button type="button" data-kkind="nhap" aria-pressed="true"><span class="circ c-green"><i data-lucide="package-plus"></i></span>Nhập kho</button>
+          <button type="button" data-kkind="chuyen" aria-pressed="false"><span class="circ c-blue"><i data-lucide="truck"></i></span>Chuyển kho</button>
           <button type="button" data-kkind="xuat" aria-pressed="false"><span class="circ c-orange"><i data-lucide="package-minus"></i></span>Xuất khác</button>
-          <button type="button" data-kkind="kiemke" aria-pressed="false"><span class="circ c-blue"><i data-lucide="clipboard-check"></i></span>Kiểm kê</button>
+          <button type="button" data-kkind="kiemke" aria-pressed="false"><span class="circ c-amber"><i data-lucide="clipboard-check"></i></span>Kiểm kê</button>
           <button type="button" data-kkind="moi" aria-pressed="false"><span class="circ c-purple"><i data-lucide="plus"></i></span>Vật tư mới</button>
         </div>
         <div class="fields">
-          <label class="f" data-kfor="nhap xuat kiemke"><span class="lt"><i data-lucide="package"></i>Vật tư</span><select id="k_item"></select></label>
-          <label class="f" data-kfor="nhap xuat kiemke"><span class="lt"><i data-lucide="calendar"></i>Ngày</span><input type="date" id="k_date"></label>
-          <label class="f" data-kfor="nhap xuat"><span class="lt"><i data-lucide="hash"></i>Số lượng <span id="k_unit1"></span></span><input type="number" inputmode="decimal" min="0" step="0.1" id="k_qty" placeholder="VD: 10"></label>
+          <label class="f" data-kfor="nhap chuyen xuat kiemke"><span class="lt"><i data-lucide="warehouse"></i><span id="k_kfarmLbl">Kho</span></span><select id="k_kfarm"><option value="1">Kho Farm 1</option><option value="2">Kho Farm 2</option><option value="3">Kho Farm 3</option></select></label>
+          <label class="f" data-kfor="chuyen"><span class="lt"><i data-lucide="arrow-right"></i>Chuyển đến</span><select id="k_to"><option value="2">Kho Farm 2</option><option value="3">Kho Farm 3</option><option value="1">Kho Farm 1</option></select></label>
+          <label class="f" data-kfor="nhap chuyen xuat kiemke"><span class="lt"><i data-lucide="package"></i>Vật tư</span><select id="k_item"></select></label>
+          <label class="f" data-kfor="nhap chuyen xuat kiemke"><span class="lt"><i data-lucide="calendar"></i>Ngày</span><input type="date" id="k_date"></label>
+          <label class="f" data-kfor="nhap chuyen xuat"><span class="lt"><i data-lucide="hash"></i>Số lượng <span id="k_unit1"></span></span><input type="number" inputmode="decimal" min="0" step="0.1" id="k_qty" placeholder="VD: 10"></label>
           <label class="f" data-kfor="kiemke"><span class="lt"><i data-lucide="clipboard-check"></i>Đếm thực tế còn <span id="k_unit2"></span></span><input type="number" inputmode="decimal" min="0" step="0.1" id="k_count"></label>
           <label class="f" data-kfor="nhap"><span class="lt"><i data-lucide="banknote"></i>Giá nhập (đ/đơn vị)</span><input type="number" inputmode="numeric" min="0" id="k_price" placeholder="Không bắt buộc"></label>
           <label class="f" data-kfor="nhap"><span class="lt"><i data-lucide="barcode"></i>Số lô hàng</span><input id="k_lot" placeholder="Không bắt buộc"></label>
@@ -705,8 +720,7 @@ a{color:inherit}
           <label class="f" data-kfor="nhap" data-payfor="k" data-pay="mot"><span class="lt"><i data-lucide="banknote"></i>Đã trả (đ)</span><input type="number" inputmode="numeric" min="0" id="k_paid"></label>
           <label class="f" data-kfor="nhap" data-payfor="k" data-pay="du mot"><span class="lt"><i data-lucide="wallet"></i>Trả từ tài khoản</span><select id="k_acc"></select></label>
           <p class="hint wide" data-kfor="nhap" id="k_payhint"></p>
-          <label class="f" data-kfor="xuat"><span class="lt"><i data-lucide="warehouse"></i>Cho farm</span><select id="k_farm"><option value="0">Không theo farm</option><option value="1">Farm 1</option><option value="2">Farm 2</option><option value="3">Farm 3</option></select></label>
-          <label class="f wide" data-kfor="nhap xuat kiemke"><span class="lt"><i data-lucide="message-square-text"></i>Ghi chú</span><input id="k_note" placeholder="VD: lý do xuất, hàng hỏng, cho mượn"></label>
+          <label class="f wide" data-kfor="nhap chuyen xuat kiemke"><span class="lt"><i data-lucide="message-square-text"></i>Ghi chú</span><input id="k_note" placeholder="VD: gửi theo xe anh Tư, hàng hỏng, cho mượn"></label>
           <label class="f" data-kfor="moi"><span class="lt"><i data-lucide="tag"></i>Tên vật tư</span><input id="v_name" placeholder="VD: Amino"></label>
           <label class="f" data-kfor="moi"><span class="lt"><i data-lucide="ruler"></i>Đơn vị</span><select id="v_unit"></select></label>
           <label class="f" data-kfor="moi"><span class="lt"><i data-lucide="layers"></i>Loại</span><select id="v_kind"><option value="thuoc">Thuốc BVTV</option><option value="phan">Phân bón</option><option value="dungcu">Công cụ, dụng cụ (cuốc, xẻng…)</option><option value="may">Máy móc (máy cắt cỏ, máy cưa…)</option><option value="khac">Khác</option></select></label>
@@ -715,7 +729,7 @@ a{color:inherit}
         </div>
         <div style="margin-top:16px"><button class="btn primary block" type="submit" id="khoSave"><i data-lucide="save"></i><span id="khoSaveText">Nhập kho</span></button></div>
         <div id="khoMsg" class="formmsg" role="status"></div>
-        <div class="hint"><i data-lucide="info"></i>Khi ghi phun thuốc hoặc bón phân, chọn "Lấy từ kho" để tồn kho tự trừ lúc việc đó đã làm.</div>
+        <div class="hint"><i data-lucide="info"></i>Mỗi farm một kho. Phun, bón ở farm nào thì trừ kho farm đó. Hàng chuyển đi chỉ cộng vào kho farm nhận khi farm đó bấm Xác nhận đã nhận.</div>
       </form>
     </div>
   </section>
@@ -1327,46 +1341,75 @@ $("#ttForm").addEventListener("submit", async ev => {
   $("#ttSave").disabled = false;
 });
 
-/* ---------- warehouse: stock = received − used by done spray/fertiliser records − other issues ± stock-count adjustments ---------- */
+/* ---------- warehouse, one per farm ----------
+   farm stock = received there − issued there − sent out (transfers) + transfers it confirmed receiving − used by its own done spray/fertiliser records ± its stock counts.
+   Records from before per-farm warehouses have no kfarm and count as Farm 1 (the farm that receives goods). */
 const UNITS = ["hộp","chai","gói","bao","kg","lít","ml","g","cái","chiếc","bộ","cuộn","mét"];
 const VKIND = {thuoc:"Thuốc BVTV", phan:"Phân bón", dungcu:"Công cụ, dụng cụ", may:"Máy móc", khac:"Khác"};
 const VICON = {thuoc:["spray-can","c-blue"], phan:["flask-round","c-orange"], dungcu:["shovel","c-amber"], may:["cog","c-purple"], khac:["package","c-grey"]};
-let vattu = [], khoMoves = [], khoSel = null, khoKind = "nhap";
+const FARMS = [1, 2, 3];
+let vattu = [], khoMoves = [], khoSel = null, khoKind = "nhap", khoFarm = "all";
 const itemOf = id => vattu.find(x => x.id === id);
 const qtyFmt = (n, u) => `${(Math.round((+n||0)*100)/100).toLocaleString("vi-VN")}${u?` ${u}`:""}`;
+const kf = m => Number(m.kfarm) || 1;
 const usesOf = id => entries.filter(e => e.khoItem === id && Number(e.khoQty) > 0 && !isPlan(e));
-function stockOf(id){
+/* f = 1/2/3 for one farm's warehouse; no f = everything the business owns, goods in transit included */
+function stockOf(id, f){
   let s = 0;
-  khoMoves.filter(m => m.item === id).forEach(m => { s += m.kind === "nhap" ? (+m.qty||0) : m.kind === "xuat" ? -(+m.qty||0) : (+m.qty||0); });
-  usesOf(id).forEach(e => { s -= +e.khoQty || 0; });
+  khoMoves.filter(m => m.item === id).forEach(m => {
+    const q = +m.qty || 0;
+    if (m.kind === "chuyen"){
+      const got = m.status === "nhan" ? (+m.recvQty || 0) : 0;
+      if (!f){ if (m.status === "nhan") s -= q - got; return; }
+      if (kf(m) === f) s -= q;
+      if (Number(m.to) === f) s += got;
+      return;
+    }
+    if (f && kf(m) !== f) return;
+    s += m.kind === "xuat" ? -q : q;
+  });
+  usesOf(id).forEach(e => { if (!f || Number(e.farm) === f) s -= +e.khoQty || 0; });
   return Math.round(s*1000)/1000;
 }
+const transitTo = (id, f) => khoMoves.filter(m => m.kind === "chuyen" && m.status !== "nhan" && (!id || m.item === id) && (!f || Number(m.to) === f));
+const transitQty = (id, f) => transitTo(id, f).reduce((a, m) => a + (+m.qty || 0), 0);
 function avgCost(id){
   let q = 0, m = 0;
   khoMoves.filter(x => x.item === id && x.kind === "nhap" && +x.price > 0).forEach(x => { q += +x.qty; m += +x.qty * +x.price; });
   return q ? m/q : null;
 }
-const plannedNeed = (id, days = 14) => entries.filter(e => e.khoItem === id && isPlan(e) && e.date <= addDays(today, days)).reduce((a, e) => a + (+e.khoQty||0), 0);
-function khoAlerts(){
-  return vattu.map(v => {
-    const s = stockOf(v.id), need = plannedNeed(v.id), min = +v.min || 0;
-    if (s < 0) return {v, s, t:`Tồn kho âm ${qtyFmt(s, v.unit)}. Có lần dùng chưa được nhập kho, cần kiểm kê lại.`, c:"c-red"};
-    if (need > s) return {v, s, t:`Lịch 14 ngày tới cần ${qtyFmt(need, v.unit)}, kho chỉ còn ${qtyFmt(s, v.unit)}.`, c:"c-red"};
-    if (min && s <= min) return {v, s, t:`Sắp hết: còn ${qtyFmt(s, v.unit)} (báo khi còn ${qtyFmt(min, v.unit)}).`, c:"c-amber"};
-    return null;
-  }).filter(Boolean).concat(expAlerts());
+const plannedNeed = (id, days = 14, f) => entries.filter(e => e.khoItem === id && isPlan(e) && e.date <= addDays(today, days) && (!f || Number(e.farm) === f)).reduce((a, e) => a + (+e.khoQty||0), 0);
+const farmsInView = () => myFarm ? [myFarm] : khoFarm === "all" ? FARMS : [+khoFarm];
+function khoAlerts(all){
+  const out = [], farms = all ? (myFarm ? [myFarm] : FARMS) : farmsInView();
+  vattu.forEach(v => {
+    farms.forEach(f => {
+      const s = stockOf(v.id, f), need = plannedNeed(v.id, 14, f), inc = transitQty(v.id, f);
+      if (s < 0) out.push({v, f, t:`Kho Farm ${f} đang âm ${qtyFmt(s, v.unit)}. Có lần dùng hoặc chuyển đi chưa ghi nhập kho, cần kiểm kê lại.`, c:"c-red", i:"triangle-alert"});
+      else if (need > s + inc){
+        const hub = f !== 1 ? stockOf(v.id, 1) : 0;
+        out.push({v, f, t:`Lịch 14 ngày tới Farm ${f} cần ${qtyFmt(need, v.unit)}, kho Farm ${f} còn ${qtyFmt(s, v.unit)}${inc ? `, đang chuyển đến ${qtyFmt(inc, v.unit)}` : ""}.${hub > 0 ? ` Kho Farm 1 còn ${qtyFmt(hub, v.unit)}, chuyển sang được.` : ""}`, c:"c-red", i:"triangle-alert"});
+      }
+      if (inc) out.push({v, f, t:`${qtyFmt(inc, v.unit)} đang chuyển đến Farm ${f}, chờ Farm ${f} xác nhận đã nhận.`, c:"c-blue", i:"truck"});
+    });
+    const tot = stockOf(v.id), min = +v.min || 0;
+    if (!myFarm && min && tot >= 0 && tot <= min) out.push({v, t:`Sắp hết: cả 3 kho còn ${qtyFmt(tot, v.unit)} (báo khi còn ${qtyFmt(min, v.unit)}).`, c:"c-amber", i:"triangle-alert"});
+  });
+  return out.concat(expAlerts());
 }
+const formFarm = () => Number($("#f_farm").value) || myFarm || 1;
 function fillKhoSelect(){
   const sel = $("#f_kho"); if (!sel) return;
-  const cur = sel.value, want = type === "bon" ? "phan" : "thuoc";
+  const cur = sel.value, want = type === "bon" ? "phan" : "thuoc", f = formFarm();
   const list = vattu.filter(v => v.kind === "thuoc" || v.kind === "phan" || v.kind === "khac").sort((a, b) => (a.kind === want ? 0 : 1) - (b.kind === want ? 0 : 1) || a.name.localeCompare(b.name, "vi"));
-  sel.innerHTML = `<option value="">Không lấy từ kho</option>` + list.map(v => `<option value="${esc(v.id)}">${esc(v.name)} (còn ${qtyFmt(stockOf(v.id), v.unit)})</option>`).join("");
+  sel.innerHTML = `<option value="">Không lấy từ kho</option>` + list.map(v => `<option value="${esc(v.id)}">${esc(v.name)} (kho Farm ${f} còn ${qtyFmt(stockOf(v.id, f), v.unit)})</option>`).join("");
   sel.value = list.some(v => v.id === cur) ? cur : "";
   const it = itemOf(sel.value); $("#f_khounit").textContent = it ? `(${it.unit})` : "";
   $("#f_product").readOnly = !!it;
   khoExpHint();
 }
 document.addEventListener("change", e => {
+  if (e.target.id === "f_farm"){ fillKhoSelect(); return; }
   if (e.target.id !== "f_kho") return;
   const it = itemOf(e.target.value);
   $("#f_khounit").textContent = it ? `(${it.unit})` : "";
@@ -1376,59 +1419,85 @@ document.addEventListener("change", e => {
 function khoAfterSave(rec){
   if (!rec.khoItem || isPlan(rec)) return "";
   const it = itemOf(rec.khoItem); if (!it) return "";
-  const s = stockOf(it.id);
-  return s < 0 ? ` Kho ${it.name} đang âm ${qtyFmt(s, it.unit)}, cần nhập kho hoặc kiểm kê.` : ` Kho ${it.name} còn ${qtyFmt(s, it.unit)}.`;
+  const f = Number(rec.farm) || 1, s = stockOf(it.id, f);
+  return s < 0 ? ` Kho Farm ${f} đang âm ${qtyFmt(s, it.unit)} ${it.name}, cần chuyển kho từ Farm 1 sang hoặc kiểm kê.` : ` Kho Farm ${f} còn ${qtyFmt(s, it.unit)} ${it.name}.`;
 }
 
 function setKhoKind(k){
   khoKind = k;
   document.querySelectorAll("#khoKinds [data-kkind]").forEach(b => b.setAttribute("aria-pressed", b.dataset.kkind === k));
   document.querySelectorAll("[data-kfor]").forEach(l => l.hidden = !l.dataset.kfor.split(" ").includes(k));
-  $("#khoSaveText").textContent = {nhap:"Nhập kho", xuat:"Xuất kho", kiemke:"Lưu kiểm kê", moi:"Thêm vật tư"}[k];
+  $("#khoSaveText").textContent = {nhap:"Nhập kho", chuyen:"Chuyển kho", xuat:"Xuất kho", kiemke:"Lưu kiểm kê", moi:"Thêm vật tư"}[k];
+  $("#k_kfarmLbl").textContent = {nhap:"Nhập vào kho", chuyen:"Chuyển từ kho", xuat:"Xuất từ kho", kiemke:"Kiểm kê kho"}[k] || "Kho";
   $("#khoMsg").textContent = "";
+  khoItemOpts();
 }
 document.querySelector("#khoKinds").addEventListener("click", e => { const b = e.target.closest("[data-kkind]"); if (b) setKhoKind(b.dataset.kkind); });
 $("#v_unit").innerHTML = UNITS.map(u => `<option>${u}</option>`).join("");
 $("#k_date").value = today;
-setKhoKind("nhap");
 document.addEventListener("change", e => {
+  if (e.target.id === "k_kfarm"){ khoItemOpts(); if (khoKind === "chuyen" && $("#k_to").value === e.target.value) $("#k_to").value = String(FARMS.find(f => String(f) !== e.target.value)); return; }
   if (e.target.id !== "k_item") return;
   const it = itemOf(e.target.value); const u = it ? `(${it.unit})` : "";
   $("#k_unit1").textContent = u; $("#k_unit2").textContent = u;
   if (it){ khoSel = it.id; renderKho(); }
 });
+/* the item picker shows what the chosen farm's warehouse holds */
+function khoItemOpts(){
+  const ki = $("#k_item"); if (!ki) return;
+  const f = Number($("#k_kfarm").value) || 1, cur = ki.value || khoSel || "";
+  const list = [...vattu].sort((a, b) => a.name.localeCompare(b.name, "vi"));
+  ki.innerHTML = list.map(v => `<option value="${esc(v.id)}">${esc(v.name)} (Farm ${f} còn ${qtyFmt(stockOf(v.id, f), v.unit)})</option>`).join("") || `<option value="">Chưa có vật tư</option>`;
+  if (list.some(v => v.id === cur)) ki.value = cur;
+  const it = itemOf(ki.value); $("#k_unit1").textContent = it ? `(${it.unit})` : ""; $("#k_unit2").textContent = it ? `(${it.unit})` : "";
+}
+setKhoKind("nhap");
+const farmName = f => pins[f] && pins[f].name && pins[f].name !== `Farm ${f}` ? `Farm ${f} · ${pins[f].name}` : `Farm ${f}`;
 
 function renderKho(){
-  const alerts = khoAlerts();
+  if (myFarm) khoFarm = String(myFarm);
+  const F = khoFarm === "all" ? null : +khoFarm;
+  $("#khoFarms").innerHTML = myFarm ? `<span class="chip" aria-pressed="true">${ic("lock")}Kho Farm ${myFarm} của bạn</span>`
+    : [["all","Cả 3 kho","layers"], ...FARMS.map(f => [String(f), `Kho Farm ${f}`, "warehouse"])].map(([v, l, i]) => `<button type="button" class="chip" data-kfarmsel="${v}" aria-pressed="${khoFarm === v}">${ic(i)}${l}</button>`).join("");
+  const alerts = khoAlerts().filter(a => a.i !== "truck");
   $("#khoWarnBox").hidden = !alerts.length;
-  $("#khoWarn").innerHTML = alerts.map(a => `<li class="item"><span class="tico ${a.c}">${ic("triangle-alert")}</span><div class="body"><div class="t">${esc(a.v.name)}</div><div class="d"><span>${esc(a.t)}</span></div></div></li>`).join("");
+  $("#khoWarn").innerHTML = alerts.map(a => `<li class="item"><span class="tico ${a.c}">${ic(a.i)}</span><div class="body"><div class="t">${esc(a.v.name)}${a.f && !F ? ` · Farm ${a.f}` : ""}</div><div class="d"><span>${esc(a.t)}</span></div></div></li>`).join("");
+  /* deliveries waiting for this warehouse to confirm */
+  const inc = khoMoves.filter(m => m.kind === "chuyen" && m.status !== "nhan" && (!F || Number(m.to) === F)).sort((a, b) => b.date.localeCompare(a.date));
+  $("#khoInBox").hidden = !inc.length;
+  $("#khoIn").innerHTML = inc.map(m => { const it = itemOf(m.item), canRecv = canWrite !== false && (!myFarm || myFarm === Number(m.to));
+    return `<li class="item"><span class="tico c-blue">${ic("truck")}</span><div class="body"><div class="t">${qtyFmt(m.qty, it?.unit)} ${esc(it ? it.name : "vật tư")}</div>
+      <div class="d"><span>${ic("arrow-right")}Farm ${kf(m)} → Farm ${esc(m.to)}</span><span>${ic("calendar")}Gửi ${vnDate(m.date)}</span>${m.note?`<span>${ic("message-square-text")}${esc(m.note)}</span>`:""}</div>
+      ${canRecv ? `<div class="recv"><label>Số nhận được thực tế <input type="number" inputmode="decimal" min="0" step="0.1" data-krq="${esc(m.id)}" value="${+m.qty}"></label><button type="button" class="btn sm primary" data-krecv="${esc(m.id)}">${ic("package-check")}Xác nhận đã nhận</button></div>`
+        : `<div class="row"><span class="pill p-plan">${ic("clock")}Chờ Farm ${esc(m.to)} xác nhận</span></div>`}</div></li>`; }).join("");
   const list = [...vattu].sort((a, b) => a.name.localeCompare(b.name, "vi"));
   $("#khoFilters").innerHTML = vattu.length ? khoFilterHTML() : "";
   const shown = list.filter(v => khoFilter === "all" || v.kind === khoFilter);
   $("#khoCount").textContent = list.length ? `${list.length} loại` : "";
   $("#khoList").innerHTML = shown.length ? shown.map(v => {
-    const s = stockOf(v.id), need = plannedNeed(v.id), low = s < 0 || need > s || ((+v.min||0) && s <= +v.min);
+    const s = stockOf(v.id, F || undefined), need = F ? plannedNeed(v.id, 14, F) : plannedNeed(v.id), tr = transitQty(v.id, F || undefined);
+    const low = s < 0 || need > s + tr || (!F && (+v.min||0) && s <= +v.min);
+    const split = !F ? `<span class="split">${FARMS.map(f => { const x = stockOf(v.id, f); return `<b class="${x < 0 ? "down" : ""}">F${f} ${qtyFmt(x)}</b>`; }).join("")}${tr ? `<b>${ic("truck")}${qtyFmt(tr)}</b>` : ""}</span>` : (tr ? `<span>${ic("truck")}Đang chuyển đến ${qtyFmt(tr, v.unit)}</span>` : "");
     return `<li class="item ${khoSel===v.id?"sel":""}" data-kitem="${esc(v.id)}" role="button" tabindex="0">
       <span class="tico ${(VICON[v.kind]||VICON.khac)[1]}">${ic((VICON[v.kind]||VICON.khac)[0])}</span>
-      <div class="body"><div class="t">${esc(v.name)}</div><div class="d"><span>${VKIND[v.kind]||""}</span>${v.ai?`<span>${ic("atom")}${esc(v.ai)}</span>`:""}${need?`<span>${ic("calendar-clock")}Lịch 14 ngày cần ${qtyFmt(need, v.unit)}</span>`:""}${(() => { const l = lotsLeft(v.id).find(x => x.exp); return l ? `<span class="${l.exp < today ? "down" : l.exp <= addDays(today, 30) ? "warn" : ""}">${ic("calendar-x")}HSD ${vnDate(l.exp)}</span>` : ""; })()}${lastUse(v.id)?`<span>${ic("history")}Dùng gần nhất ${vnShort(lastUse(v.id))}</span>`:""}</div></div>
-      <div class="stock ${low?"low":""}"><b>${qtyFmt(s)}</b><span>${esc(v.unit)}</span></div></li>`;
+      <div class="body"><div class="t">${esc(v.name)}</div><div class="d"><span>${VKIND[v.kind]||""}</span>${split}${v.ai?`<span>${ic("atom")}${esc(v.ai)}</span>`:""}${need?`<span>${ic("calendar-clock")}Lịch 14 ngày cần ${qtyFmt(need, v.unit)}</span>`:""}${(() => { const l = lotsLeft(v.id).find(x => x.exp); return l ? `<span class="${l.exp < today ? "down" : l.exp <= addDays(today, 30) ? "warn" : ""}">${ic("calendar-x")}HSD ${vnDate(l.exp)}</span>` : ""; })()}${lastUse(v.id, F)?`<span>${ic("history")}Dùng gần nhất ${vnShort(lastUse(v.id, F))}</span>`:""}</div></div>
+      <div class="stock ${low?"low":""}"><b>${qtyFmt(s)}</b><span>${esc(v.unit)}${F ? "" : " · cả 3"}</span></div></li>`;
   }).join("") : (list.length ? `<li class="none">${ic("filter")}Không có vật tư loại này.</li>` : `<li class="none">${ic("package-open")}Kho chưa có vật tư. Bấm "Vật tư mới" bên dưới để thêm, ví dụ Amino, đơn vị hộp.</li>`);
   fillAccSelects(); payUI("k");
-  const opts = list.map(v => `<option value="${esc(v.id)}">${esc(v.name)} (còn ${qtyFmt(stockOf(v.id), v.unit)})</option>`).join("");
-  const ki = $("#k_item"), cur = ki.value || khoSel || "";
-  ki.innerHTML = opts || `<option value="">Chưa có vật tư</option>`;
-  if (list.some(v => v.id === cur)) ki.value = cur;
-  const it = itemOf(ki.value); $("#k_unit1").textContent = it ? `(${it.unit})` : ""; $("#k_unit2").textContent = it ? `(${it.unit})` : "";
-  if (myFarm){ $("#k_farm").value = String(myFarm); $("#k_farm").disabled = true; }
+  /* form: lock managers to their own warehouse */
+  const kfs = $("#k_kfarm");
+  if (myFarm){ kfs.value = String(myFarm); kfs.disabled = true; }
+  else if (F && kfs.dataset.auto !== "0"){ kfs.value = String(F); }
+  khoItemOpts();
   $("#khoForm").hidden = canWrite === false;
-  /* history of the selected item */
+  /* history of the selected item, for the warehouse in view */
   const sel = itemOf(khoSel);
   $("#khoHistBox").hidden = !sel;
   if (sel){
-    $("#khoHistTitle").textContent = `Lịch sử: ${sel.name}`;
+    $("#khoHistTitle").textContent = `Lịch sử: ${sel.name}${F ? ` · Kho Farm ${F}` : ""}`;
     const rows = [
-      ...khoMoves.filter(m => m.item === sel.id).map(m => ({date:m.date, at:m.createdAt||0, m})),
-      ...entries.filter(e => e.khoItem === sel.id && Number(e.khoQty) > 0).map(e => ({date:e.date, at:e.createdAt||0, e})),
+      ...khoMoves.filter(m => m.item === sel.id && (!F || kf(m) === F || (m.kind === "chuyen" && Number(m.to) === F))).map(m => ({date:m.date, at:m.createdAt||0, m})),
+      ...entries.filter(e => e.khoItem === sel.id && Number(e.khoQty) > 0 && (!F || Number(e.farm) === F)).map(e => ({date:e.date, at:e.createdAt||0, e})),
     ].sort((a, b) => b.date.localeCompare(a.date) || b.at - a.at).slice(0, 40);
     $("#khoHist").innerHTML = rows.length ? rows.map(r => {
       if (r.e){
@@ -1436,21 +1505,48 @@ function renderKho(){
         return `<li class="item ${plan?"plan":""}"><span class="tico ${TYPE[r.e.type].c}">${ic(TYPE[r.e.type].i)}</span>
           <div class="datebox"><b>${r.date.slice(8,10)}</b><span>TH ${Number(r.date.slice(5,7))}</span></div>
           <div class="body"><div class="t">${plan?"Sẽ dùng":"−"} ${qtyFmt(r.e.khoQty, sel.unit)} · ${TYPE[r.e.type].n.toLowerCase()}</div>
-          <div class="d"><span>${ic("warehouse")}Farm ${esc(r.e.farm)}</span>${r.e.lot?`<span>${ic("grid-2x2")}${esc(r.e.lot)}</span>`:""}</div>
+          <div class="d"><span>${ic("warehouse")}Kho Farm ${esc(r.e.farm)}</span>${r.e.lot?`<span>${ic("grid-2x2")}${esc(r.e.lot)}</span>`:""}</div>
           <div class="row">${plan?`<span class="pill p-plan">${ic("clock")}Chưa trừ kho, còn là kế hoạch</span>`:`<span class="pill p-done">${ic("check")}Đã trừ kho</span>`}</div></div></li>`;
       }
-      const m = r.m, sign = m.kind === "nhap" ? "+" : m.kind === "xuat" ? "−" : (+m.qty >= 0 ? "+" : "−");
-      const label = m.kind === "nhap" ? "Nhập kho" : m.kind === "xuat" ? "Xuất khác" : "Kiểm kê, điều chỉnh";
-      return `<li class="item"><span class="tico ${m.kind==="nhap"?"c-green":m.kind==="xuat"?"c-orange":"c-blue"}">${ic(m.kind==="nhap"?"package-plus":m.kind==="xuat"?"package-minus":"clipboard-check")}</span>
+      const m = r.m;
+      let sign, label, icon, cls, extra = "";
+      if (m.kind === "chuyen"){
+        const outgoing = !F || kf(m) === F;
+        sign = !F ? "" : outgoing ? "−" : "+"; icon = "truck"; cls = "c-blue";
+        label = `Chuyển kho Farm ${kf(m)} → Farm ${m.to}`;
+        extra = m.status === "nhan"
+          ? `<span class="pill p-done">${ic("package-check")}Farm ${esc(m.to)} đã nhận ${qtyFmt(m.recvQty, sel.unit)}${+m.recvQty < +m.qty ? `, thiếu ${qtyFmt(+m.qty - +m.recvQty, sel.unit)}` : ""}</span>`
+          : `<span class="pill p-plan">${ic("clock")}Đang chuyển, chờ Farm ${esc(m.to)} xác nhận</span>`;
+      } else {
+        sign = m.kind === "nhap" ? "+" : m.kind === "xuat" ? "−" : (+m.qty >= 0 ? "+" : "−");
+        label = m.kind === "nhap" ? "Nhập kho" : m.kind === "xuat" ? "Xuất khác" : "Kiểm kê, điều chỉnh";
+        icon = m.kind==="nhap"?"package-plus":m.kind==="xuat"?"package-minus":"clipboard-check"; cls = m.kind==="nhap"?"c-green":m.kind==="xuat"?"c-orange":"c-blue";
+      }
+      const qShown = m.kind === "chuyen" && F && !(kf(m) === F) ? (m.status === "nhan" ? +m.recvQty : +m.qty) : Math.abs(+m.qty);
+      return `<li class="item"><span class="tico ${cls}">${ic(icon)}</span>
         <div class="datebox"><b>${m.date.slice(8,10)}</b><span>TH ${Number(m.date.slice(5,7))}</span></div>
-        <div class="body"><div class="t">${sign} ${qtyFmt(Math.abs(+m.qty), sel.unit)} · ${label}</div>
-        <div class="d">${m.price?`<span>${ic("banknote")}${Number(m.price).toLocaleString("vi-VN")} đ/${esc(sel.unit)}</span>`:""}${m.lot?`<span>${ic("barcode")}Lô ${esc(m.lot)}</span>`:""}${m.mfg?`<span>${ic("factory")}NSX ${vnDate(m.mfg)}</span>`:""}${m.exp?`<span>${ic("calendar-x")}HSD ${vnDate(m.exp)}</span>`:""}${trackedBuy(m)?`<span>${ic(buyTotal(m)-(+m.paid||0)>0.5?"hourglass":"wallet")}${buyTotal(m)-(+m.paid||0)>0.5?`Còn nợ ${vndFull(buyTotal(m)-(+m.paid||0))}`:`Đã trả · ${esc(accName(m.acc))}`}</span>`:""}${m.from?`<span>${ic("truck")}${esc(m.from)}</span>`:""}${Number(m.farm)?`<span>${ic("warehouse")}Farm ${esc(m.farm)}</span>`:""}${m.note?`<span>${ic("message-square-text")}${esc(m.note)}</span>`:""}</div>
-        ${whoLine(m)}
+        <div class="body"><div class="t">${sign} ${qtyFmt(qShown, sel.unit)} · ${label}</div>
+        <div class="d">${m.kind !== "chuyen" ? `<span>${ic("warehouse")}Kho Farm ${kf(m)}</span>` : ""}${m.price?`<span>${ic("banknote")}${Number(m.price).toLocaleString("vi-VN")} đ/${esc(sel.unit)}</span>`:""}${m.lot?`<span>${ic("barcode")}Lô ${esc(m.lot)}</span>`:""}${m.mfg?`<span>${ic("factory")}NSX ${vnDate(m.mfg)}</span>`:""}${m.exp?`<span>${ic("calendar-x")}HSD ${vnDate(m.exp)}</span>`:""}${trackedBuy(m)?`<span>${ic(buyTotal(m)-(+m.paid||0)>0.5?"hourglass":"wallet")}${buyTotal(m)-(+m.paid||0)>0.5?`Còn nợ ${vndFull(buyTotal(m)-(+m.paid||0))}`:`Đã trả · ${esc(accName(m.acc))}`}</span>`:""}${m.from?`<span>${ic("truck")}${esc(m.from)}</span>`:""}${m.note?`<span>${ic("message-square-text")}${esc(m.note)}</span>`:""}</div>
+        ${extra ? `<div class="row">${extra}</div>` : ""}
+        ${whoLine(m)}${m.recvBy ? `<div class="who">${ic("package-check")}Nhận bởi ${esc(nameOf(m.recvBy))}${m.recvAt ? ` · ${hm(m.recvAt)}` : ""}</div>` : ""}
         ${isOwner?`<div class="row"><span class="kacts"><button type="button" class="btn sm ghost danger" data-kact="del" data-id="${esc(m.id)}">${ic("trash-2")}Xóa dòng này</button></span></div>`:""}</div></li>`;
     }).join("") : `<li class="none">${ic("history")}Chưa có lần nhập, xuất nào.</li>`;
   }
   icons();
 }
+document.addEventListener("click", async e => {
+  const fb = e.target.closest("[data-kfarmsel]");
+  if (fb){ khoFarm = fb.dataset.kfarmsel; $("#k_kfarm").dataset.auto = "1"; renderKho(); return; }
+  const rb = e.target.closest("[data-krecv]"); if (!rb) return;
+  const m = khoMoves.find(x => x.id === rb.dataset.krecv); if (!m) return;
+  const inp = document.querySelector(`[data-krq="${CSS.escape(m.id)}"]`), q = Number(inp && inp.value);
+  const box = rb.closest(".recv");
+  if (!(q >= 0) || inp.value === "" || q > +m.qty){ box.insertAdjacentHTML("beforeend", `<span class="err">Nhập số từ 0 đến ${qtyFmt(m.qty)}.</span>`); return; }
+  rb.disabled = true;
+  try { await db.doc("kho/" + m.id).update({status:"nhan", recvQty:q, recvAt:Date.now(), recvBy:me}); }
+  catch(err){ rb.disabled = false; box.insertAdjacentHTML("beforeend", `<span class="err">Không lưu được</span>`); }
+});
+document.addEventListener("change", e => { if (e.target.id === "k_kfarm") e.target.dataset.auto = "0"; });
 document.addEventListener("click", async e => {
   const it = e.target.closest("[data-kitem]");
   if (it && !e.target.closest("button")){ khoSel = khoSel === it.dataset.kitem ? null : it.dataset.kitem; if (khoSel) $("#k_item").value = khoSel; renderKho(); if (khoSel) $("#khoHistBox").scrollIntoView({behavior:"smooth", block:"start"}); return; }
@@ -1485,13 +1581,14 @@ $("#khoForm").addEventListener("submit", async ev => {
     const item = itemOf($("#k_item").value), date = v("#k_date");
     if (!item){ fail("Chọn vật tư. Chưa có thì bấm Vật tư mới."); return; }
     if (!date){ fail("Chọn ngày."); return; }
-    const base = {item:item.id, date, note:v("#k_note"), createdAt:Date.now(), createdBy:me};
+    const kfarm = myFarm || Number($("#k_kfarm").value) || 1;
+    const base = {item:item.id, date, kfarm, note:v("#k_note"), createdAt:Date.now(), createdBy:me};
     if (khoKind === "kiemke"){
       if ($("#k_count").value === ""){ fail("Nhập số lượng đếm được thực tế."); return; }
-      const diff = Math.round((Number(v("#k_count")) - stockOf(item.id))*1000)/1000;
-      if (!diff){ ok(`Khớp sổ: ${item.name} còn ${qtyFmt(stockOf(item.id), item.unit)}. Không cần điều chỉnh.`); return; }
+      const diff = Math.round((Number(v("#k_count")) - stockOf(item.id, kfarm))*1000)/1000;
+      if (!diff){ ok(`Khớp sổ: kho Farm ${kfarm} còn ${qtyFmt(stockOf(item.id, kfarm), item.unit)} ${item.name}. Không cần điều chỉnh.`); return; }
       await db.collection("kho").add({...base, kind:"kiemke", qty:diff});
-      ok(`Đã kiểm kê ${item.name}: điều chỉnh ${diff > 0 ? "+" : ""}${qtyFmt(diff, item.unit)}, còn ${qtyFmt(stockOf(item.id), item.unit)}.`);
+      ok(`Đã kiểm kê kho Farm ${kfarm}, ${item.name}: điều chỉnh ${diff > 0 ? "+" : ""}${qtyFmt(diff, item.unit)}, còn ${qtyFmt(stockOf(item.id, kfarm), item.unit)}.`);
       $("#k_count").value = ""; $("#k_note").value = ""; return;
     }
     const qty = Number(v("#k_qty"));
@@ -1505,12 +1602,19 @@ $("#khoForm").addEventListener("submit", async ev => {
       if (rec.from){ const known = [...new Set(khoMoves.map(m => m.from).filter(Boolean))]; rec.from = canonName(rec.from, known); }
       { const pe = readPay("k", qty * rec.price, rec.from, rec); if (pe){ fail(pe); return; } }
       await db.collection("kho").add(rec);
-      ok(`Đã nhập ${qtyFmt(qty, item.unit)} ${item.name}. Kho còn ${qtyFmt(stockOf(item.id), item.unit)}.`);
+      ok(`Đã nhập ${qtyFmt(qty, item.unit)} ${item.name} vào kho Farm ${kfarm}. Kho Farm ${kfarm} còn ${qtyFmt(stockOf(item.id, kfarm), item.unit)}.`);
       ["#k_qty","#k_price","#k_lot","#k_mfg","#k_exp","#k_from","#k_note","#k_paid"].forEach(id => $(id).value = ""); payUI("k");
+    } else if (khoKind === "chuyen"){
+      const to = Number($("#k_to").value), have = stockOf(item.id, kfarm);
+      if (!to || to === kfarm){ fail("Chọn farm nhận khác farm chuyển đi."); return; }
+      if (qty > have){ fail(`Kho Farm ${kfarm} chỉ còn ${qtyFmt(have, item.unit)} ${item.name}, không chuyển được ${qtyFmt(qty, item.unit)}. Nếu thực tế còn nhiều hơn, làm Kiểm kê trước.`); return; }
+      await db.collection("kho").add({...base, kind:"chuyen", qty, to, status:"dang"});
+      ok(`Đã ghi chuyển ${qtyFmt(qty, item.unit)} ${item.name} từ Farm ${kfarm} sang Farm ${to}. Kho Farm ${kfarm} còn ${qtyFmt(stockOf(item.id, kfarm), item.unit)}. Farm ${to} bấm "Xác nhận đã nhận" khi hàng tới thì kho Farm ${to} mới được cộng.`);
+      ["#k_qty","#k_note"].forEach(id => $(id).value = "");
     } else {
-      await db.collection("kho").add({...base, kind:"xuat", qty, farm:Number($("#k_farm").value)||0});
-      const s = stockOf(item.id);
-      ok(`Đã xuất ${qtyFmt(qty, item.unit)} ${item.name}. Kho còn ${qtyFmt(s, item.unit)}.${s < 0 ? " Tồn kho đang âm, cần kiểm kê." : ""}`);
+      await db.collection("kho").add({...base, kind:"xuat", qty});
+      const s = stockOf(item.id, kfarm);
+      ok(`Đã xuất ${qtyFmt(qty, item.unit)} ${item.name} khỏi kho Farm ${kfarm}. Kho Farm ${kfarm} còn ${qtyFmt(s, item.unit)}.${s < 0 ? " Tồn kho đang âm, cần kiểm kê." : ""}`);
       ["#k_qty","#k_note"].forEach(id => $(id).value = "");
     }
     khoSel = item.id; renderKho();
@@ -1525,8 +1629,11 @@ async function khoSeedSample(){
     [-30,"mau-ridomil",4,90000],[-30,"mau-movento",2,430000],[-30,"mau-score",2,185000],[-30,"mau-amino",10,120000],[-30,"mau-kali",2,900000],[-30,"mau-canxibo",3,60000],[-30,"mau-npk16",2,680000]];
   for (const [n, item, qty, price] of M){
     const debt = n === -30 && item === "mau-movento", exp = n === -30 && item === "mau-ridomil" ? addDays(today, 20) : n === -30 ? addDays(today, 500) : "";
-    await db.collection("kho").add({kind:"nhap", item, qty, price, pay:debt ? "no" : "du", acc:debt ? "" : "tienmat", paid:debt ? 0 : qty * price, date:addDays(today, n), mfg:n === -30 ? addDays(today, -120) : "", exp, lot:n === -30 ? `L${String(Math.abs(qty*7919)%9000+1000)}` : "", from:"Đại lý vật tư (mẫu)", sample:true, createdAt:Date.now(), createdBy:me});
+    await db.collection("kho").add({kind:"nhap", item, qty, price, pay:debt ? "no" : "du", acc:debt ? "" : "tienmat", paid:debt ? 0 : qty * price, date:addDays(today, n), mfg:n === -30 ? addDays(today, -120) : "", exp, lot:n === -30 ? `L${String(Math.abs(qty*7919)%9000+1000)}` : "", from:"Đại lý vật tư (mẫu)", kfarm:1, sample:true, createdAt:Date.now(), createdBy:me});
   }
+  const TR = [[-399,"mau-ridomil",2,3,1],[-399,"mau-movento",1,2,1],[-399,"mau-score",1,2,1],[-399,"mau-score",1,3,1],[-399,"mau-npk16",1,3,1],
+    [-29,"mau-movento",1,2,1],[-29,"mau-score",1,3,1],[-29,"mau-kali",1,3,1],[-29,"mau-ridomil",1,2,1],[-29,"mau-canxibo",2,2,1],[-29,"mau-amino",4,2,1],[-1,"mau-movento",1,3,0]];
+  for (const [n, item, qty, to, got] of TR) await db.collection("kho").add({kind:"chuyen", item, qty, kfarm:1, to, status:got ? "nhan" : "dang", recvQty:got ? qty : 0, recvAt:got ? Date.now() : 0, recvBy:got ? me : "", date:addDays(today, n), note:"Dữ liệu mẫu", sample:true, createdAt:Date.now(), createdBy:me});
 }
 
 /* ---------- season comparison ---------- */
@@ -1907,7 +2014,7 @@ function expAlerts(){
   }));
   return out;
 }
-const lastUse = id => entries.filter(e => e.khoItem === id && +e.khoQty > 0 && !isPlan(e)).map(e => e.date).sort().pop() || "";
+const lastUse = (id, f) => entries.filter(e => e.khoItem === id && +e.khoQty > 0 && !isPlan(e) && (!f || Number(e.farm) === f)).map(e => e.date).sort().pop() || "";
 function khoExpHint(){
   const it = itemOf($("#f_kho").value), h = $("#f_khohint"); if (!h) return;
   if (!it){ h.textContent = ""; return; }
@@ -2020,7 +2127,7 @@ function render(){
   const phiN = inPhi().length, upPhun = visible().filter(e=>e.type==="phun" && e.date>today && e.date<=addDays(today,7)).length;
   $("#phiBadge").hidden = !phiN; $("#phiBadge").textContent = phiN;
   $("#phunBadge").hidden = !upPhun; $("#phunBadge").textContent = upPhun;
-  { const kn = khoAlerts().length; $("#khoBadge").hidden = !kn; $("#khoBadge").textContent = kn; }
+  { const kn = khoAlerts(true).length; $("#khoBadge").hidden = !kn; $("#khoBadge").textContent = kn; }
   const due = dueCount();
   ["#bellBadge","#nhacBadge"].forEach(id => { $(id).hidden = !due; $(id).textContent = due; });
 
@@ -2416,7 +2523,8 @@ function quickAnswer(raw){
     const hit = vattu.filter(v => { const w = norm(v.name).split(/[\s(]/)[0]; return w.length >= 3 && q.includes(w); });
     const L = hit.length ? hit : vattu;
     if (!L.length) return "Kho chưa có vật tư nào.";
-    return (hit.length ? "" : "Tồn kho hiện tại:\n") + L.map(v => { const need = plannedNeed(v.id); return `• ${v.name}: còn ${qtyFmt(stockOf(v.id), v.unit)}${need?` · lịch 14 ngày tới cần ${qtyFmt(need, v.unit)}`:""}`; }).join("\n");
+    return (hit.length ? "" : "Tồn kho hiện tại:\n") + L.map(v => { if (myFarm){ const need = plannedNeed(v.id, 14, myFarm), tr = transitQty(v.id, myFarm); return `• ${v.name}: kho Farm ${myFarm} còn ${qtyFmt(stockOf(v.id, myFarm), v.unit)}${tr?` · đang chuyển đến ${qtyFmt(tr, v.unit)}`:""}${need?` · lịch 14 ngày tới cần ${qtyFmt(need, v.unit)}`:""}`; }
+      const need = plannedNeed(v.id), tr = transitQty(v.id); return `• ${v.name}: cả 3 kho còn ${qtyFmt(stockOf(v.id), v.unit)} (${FARMS.map(f => `Farm ${f}: ${qtyFmt(stockOf(v.id, f))}`).join(", ")}${tr?`, đang chuyển ${qtyFmt(tr)}`:""})${need?` · lịch 14 ngày tới cần ${qtyFmt(need, v.unit)}`:""}`; }).join("\n");
   }
   if (/nhac|viec gi|chua lam|can lam/.test(q)){
     const due = visible().filter(e => isPlan(e) && e.date <= addDays(today, 7)).sort((a,b) => a.date.localeCompare(b.date));
