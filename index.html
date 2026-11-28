@@ -123,6 +123,23 @@ textarea{resize:vertical}
 .grade .v{font-size:19px;font-weight:800;font-variant-numeric:tabular-nums;color:var(--fg);line-height:1.1}
 .grade .n{font-size:13px;font-weight:600}
 .grade .p{font-size:12px;color:var(--muted)}
+body.login .tabbar,body.login #backBtn,body.login #bellBtn{visibility:hidden}
+.loginbox{max-width:420px;margin:12px auto 0;display:grid;gap:10px}
+.asbar{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;padding:8px max(16px,env(safe-area-inset-right,0px)) 8px max(16px,env(safe-area-inset-left,0px));background:var(--amber-soft);color:var(--text);font-size:13px;font-weight:600}
+.featgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:8px}
+.feat{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:14px;background:var(--card,#fff);border:1px solid var(--line);cursor:pointer;min-width:0}
+.feat input{width:20px;height:20px;flex:none;accent-color:var(--green)}
+.feat .fi{display:grid;place-items:center;width:30px;height:30px;border-radius:9px;background:var(--sunk);flex:none}
+.feat .fi svg.lucide{width:17px;height:17px}
+.feat b{display:block;font-size:14px}
+.feat small{display:block;font-size:12px;color:var(--muted)}
+.feat:has(input:checked){border-color:var(--green);background:var(--green-soft)}
+.featchips{display:flex;flex-wrap:wrap;gap:5px;margin-top:6px}
+.featchips span{display:inline-flex;align-items:center;gap:4px;font-size:12px;font-weight:600;padding:2px 9px;border-radius:999px;background:var(--sunk)}
+.featchips svg.lucide{width:13px;height:13px}
+.checkline{display:flex!important;align-items:center;gap:10px;align-self:end;min-height:48px}
+.checkline input{width:20px;height:20px;accent-color:var(--green)}
+body.nomoney #money,body.nomoney #xMoney,body.nomoney #finBox,body.nomoney label:has(#f_price),body.nomoney label:has(#f_pay),body.nomoney [data-payfor],body.nomoney #f_payhint,body.nomoney label:has(#k_price),body.nomoney label:has(#k_pay),body.nomoney #k_payhint{display:none!important}
 .cashtotal{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;margin-bottom:12px}
 .cashtotal b{font-size:30px;font-weight:800;font-variant-numeric:tabular-nums}
 .cashtotal span{color:var(--muted);font-size:14px}
@@ -398,6 +415,7 @@ a{color:inherit}
   </header>
 
   <!-- HOME -->
+  <div class="asbar" id="asBar" hidden><span id="asBarText"></span><button type="button" class="btn sm" id="asBack">Về tài khoản chủ</button></div>
   <section class="screen" data-screen="home">
     <div class="banner">
       <svg class="scene" viewBox="0 0 400 210" preserveAspectRatio="xMidYMax slice" aria-hidden="true">
@@ -484,7 +502,7 @@ a{color:inherit}
           <button class="mi" type="button" data-go="kho" data-kscroll><span class="circ c-green"><i data-lucide="package-plus"></i></span><span class="lbl">Nhập kho</span></button>
           <button class="mi" type="button" data-go="nhac"><span class="circ c-red"><i data-lucide="bell-ring"></i><span class="badge" id="nhacBadge" hidden></span></span><span class="lbl">Nhắc việc</span></button>
           <button class="mi" type="button" data-go="baove"><span class="circ c-grey"><i data-lucide="shield-check"></i></span><span class="lbl">Thùng rác & sao lưu</span></button>
-          <button class="mi" type="button" data-go="phanquyen" id="tilePq" hidden><span class="circ c-amber"><i data-lucide="users-round"></i></span><span class="lbl">Phân quyền farm</span></button>
+          <button class="mi" type="button" data-go="taikhoan" id="tilePq"><span class="circ c-amber"><i data-lucide="users-round"></i></span><span class="lbl" id="tilePqLbl">Tài khoản & phân quyền</span></button>
         </div>
       </div>
     </div>
@@ -833,6 +851,69 @@ a{color:inherit}
     </div>
   </section>
 
+  <!-- DANG NHAP -->
+  <section class="screen" data-screen="dangnhap" hidden>
+    <div class="sheet flat">
+      <form class="section loginbox" id="loginForm" novalidate>
+        <span class="tico c-green" style="width:64px;height:64px;margin:0 auto 6px"><i data-lucide="sprout"></i></span>
+        <h2 style="border:0;text-align:center;margin:0">Sổ Vườn Chanh Dây</h2>
+        <p class="hint" style="text-align:center;margin:0 0 14px">Đăng nhập bằng tài khoản chủ farm cấp cho bạn</p>
+        <label class="f"><span class="lt"><i data-lucide="user-round"></i>Tên đăng nhập</span><input id="l_user" autocomplete="username" autocapitalize="off" spellcheck="false" placeholder="VD: farm2"></label>
+        <label class="f"><span class="lt"><i data-lucide="key-round"></i>Mã PIN</span><input id="l_pin" type="password" inputmode="numeric" autocomplete="current-password" maxlength="6" placeholder="4–6 số"></label>
+        <button class="btn primary block" type="submit" id="loginBtn" style="margin-top:14px"><i data-lucide="log-in"></i>Đăng nhập</button>
+        <div id="loginMsg" class="formmsg" role="status"></div>
+      </form>
+      <div class="section" id="demoAccBox" hidden><h2>Tài khoản thử của bản demo</h2>
+        <ul class="list" id="demoAccList"></ul>
+        <p class="hint">Bấm vào một dòng để điền sẵn. Chủ farm đổi mã PIN trong mục Tài khoản thì dòng đó tự ẩn.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- TAI KHOAN & PHAN QUYEN -->
+  <section class="screen" data-screen="taikhoan" hidden>
+    <div class="sheet flat">
+      <div class="section"><h2>Tài khoản của bạn</h2>
+        <div id="meCard"></div>
+        <div class="row" style="margin-top:12px;flex-wrap:wrap;gap:8px">
+          <button type="button" class="btn" id="pinOpen"><i data-lucide="key-round"></i>Đổi mã PIN</button>
+          <button type="button" class="btn ghost danger" id="logoutBtn"><i data-lucide="log-out"></i>Đăng xuất</button>
+        </div>
+        <form id="pwForm" class="fiform" novalidate hidden>
+          <div class="fields">
+            <label class="f"><span class="lt"><i data-lucide="key-round"></i>Mã PIN mới</span><input id="p_new" type="password" inputmode="numeric" maxlength="6" placeholder="4–6 số"></label>
+            <label class="f"><span class="lt"><i data-lucide="key-round"></i>Nhập lại</span><input id="p_new2" type="password" inputmode="numeric" maxlength="6"></label>
+          </div>
+          <div class="row" style="margin-top:12px"><button class="btn primary" type="submit"><i data-lucide="save"></i>Lưu mã PIN</button></div>
+          <div id="pwMsg" class="formmsg" role="status"></div>
+        </form>
+      </div>
+      <div class="section" id="accAdmin" hidden><h2>Tài khoản và quyền <small id="accCount"></small></h2>
+        <ul class="list" id="accList"></ul>
+        <button type="button" class="btn primary block" id="accNew" style="margin-top:12px"><i data-lucide="user-plus"></i>Thêm tài khoản</button>
+        <form id="accForm" class="fiform" novalidate hidden>
+          <h3 class="sub2" id="accFormTitle">Thêm tài khoản</h3>
+          <div class="fields">
+            <label class="f"><span class="lt"><i data-lucide="user-round"></i>Tên người dùng</span><input id="u_name" placeholder="VD: Anh Tư (Farm 2)"></label>
+            <label class="f"><span class="lt"><i data-lucide="at-sign"></i>Tên đăng nhập</span><input id="u_user" autocapitalize="off" spellcheck="false" placeholder="VD: farm2"></label>
+            <label class="f"><span class="lt"><i data-lucide="key-round"></i><span id="u_pinLbl">Mã PIN</span></span><input id="u_pin" inputmode="numeric" maxlength="6" placeholder="4–6 số"></label>
+            <label class="f"><span class="lt"><i data-lucide="id-card"></i>Vai trò mẫu</span><select id="u_tpl"></select></label>
+            <label class="f"><span class="lt"><i data-lucide="warehouse"></i>Farm phụ trách</span><select id="u_farm"><option value="0">Cả 3 farm</option><option value="1">Chỉ Farm 1</option><option value="2">Chỉ Farm 2</option><option value="3">Chỉ Farm 3</option></select></label>
+            <label class="f checkline"><input type="checkbox" id="u_view"><span>Chỉ xem, không được nhập, sửa</span></label>
+          </div>
+          <h3 class="sub2">Được thấy những tính năng</h3>
+          <div class="featgrid" id="u_feats"></div>
+          <p class="hint" id="u_hint"></p>
+          <div class="row" style="margin-top:12px;gap:8px"><button class="btn primary" type="submit" id="accSave"><i data-lucide="save"></i>Lưu tài khoản</button><button class="btn ghost" type="button" id="accCancel">Thôi</button></div>
+          <div id="accMsg" class="formmsg" role="status"></div>
+        </form>
+      </div>
+      <div class="section"><h2>Bản demo và bản thật</h2>
+        <div class="tip-box"><i data-lucide="smartphone"></i><span>Bản demo lưu tài khoản và dữ liệu ngay trên máy này, nên mọi người phải dùng chung một máy. Khi chuyển sang Firebase, mỗi người đăng nhập trên điện thoại của mình, quyền do chủ farm cấp được kiểm tra ở máy chủ, dữ liệu tự đồng bộ.</span></div>
+      </div>
+    </div>
+  </section>
+
   <!-- PHAN QUYEN -->
   <section class="screen" data-screen="phanquyen" hidden>
     <div class="sheet flat">
@@ -865,7 +946,7 @@ const TYPE = {
   xuat:{n:"Xuất hàng", i:"truck", c:"c-purple"}, phun:{n:"Phun thuốc", i:"spray-can", c:"c-blue"},
   bon:{n:"Bón phân", i:"flask-round", c:"c-orange"}, trong:{n:"Trồng cây", i:"sprout", c:"c-green"},
 };
-const TITLES = {home:"Trang chủ", xuat:"Xuất hàng", phun:"Lịch phun thuốc", bon:"Lịch bón phân", trong:"Lịch trồng cây", farms:"Theo farm", cachly:"Lô đang cách ly", weather:"Thời tiết", nhap:"Nhập liệu", ai:"Hỏi AI", kho:"Kho vật tư", sosanh:"So sánh mùa vụ", quy:"Sổ quỹ & công nợ", doitac:"Hồ sơ phun thuốc", nhac:"Nhắc việc", baove:"Thùng rác & sao lưu", phanquyen:"Phân quyền farm", vaitro:"Vai trò xem thử"};
+const TITLES = {home:"Trang chủ", xuat:"Xuất hàng", phun:"Lịch phun thuốc", bon:"Lịch bón phân", trong:"Lịch trồng cây", farms:"Theo farm", cachly:"Lô đang cách ly", weather:"Thời tiết", nhap:"Nhập liệu", ai:"Hỏi AI", kho:"Kho vật tư", sosanh:"So sánh mùa vụ", quy:"Sổ quỹ & công nợ", dangnhap:"Đăng nhập", taikhoan:"Tài khoản", doitac:"Hồ sơ phun thuốc", nhac:"Nhắc việc", baove:"Thùng rác & sao lưu", phanquyen:"Phân quyền farm", vaitro:"Vai trò xem thử"};
 const $ = s => document.querySelector(s);
 const ic = n => `<i data-lucide="${n}"></i>`;
 const icons = () => { try { window.lucide && window.lucide.createIcons(); } catch(e){} };
@@ -889,11 +970,9 @@ const visible = () => myFarm ? entries.filter(e => Number(e.farm) === myFarm) : 
 const visRems = () => myFarm ? reminders.filter(r => !Number(r.farm) || Number(r.farm) === myFarm) : reminders;
 const mine = x => !myFarm || Number(x.farm) === myFarm;
 function applyRole(){
-  const a = assignments[me];
-  myFarm = a && [1,2,3].includes(Number(a.farm)) ? Number(a.farm) : null;
+  myFarm = curAcc && [1,2,3].includes(Number(curAcc.farm)) ? Number(curAcc.farm) : null;
   if (myFarm) farm = String(myFarm);
   ["#f_farm","#r_farm"].forEach(id => { const s = $(id); if (myFarm){ s.value = String(myFarm); s.disabled = true; } else s.disabled = false; });
-  $("#tilePq").hidden = !isOwner;
 }
 const stamp = () => ({updatedAt: Date.now(), updatedBy: me});
 const nameOf = id => id === me ? "bạn" : (names[id] || "thành viên");
@@ -909,14 +988,16 @@ const saveUi = () => { try { localStorage.setItem("svcd-ui", JSON.stringify({far
 
 /* ---------- navigation ---------- */
 function go(name){
-  if (partner && name !== "vaitro") name = "doitac";
+  if (name === "phanquyen" || name === "vaitro") name = "taikhoan";
+  if (!canScreen(name)) name = curAcc ? homeOf() : "dangnhap";
+  if (name === "home") name = homeOf();
   screen = name;
   const generic = ["phun","bon","trong","cachly"].includes(name);
   document.querySelectorAll("[data-screen]").forEach(s => s.hidden = s.dataset.screen !== (generic ? "list" : name));
   $("#screenTitle").textContent = TITLES[name] || "";
-  const isHome = name === "home" || (partner && name === "doitac");
+  const isHome = name === homeOf() || name === "dangnhap";
   $("#backBtn").innerHTML = ic(isHome ? "user-round" : "arrow-left");
-  $("#backBtn").setAttribute("aria-label", isHome ? "Vai trò xem thử" : "Quay lại");
+  $("#backBtn").setAttribute("aria-label", isHome ? "Tài khoản" : "Quay lại");
   const tab = ["home","nhap","weather","ai"].includes(name) ? name : "home";
   document.querySelectorAll(".tabbar [data-tab]").forEach(b => b.dataset.tab===tab ? b.setAttribute("aria-current","page") : b.removeAttribute("aria-current"));
   window.scrollTo({top:0});
@@ -928,7 +1009,7 @@ document.addEventListener("click", e => {
   const g = e.target.closest("[data-go]"); if (g) go(g.dataset.go);
   const t = e.target.closest(".tabbar [data-tab]"); if (t) go(t.dataset.tab);
 });
-$("#backBtn").addEventListener("click", () => go(screen === "home" || (partner && screen === "doitac") ? "vaitro" : "home"));
+$("#backBtn").addEventListener("click", () => go(screen === homeOf() ? "taikhoan" : homeOf()));
 $("#bellBtn").addEventListener("click", () => go("nhac"));
 
 /* ---------- filters ---------- */
@@ -2245,6 +2326,240 @@ function renderFarmCompare(k){
       <td class="num">${z && z.area ? (Math.round(st.t.total / z.area / 10) / 100).toLocaleString("vi-VN") : "—"}</td><td class="num">${z && z.plants ? (Math.round(st.t.total / z.plants * 10) / 10).toLocaleString("vi-VN") : "—"}</td>
       <td class="num">${p !== null ? vndS(p) : "—"}</td><td class="num ${pha !== null && pha === best ? "up" : ""}">${pha !== null ? vndS(pha) : "—"}</td></tr>`; }).join("") + `</tbody>`;
 }
+/* ---------- accounts & permissions: the owner gives each person a login and picks which features they see ---------- */
+const FEATS = [
+  ["tongquan","Tổng quan sản lượng","layout-dashboard","Trang chủ: sản lượng đã xuất, Farm 1·2·3"],
+  ["xuat","Xuất hàng","truck","Xem và ghi xuất hàng"],
+  ["tien","Giá, doanh thu, tiền","banknote","Thấy giá bán, doanh thu, thanh toán"],
+  ["phun","Phun thuốc","spray-can","Lịch phun, lô cách ly, ghi phun"],
+  ["bon","Bón phân","flask-round","Lịch bón, ghi bón"],
+  ["trong","Trồng cây","sprout","Lịch trồng, ghi trồng"],
+  ["kho","Kho vật tư","warehouse","Kho của farm phụ trách"],
+  ["thoitiet","Thời tiết","cloud-sun-rain","Dự báo, gợi ý giờ phun"],
+  ["nhac","Nhắc việc","bell-ring","Việc cần làm, nhắc việc"],
+  ["hoi","Hỏi nhanh","bot","Hỏi lịch phun, xuất hàng, kho"],
+  ["sosanh","So sánh mùa vụ","chart-column","Năng suất, lợi nhuận theo vụ"],
+  ["quy","Sổ quỹ, công nợ","wallet","Tiền mặt, tài khoản, công nợ"],
+  ["hoso","Hồ sơ phun cho đối tác","file-check-2","Nhật ký phun để gửi đối tác"],
+];
+const ALLF = FEATS.map(f => f[0]);
+const TPL = {
+  chu:{n:"Chủ farm", perms:ALLF, view:false, i:"crown"},
+  sep:{n:"Sếp", perms:ALLF, view:true, i:"eye"},
+  quanly:{n:"Quản lý farm", perms:["phun","kho","thoitiet"], view:false, i:"user-round"},
+  thukho:{n:"Thủ kho", perms:["kho","thoitiet"], view:false, i:"package"},
+  doitac:{n:"Đối tác nhập hàng", perms:["hoso"], view:true, i:"handshake"},
+  tuychon:{n:"Tùy chỉnh", perms:null, view:null, i:"sliders-horizontal"},
+};
+/* which feature opens which screen; "admin" = owner only */
+const SCREEN_FEAT = {xuat:"xuat", phun:"phun", cachly:"phun", bon:"bon", trong:"trong", farms:"tongquan", kho:"kho", sosanh:"sosanh", quy:"quy", doitac:"hoso", weather:"thoitiet", ai:"hoi", nhac:"nhac", baove:"admin", phanquyen:"admin", vaitro:"admin"};
+let accList = [], curAcc = null, viewAs = null, accEdit = null;
+const can = f => !!curAcc && (f === "admin" ? curAcc.tpl === "chu" && !viewAs : curAcc.tpl === "chu" || (curAcc.perms || []).includes(f));
+const canEnterNhap = () => canWrite !== false && ["phun","bon","trong","xuat"].some(can);
+function canScreen(name){
+  if (!curAcc) return name === "dangnhap";
+  if (name === "dangnhap") return false;
+  if (name === "home" || name === "taikhoan" || name === "list") return true;
+  if (name === "nhap") return canEnterNhap();
+  const f = SCREEN_FEAT[name];
+  return !f || can(f);
+}
+/* the landing screen: partners and single-purpose accounts go straight to their one feature */
+function homeOf(){
+  if (!curAcc) return "dangnhap";
+  if (curAcc.tpl === "doitac" || ((curAcc.perms || []).length === 1 && curAcc.perms[0] === "hoso" && curAcc.tpl !== "chu")) return "doitac";
+  return "home";
+}
+async function pinHash(user, pin){
+  const s = `svcd|${String(user).toLowerCase()}|${pin}`;
+  try { const b = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(s)); return [...new Uint8Array(b)].map(x => x.toString(16).padStart(2, "0")).join(""); }
+  catch(e){ let h = 5381; for (const c of s) h = (h * 33 ^ c.charCodeAt(0)) >>> 0; return "x" + h.toString(16); }
+}
+const userKey = s => String(s || "").trim().toLowerCase();
+const tplName = a => (TPL[a.tpl] || TPL.tuychon).n;
+const farmLbl = a => Number(a.farm) ? `Farm ${a.farm}` : "Cả 3 farm";
+
+/* hide every tile, tab and section the account may not use */
+function applyPerms(){
+  document.body.classList.toggle("login", !curAcc);
+  document.body.classList.toggle("nomoney", !!curAcc && !can("tien"));
+  if (!curAcc) return;
+  document.querySelectorAll(".screen[data-screen='home'] .menu [data-go], .screen[data-screen='home'] .sec-link[data-go]").forEach(el => {
+    const g = el.dataset.go;
+    el.hidden = !(g === "taikhoan" ? true : g === "nhap" ? canEnterNhap() : el.hasAttribute("data-kscroll") ? can("kho") && canWrite !== false : canScreen(g));
+  });
+  $("#tilePqLbl").textContent = can("admin") ? "Tài khoản & phân quyền" : "Tài khoản của bạn";
+  const homeSec = id => $(id) && $(id).closest(".section");
+  [["#totalKg", "tongquan"], ["#todoList", null]].forEach(([id, f]) => { const s = homeSec(id); if (s) s.hidden = f ? !can(f) : !(can("nhac") || can("phun") || can("bon") || can("trong")); });
+  { const st = document.querySelector(".wxstrip"); if (st){ st.hidden = !can("thoitiet"); st.closest(".section").hidden = !can("thoitiet") && $("#sampleBar").hidden; } }
+  document.querySelectorAll(".wxbadge").forEach(b => b.hidden = !can("thoitiet"));
+  $("#bellBtn").hidden = !can("nhac");
+  const tabs = [...document.querySelectorAll(".tabbar [data-tab]")];
+  tabs.forEach(b => b.hidden = !(b.dataset.tab === "home" || canScreen(b.dataset.tab)));
+  const shown = tabs.filter(b => !b.hidden).length;
+  $(".tabbar").hidden = shown < 2;
+  $(".tabbar .in").style.gridTemplateColumns = `repeat(${shown},1fr)`;
+  /* entry form: only the record types this account may write */
+  const types = [...document.querySelectorAll(".types [data-type]")];
+  types.forEach(b => b.hidden = !can(b.dataset.type));
+  const vis = types.filter(b => !b.hidden);
+  if (vis.length && !can(type)) setType(vis[0].dataset.type);
+  const tbox = document.querySelector('[data-screen="nhap"] .types'); if (tbox) tbox.style.gridTemplateColumns = `repeat(${Math.max(1, vis.length)},minmax(0,1fr))`;
+  /* tiles groups with nothing left in them */
+  document.querySelectorAll(".screen[data-screen='home'] .menu").forEach(m => { const sec = m.closest(".section"); if (sec) sec.hidden = ![...m.querySelectorAll("[data-go]")].some(x => !x.hidden); });
+  $("#greetSub").textContent = Number(curAcc.farm) ? `Farm ${curAcc.farm} hôm nay` : "Vườn chanh dây hôm nay";
+  $("#greetTitle").textContent = `Chào ${curAcc.name.split("(")[0].trim()},`;
+  $("#asBar").hidden = !viewAs;
+  if (viewAs) $("#asBarText").textContent = `Đang xem thử như ${curAcc.name} (${tplName(curAcc)} · ${farmLbl(curAcc)})`;
+}
+
+/* ---------- login ---------- */
+let loginFails = lsGet("svcd-fails", {n:0, until:0});
+function renderLogin(){
+  const demo = accList.filter(a => a.demoPin && a.active !== false);
+  $("#demoAccBox").hidden = !demo.length;
+  $("#demoAccList").innerHTML = demo.map(a => `<li class="item" data-demoacc="${esc(a.user)}" data-pin="${esc(a.demoPin)}" role="button" tabindex="0"><span class="tico c-grey">${ic((TPL[a.tpl] || TPL.tuychon).i)}</span>
+    <div class="body"><div class="t">${esc(a.name)}</div><div class="d"><span>${ic("at-sign")}${esc(a.user)}</span><span>${ic("key-round")}PIN ${esc(a.demoPin)}</span><span>${tplName(a)} · ${farmLbl(a)}</span></div></div></li>`).join("");
+  icons();
+}
+document.addEventListener("click", e => { const d = e.target.closest("[data-demoacc]"); if (d){ $("#l_user").value = d.dataset.demoacc; $("#l_pin").value = d.dataset.pin; } });
+$("#loginForm").addEventListener("submit", async ev => {
+  ev.preventDefault();
+  const msg = $("#loginMsg"), fail = t => { msg.className = "formmsg err"; msg.textContent = t; };
+  if (loginFails.until > Date.now()) return fail(`Nhập sai nhiều lần. Thử lại sau ${Math.ceil((loginFails.until - Date.now()) / 1000)} giây.`);
+  const u = userKey($("#l_user").value), pin = $("#l_pin").value.trim();
+  if (!u || !pin) return fail("Nhập tên đăng nhập và mã PIN.");
+  const a = accList.find(x => userKey(x.user) === u);
+  const okPin = a && a.pinHash === await pinHash(u, pin);
+  if (!okPin){
+    loginFails.n++; if (loginFails.n >= 5){ loginFails = {n:0, until:Date.now() + 60000}; }
+    lsSet("svcd-fails", loginFails);
+    return fail("Sai tên đăng nhập hoặc mã PIN.");
+  }
+  if (a.active === false) return fail("Tài khoản này đang bị khóa. Liên hệ chủ farm.");
+  loginFails = {n:0, until:0}; lsSet("svcd-fails", loginFails);
+  lsSet("svcd-session", {id:a.id, at:Date.now()});
+  location.hash = ""; location.reload();
+});
+function logout(){ lsSet("svcd-session", null); location.hash = ""; location.reload(); }
+document.addEventListener("click", e => {
+  if (e.target.closest("#logoutBtn")) logout();
+  if (e.target.closest("#asBack")){ const s = lsGet("svcd-session", null); if (s){ delete s.viewAs; lsSet("svcd-session", s); } location.reload(); }
+});
+
+/* ---------- my account + owner's account manager ---------- */
+function renderTaiKhoan(){
+  const a = curAcc; if (!a) return;
+  const perms = a.tpl === "chu" ? ALLF : (a.perms || []);
+  $("#meCard").innerHTML = `<div class="item" style="cursor:default"><span class="tico c-green">${ic((TPL[a.tpl] || TPL.tuychon).i)}</span><div class="body"><div class="t">${esc(a.name)}</div>
+    <div class="d"><span>${ic("at-sign")}${esc(a.user)}</span><span>${tplName(a)}</span><span>${ic("warehouse")}${farmLbl(a)}</span>${a.view ? `<span>${ic("eye")}Chỉ xem</span>` : ""}</div>
+    <div class="featchips">${FEATS.filter(f => perms.includes(f[0])).map(f => `<span>${ic(f[2])}${f[1]}</span>`).join("")}</div></div></div>`;
+  $("#pinOpen").hidden = !!viewAs; $("#logoutBtn").hidden = !!viewAs;
+  $("#accAdmin").hidden = !can("admin");
+  if (can("admin")){
+    $("#accCount").textContent = `${accList.length} người`;
+    $("#accList").innerHTML = accList.map(x => { const p = x.tpl === "chu" ? ALLF : (x.perms || []), off = x.active === false;
+      return `<li class="item ${off ? "plan" : ""}"><span class="tico ${off ? "c-grey" : x.tpl === "chu" ? "c-amber" : "c-green"}">${ic(off ? "lock" : (TPL[x.tpl] || TPL.tuychon).i)}</span><div class="body">
+        <div class="t">${esc(x.name)}${x.id === curAcc.id ? " · bạn" : ""}</div>
+        <div class="d"><span>${ic("at-sign")}${esc(x.user)}</span><span>${tplName(x)}</span><span>${ic("warehouse")}${farmLbl(x)}</span>${x.view ? `<span>${ic("eye")}Chỉ xem</span>` : ""}${off ? `<span class="down">${ic("lock")}Đang khóa</span>` : ""}</div>
+        <div class="featchips">${x.tpl === "chu" ? `<span>${ic("crown")}Toàn quyền</span>` : FEATS.filter(f => p.includes(f[0])).map(f => `<span>${ic(f[2])}${f[1]}</span>`).join("") || `<span class="down">Chưa cấp tính năng nào</span>`}</div>
+        <div class="row" style="gap:6px;flex-wrap:wrap"><button type="button" class="btn sm" data-accedit="${esc(x.id)}">${ic("pencil")}Sửa quyền</button>
+        ${x.id !== curAcc.id ? `<button type="button" class="btn sm ghost" data-accas="${esc(x.id)}">${ic("eye")}Xem thử</button><button type="button" class="btn sm ghost ${off ? "" : "danger"}" data-acclock="${esc(x.id)}">${ic(off ? "lock-open" : "lock")}${off ? "Mở khóa" : "Khóa"}</button>` : ""}</div></div></li>`; }).join("");
+  }
+  icons();
+}
+function featBoxes(perms, disabled){
+  $("#u_feats").innerHTML = FEATS.map(([k, n, i, d]) => `<label class="feat"><input type="checkbox" value="${k}" ${perms.includes(k) ? "checked" : ""} ${disabled ? "disabled" : ""}><span class="fi">${ic(i)}</span><span><b>${n}</b><small>${d}</small></span></label>`).join("");
+  icons();
+}
+function accHint(){
+  const t = $("#u_tpl").value, f = Number($("#u_farm").value), h = $("#u_hint");
+  h.textContent = t === "chu" ? "Chủ farm thấy mọi thứ, tạo tài khoản và cấp quyền cho người khác."
+    : t === "quanly" && !f ? "Quản lý farm nên chọn một farm phụ trách để chỉ thấy kho, lịch phun của farm đó."
+    : f ? `Chỉ thấy dữ liệu và kho của Farm ${f}.` : "Thấy dữ liệu cả 3 farm trong các tính năng được tick.";
+}
+function openAccForm(id){
+  accEdit = id || "new";
+  const a = id ? accList.find(x => x.id === id) : {tpl:"quanly", farm:2, perms:TPL.quanly.perms, view:false};
+  $("#accForm").hidden = false; $("#accNew").hidden = true; $("#accMsg").textContent = "";
+  $("#accFormTitle").textContent = id ? `Sửa quyền: ${a.name}` : "Thêm tài khoản";
+  $("#u_name").value = a.name || ""; $("#u_user").value = a.user || ""; $("#u_user").readOnly = !!id;
+  $("#u_pin").value = ""; $("#u_pinLbl").textContent = id ? "Mã PIN mới (để trống nếu giữ)" : "Mã PIN";
+  $("#u_tpl").innerHTML = Object.entries(TPL).map(([k, t]) => `<option value="${k}">${t.n}</option>`).join("");
+  $("#u_tpl").value = a.tpl || "tuychon"; $("#u_farm").value = String(Number(a.farm) || 0); $("#u_view").checked = !!a.view;
+  const self = id === curAcc.id;
+  $("#u_tpl").disabled = self; $("#u_view").disabled = self || a.tpl === "chu";
+  featBoxes(a.tpl === "chu" ? ALLF : (a.perms || []), a.tpl === "chu");
+  accHint();
+  $("#accForm").scrollIntoView({behavior:"smooth", block:"start"});
+}
+document.addEventListener("change", e => {
+  if (e.target.id === "u_tpl"){ const t = TPL[e.target.value]; if (t.perms) featBoxes(t.perms, e.target.value === "chu"); else featBoxes([...document.querySelectorAll("#u_feats input:checked")].map(x => x.value), false); if (t.view !== null) $("#u_view").checked = t.view; $("#u_view").disabled = e.target.value === "chu"; accHint(); }
+  if (e.target.id === "u_farm") accHint();
+  if (e.target.closest("#u_feats")){ const got = [...document.querySelectorAll("#u_feats input:checked")].map(x => x.value).sort().join(","), t = $("#u_tpl").value;
+    if (t !== "chu" && TPL[t].perms && TPL[t].perms.slice().sort().join(",") !== got) $("#u_tpl").value = "tuychon"; }
+});
+document.addEventListener("click", async e => {
+  if (e.target.closest("#accNew")) return openAccForm(null);
+  if (e.target.closest("#accCancel")){ accEdit = null; $("#accForm").hidden = true; $("#accNew").hidden = false; return; }
+  if (e.target.closest("#pinOpen")){ $("#pwForm").hidden = !$("#pwForm").hidden; return; }
+  const ed = e.target.closest("[data-accedit]"); if (ed) return openAccForm(ed.dataset.accedit);
+  const as = e.target.closest("[data-accas]");
+  if (as && can("admin")){ const s = lsGet("svcd-session", null); if (s){ s.viewAs = as.dataset.accas; lsSet("svcd-session", s); location.hash = ""; location.reload(); } return; }
+  const lk = e.target.closest("[data-acclock]");
+  if (lk && can("admin")){ const a = accList.find(x => x.id === lk.dataset.acclock); if (!a || a.id === curAcc.id) return;
+    if (a.tpl === "chu" && a.active !== false && accList.filter(x => x.tpl === "chu" && x.active !== false).length < 2) return;
+    await db.doc("nguoidung/" + a.id).update({active: a.active === false, updatedAt:Date.now(), updatedBy:me}); }
+});
+$("#accForm").addEventListener("submit", async ev => {
+  ev.preventDefault();
+  const msg = $("#accMsg"), fail = t => { msg.className = "formmsg err"; msg.textContent = t; };
+  if (!can("admin")) return fail("Chỉ chủ farm được cấp quyền.");
+  const isNew = accEdit === "new", old = isNew ? null : accList.find(x => x.id === accEdit);
+  const name = $("#u_name").value.trim(), user = userKey($("#u_user").value), pin = $("#u_pin").value.trim();
+  const tpl = $("#u_tpl").value, farmN = Number($("#u_farm").value) || 0, view = tpl === "chu" ? false : $("#u_view").checked;
+  const perms = tpl === "chu" ? ALLF.slice() : [...document.querySelectorAll("#u_feats input:checked")].map(x => x.value);
+  if (!name) return fail("Nhập tên người dùng.");
+  if (isNew && !/^[a-z0-9._]{3,20}$/.test(user)) return fail("Tên đăng nhập 3–20 ký tự, chỉ chữ không dấu, số, dấu chấm hoặc gạch dưới. VD: farm2, anh.tu");
+  if (isNew && accList.some(x => userKey(x.user) === user)) return fail("Tên đăng nhập này đã có người dùng.");
+  if ((isNew || pin) && !/^\d{4,6}$/.test(pin)) return fail("Mã PIN gồm 4 đến 6 chữ số.");
+  if (tpl !== "chu" && !perms.length) return fail("Tick ít nhất một tính năng.");
+  if (old && old.tpl === "chu" && tpl !== "chu" && accList.filter(x => x.tpl === "chu" && x.active !== false).length < 2) return fail("Phải còn ít nhất một chủ farm.");
+  const rec = {name, tpl, farm:farmN, view, perms, updatedAt:Date.now(), updatedBy:me};
+  if (pin){ rec.pinHash = await pinHash(user || old.user, pin); rec.demoPin = ""; }
+  try {
+    if (isNew) await db.collection("nguoidung").add({...rec, user, active:true, createdAt:Date.now(), createdBy:me});
+    else await db.doc("nguoidung/" + old.id).update(rec);
+    msg.className = "formmsg ok"; msg.textContent = isNew ? `Đã tạo tài khoản ${user}. Đưa tên đăng nhập và mã PIN cho ${name}.` : `Đã lưu quyền của ${name}. Lần mở app tới người đó sẽ thấy giao diện mới.`;
+    accEdit = null; $("#accForm").hidden = true; $("#accNew").hidden = false;
+    setTimeout(() => { $("#accList").insertAdjacentHTML("beforebegin", ""); }, 0);
+    if (old && old.id === curAcc.id && pin) lsSet("svcd-session", {id:old.id, at:Date.now()});
+  } catch(err){ fail("Không lưu được: " + (err?.message || "lỗi")); }
+});
+$("#pwForm").addEventListener("submit", async ev => {
+  ev.preventDefault();
+  const msg = $("#pwMsg"), a = $("#p_new").value.trim(), b = $("#p_new2").value.trim();
+  if (!/^\d{4,6}$/.test(a)){ msg.className = "formmsg err"; msg.textContent = "Mã PIN gồm 4 đến 6 chữ số."; return; }
+  if (a !== b){ msg.className = "formmsg err"; msg.textContent = "Hai lần nhập không giống nhau."; return; }
+  await db.doc("nguoidung/" + curAcc.id).update({pinHash:await pinHash(curAcc.user, a), demoPin:"", updatedAt:Date.now(), updatedBy:me});
+  msg.className = "formmsg ok"; msg.textContent = "Đã đổi mã PIN."; $("#p_new").value = ""; $("#p_new2").value = "";
+});
+
+/* first run of the demo: one account per role, same ids as the earlier demo roles so old records keep their names */
+const DEMO_ACCS = [
+  ["demo-chu","Anh (chủ farm)","chu","chu",0,"1234"],
+  ["demo-sep","Sếp","sep","sep",0,"1111"],
+  ["demo-q1","Quản lý Farm 1","farm1","quanly",1,"1111"],
+  ["demo-q2","Quản lý Farm 2","farm2","quanly",2,"2222"],
+  ["demo-q3","Quản lý Farm 3","farm3","quanly",3,"3333"],
+  ["demo-kho","Thủ kho","thukho","thukho",0,"1111"],
+  ["demo-doitac","Đối tác nhập hàng Âu","doitac","doitac",0,"1111"],
+];
+async function seedAccounts(){
+  for (const [id, name, user, tpl, farmN, pin] of DEMO_ACCS)
+    await db.doc("nguoidung/" + id).set({name, user, tpl, farm:farmN, perms:TPL[tpl].perms, view:TPL[tpl].view, active:true, demoPin:pin, pinHash:await pinHash(user, pin), createdAt:Date.now(), createdBy:"demo-chu"});
+}
+
 /* ---------- render ---------- */
 function render(){
   const s = scoped();
@@ -2287,7 +2602,7 @@ function render(){
         : `<li class="none">${ic("archive")}Chưa có bản sao lưu.</li>`;
     }
   }
-  $("#sampleBar").hidden = !entries.some(e=>e.sample) || canWrite === false;
+  $("#sampleBar").hidden = !entries.some(e=>e.sample) || !isOwner;
   $("#seasonList").innerHTML = seasonsList().map(x=>`<option value="${esc(x)}">`).join("");
 
   if (screen==="home"){
@@ -2301,7 +2616,7 @@ function render(){
     $("#money").innerHTML = moneyHTML(t);
     renderMoneyHome();
     const empty = !entries.length;
-    $("#emptyHome").hidden = !empty || canWrite === false;
+    $("#emptyHome").hidden = !empty || !isOwner;
     $("#homeStats").hidden = empty && canWrite !== false;
   }
   if (["phun","bon","trong","cachly"].includes(screen)){
@@ -2340,7 +2655,8 @@ function render(){
   if (screen==="quy") renderQuy();
   if (screen==="doitac") renderDoiTac();
   if (screen==="weather") renderWeather();
-  if (screen==="vaitro") renderRoles();
+  if (screen==="taikhoan") renderTaiKhoan();
+  if (screen==="dangnhap") renderLogin();
   if (screen==="nhap") renderLog();
   icons();
 }
@@ -2726,25 +3042,6 @@ const LocalDB = (() => {
   };
 })();
 
-/* ---------- demo roles (the real app will use sign-in instead) ---------- */
-const DEMO_USERS = [
-  {id:"demo-chu", name:"Anh (chủ farm)", role:"chu", d:"Thấy cả 3 farm, nhập liệu, phân quyền, ghim vị trí, xóa vĩnh viễn, sao lưu."},
-  {id:"demo-sep", name:"Sếp", role:"sep", d:"Chỉ xem dashboard, lịch, tiền và công nợ của cả 3 farm, không nhập được."},
-  {id:"demo-q1", name:"Quản lý Farm 1", role:"q", farm:1, d:"Chỉ thấy và nhập liệu cho Farm 1."},
-  {id:"demo-q2", name:"Quản lý Farm 2", role:"q", farm:2, d:"Chỉ thấy và nhập liệu cho Farm 2."},
-  {id:"demo-q3", name:"Quản lý Farm 3", role:"q", farm:3, d:"Chỉ thấy và nhập liệu cho Farm 3."},
-  {id:"demo-doitac", name:"Đối tác nhập hàng Âu", role:"doitac", d:"Chỉ xem Hồ sơ phun thuốc của 3 farm. Không thấy giá, tiền, kho, công nợ."},
-];
-function renderRoles(){
-  $("#roleList").innerHTML = DEMO_USERS.map(u => `<li class="item"><span class="tico ${u.id===me?"c-green":"c-grey"}">${ic(u.role==="chu"?"crown":u.role==="sep"?"eye":u.role==="doitac"?"handshake":"user-round")}</span>
-    <div class="body"><div class="t">${esc(u.name)}${u.id===me?" · đang dùng":""}</div><div class="d"><span>${esc(u.d)}</span></div>
-    ${u.id===me?"":`<div class="row"><button type="button" class="btn sm primary" data-role="${u.id}">${ic("log-in")}Xem với vai trò này</button></div>`}</div></li>`).join("");
-}
-document.addEventListener("click", e => {
-  const b = e.target.closest("[data-role]"); if (!b) return;
-  lsSet("svcd-role", b.dataset.role); location.hash = ""; location.reload();
-});
-
 /* ---------- backup to a file on this phone ---------- */
 let pendingImport = null;
 function exportFile(){
@@ -2764,21 +3061,25 @@ document.addEventListener("change", async e => {
 
 /* ---------- boot ---------- */
 db = LocalDB;
-const meUser = DEMO_USERS.find(u => u.id === lsGet("svcd-role", "demo-chu")) || DEMO_USERS[0];
-me = meUser.id; isOwner = meUser.role === "chu"; canWrite = meUser.role !== "sep" && meUser.role !== "doitac";
-seeMoney = meUser.role === "chu" || meUser.role === "sep"; partner = meUser.role === "doitac";
-if (partner) document.body.classList.add("partner");
-myName = meUser.role === "chu" ? "" : meUser.name;
-DEMO_USERS.forEach(u => names[u.id] = u.name);
+/* who is signed in on this device; the owner can preview another account ("viewAs") */
+function loadSession(){
+  accList = Object.entries(LocalDB.exportAll().nguoidung || {}).map(([id, d]) => ({id, ...d})).filter(a => a && a.user);
+  const sess = lsGet("svcd-session", null);
+  let acc = sess && accList.find(a => a.id === sess.id && a.active !== false);
+  viewAs = null;
+  if (acc && sess.viewAs && acc.tpl === "chu"){ const v = accList.find(a => a.id === sess.viewAs); if (v){ viewAs = v.id; acc = v; } }
+  curAcc = acc || null;
+  accList.forEach(a => names[a.id] = a.name);
+  me = curAcc ? curAcc.id : ""; isOwner = !!curAcc && curAcc.tpl === "chu" && !viewAs;
+  canWrite = !!curAcc && !curAcc.view && curAcc.tpl !== "doitac";
+  myName = curAcc && curAcc.tpl !== "chu" ? curAcc.name : "";
+  seeMoney = can("quy"); partner = !!curAcc && homeOf() === "doitac";
+  document.body.classList.toggle("partner", partner);
+}
 user = {
-  async search(q){ const n = norm(q); return DEMO_USERS.filter(u => u.role === "q" && norm(u.name).includes(n)).map(u => ({id:u.id, name:u.name})); },
+  async search(q){ const n = norm(q); return accList.filter(u => u.tpl !== "chu" && norm(u.name).includes(n)).map(u => ({id:u.id, name:u.name})); },
   async profiles(ids){ return Object.fromEntries(ids.map(id => [id, {name:names[id] || ""}])); },
 };
-if (!lsGet("svcd-seeded", false)){
-  DEMO_USERS.filter(u => u.farm).forEach(u => LocalDB.doc("phanquyen/"+u.id).set({farm:u.farm, at:Date.now(), by:"demo-chu"}));
-  lsSet("svcd-seeded", true);
-}
-if (!lsGet("svcd-seeded-tm", false)){ LocalDB.doc("taikhoan/tienmat").get().then(d => { if (!d.data()) LocalDB.doc("taikhoan/tienmat").set({name:"Tiền mặt", kind:"tienmat", open:0, createdAt:Date.now(), createdBy:"demo-chu"}); }); lsSet("svcd-seeded-tm", true); }
 /* pins sent in a link (#chon=1&f1=lat,lng,name…) from the earlier Sổ Vườn page */
 function readLink(){
   let h; try { h = new URLSearchParams(location.hash.slice(1)); } catch(e){ return; }
@@ -2796,24 +3097,28 @@ function readLink(){
 readLink();
 window.addEventListener("hashchange", readLink);
 
-applyRole();
-$("#tileQuy").hidden = !seeMoney;
 $("#aiNote").innerHTML = `${ic("info")}Bản demo trả lời bằng bộ lọc có sẵn, chưa dùng AI, nên hiểu các câu về lịch phun, bón, trồng, xuất hàng, cách ly, nhắc việc. Gõ không dấu cũng được.`;
-if (canWrite === false){
-  $("#entryForm").hidden = true; $("#readOnlyNote").hidden = false;
-  document.querySelectorAll('[data-go="nhap"], [data-kscroll], .tabbar [data-tab="nhap"]').forEach(el => el.hidden = true);
-  $(".tabbar .in").style.gridTemplateColumns = "repeat(3,1fr)";
+async function startApp(){
+  if (!Object.keys(LocalDB.exportAll().nguoidung || {}).length) await seedAccounts();
+  if (!lsGet("svcd-seeded-tm", false)){ const d = await LocalDB.doc("taikhoan/tienmat").get(); if (!d.data()) await LocalDB.doc("taikhoan/tienmat").set({name:"Tiền mặt", kind:"tienmat", open:0, createdAt:Date.now(), createdBy:"demo-chu"}); lsSet("svcd-seeded-tm", true); }
+  loadSession();
+  if (canWrite === false){ $("#entryForm").hidden = true; $("#readOnlyNote").hidden = false; }
+  applyRole(); applyPerms();
+  go(curAcc ? homeOf() : "dangnhap");
 }
-if (partner) go("doitac"); else render();
+startApp();
 if (!window.lucide) window.addEventListener("load", icons);
 db.collection("nhatky").onSnapshot(snap => {
   allDocs = snap.docs.map(x => ({id:x.id, ...x.data()})).filter(e => e && e.date && e.type);
   entries = allDocs.filter(e => !e.deleted); trash = allDocs.filter(e => e.deleted);
   gotEntries = true; render(); maybeBackup();
 });
-db.collection("phanquyen").onSnapshot(snap => {
-  assignments = Object.fromEntries(snap.docs.map(x => [x.id, x.data()]).filter(([,a]) => a && a.farm));
-  applyRole(); render();
+db.collection("nguoidung").onSnapshot(() => {
+  const before = curAcc && JSON.stringify(curAcc);
+  loadSession();
+  if (curAcc && before !== JSON.stringify(curAcc)){ applyRole(); applyPerms(); if (!canScreen(screen)) go(homeOf()); }
+  if (!curAcc && screen !== "dangnhap") go("dangnhap");
+  render();
 });
 db.collection("ghimvitri").onSnapshot(snap => {
   pins = Object.fromEntries(snap.docs.map(x => [x.id, x.data()]));
