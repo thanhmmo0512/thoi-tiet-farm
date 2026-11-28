@@ -123,6 +123,21 @@ textarea{resize:vertical}
 .grade .v{font-size:19px;font-weight:800;font-variant-numeric:tabular-nums;color:var(--fg);line-height:1.1}
 .grade .n{font-size:13px;font-weight:600}
 .grade .p{font-size:12px;color:var(--muted)}
+.dcard.big small{font-size:12px;color:var(--muted);font-weight:600}
+.pltable td svg.lucide{width:15px;height:15px;vertical-align:-2px;margin-right:6px;color:var(--muted)}
+.pltable tr.sum td{font-weight:800;border-top:2px solid var(--line)}
+.pltable tr.pos td{color:var(--green-d)}
+.pltable tr.neg td{color:var(--red)}
+.unitgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px;margin-top:12px}
+.unitbox{padding:10px 12px;border-radius:14px;background:var(--sunk);display:grid;gap:2px}
+.unitbox span{font-size:12px;color:var(--muted);font-weight:600}
+.unitbox b{font-size:16px;font-variant-numeric:tabular-nums}
+.plbar{margin-bottom:10px}
+.pltrack{height:12px;border-radius:6px;background:var(--sunk);overflow:hidden}
+.pltrack span{display:block;height:100%;background:var(--amber);border-radius:6px}
+.paytrack{height:14px;border-radius:7px;background:var(--sunk);overflow:hidden;margin:4px 0 6px}
+.paytrack span{display:block;height:100%;background:var(--green)}
+.sstable tr.cur td{font-weight:800}
 body.login .tabbar,body.login #backBtn,body.login #bellBtn{visibility:hidden}
 .loginbox{max-width:420px;margin:12px auto 0;display:grid;gap:10px}
 .asbar{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;padding:8px max(16px,env(safe-area-inset-right,0px)) 8px max(16px,env(safe-area-inset-left,0px));background:var(--amber-soft);color:var(--text);font-size:13px;font-weight:600}
@@ -178,7 +193,7 @@ button.dcard{cursor:pointer}
 .recv input{width:110px}
 .recv .err{color:var(--red);font-size:13px;font-weight:600;width:100%}
 body.partner .tabbar,body.partner #bellBtn{display:none!important}
-@media print{body{background:#fff!important}.app{max-width:none!important;background:#fff!important}.dthead .btn{display:none!important}.topbar,.tabbar,.noprint,.banner,#dtMissBox{display:none!important}.screen:not([data-screen="doitac"]){display:none!important}.sheet{box-shadow:none!important;margin:0!important}.dttable{font-size:10px}.tblwrap{overflow:visible}}
+@media print{body{background:#fff!important}.app{max-width:none!important;background:#fff!important}.dthead .btn{display:none!important}.topbar,.tabbar,.noprint,.banner,#dtMissBox{display:none!important}.screen[hidden]{display:none!important}.sheet{box-shadow:none!important;margin:0!important}.dttable{font-size:10px}.tblwrap{overflow:visible}}
 input[readonly]{background:var(--sunk);color:var(--muted)}
 .stock{text-align:right;min-width:64px;flex:none}
 .stock b{display:block;font-size:22px;font-weight:800;font-variant-numeric:tabular-nums;line-height:1.1}
@@ -489,6 +504,7 @@ a{color:inherit}
           <button class="mi" type="button" data-go="kho"><span class="circ c-green"><i data-lucide="warehouse"></i><span class="badge" id="khoBadge" hidden></span></span><span class="lbl">Kho vật tư</span></button>
           <button class="mi" type="button" data-go="sosanh"><span class="circ c-purple"><i data-lucide="chart-column"></i></span><span class="lbl">So sánh mùa vụ</span></button>
           <button class="mi" type="button" data-go="quy" id="tileQuy" hidden><span class="circ c-green"><i data-lucide="wallet"></i></span><span class="lbl">Sổ quỹ & công nợ</span></button>
+          <button class="mi" type="button" data-go="baocao"><span class="circ c-amber"><i data-lucide="receipt"></i></span><span class="lbl">Báo cáo lãi lỗ</span></button>
           <button class="mi" type="button" data-go="doitac"><span class="circ c-blue"><i data-lucide="file-check-2"></i></span><span class="lbl">Hồ sơ phun cho đối tác</span></button>
         </div>
       </div>
@@ -818,6 +834,9 @@ a{color:inherit}
           <label class="f" data-qfor="thu chi chuyen"><span class="lt"><i data-lucide="wallet"></i><span id="q_accLbl">Vào tài khoản</span></span><select id="q_acc"></select></label>
           <label class="f" data-qfor="chuyen"><span class="lt"><i data-lucide="landmark"></i>Đến tài khoản</span><select id="q_acc2"></select></label>
           <label class="f" data-qfor="thu chi"><span class="lt"><i data-lucide="user-round"></i><span id="q_partyLbl">Người nộp</span></span><input id="q_party" list="partyList" autocomplete="off" placeholder="VD: Cty XK"><datalist id="partyList"></datalist></label>
+          <label class="f" data-qfor="thu chi" id="q_farmBox"><span class="lt"><i data-lucide="warehouse"></i>Tính cho farm</span><select id="q_farm"><option value="">Chọn farm</option><option value="1">Farm 1</option><option value="2">Farm 2</option><option value="3">Farm 3</option><option value="0">Chung 3 farm, chia theo diện tích</option></select></label>
+          <label class="f" data-qfor="thu chi" id="q_seasonBox"><span class="lt"><i data-lucide="calendar-range"></i>Mùa vụ</span><select id="q_season"></select></label>
+          <label class="f" data-qfor="chi" id="q_yearsBox" hidden><span class="lt"><i data-lucide="hourglass"></i>Chia cho bao nhiêu vụ</span><input type="number" inputmode="numeric" min="1" max="30" step="1" id="q_years" placeholder="VD: 5"></label>
           <label class="f wide" data-qfor="thu chi chuyen"><span class="lt"><i data-lucide="message-square-text"></i>Ghi chú</span><input id="q_note" placeholder="VD: trả công phun tuần 47"></label>
           <label class="f" data-qfor="tk"><span class="lt"><i data-lucide="tag"></i>Tên tài khoản</span><input id="a_name" placeholder="VD: Vietcombank anh Thanh"></label>
           <label class="f" data-qfor="tk"><span class="lt"><i data-lucide="layers"></i>Loại</span><select id="a_kind"><option value="nganhang">Ngân hàng</option><option value="tienmat">Tiền mặt</option><option value="vi">Ví điện tử</option></select></label>
@@ -848,6 +867,26 @@ a{color:inherit}
         <div class="tblwrap"><table class="mtable dttable" id="dtTable"></table></div>
         <p class="hint" id="dtFoot">Mỗi lần phun ghi đủ các mục theo yêu cầu hồ sơ GlobalG.A.P. (mục CB 7.3): cây trồng, nơi phun, ngày và giờ phun xong, tên thuốc và hoạt chất, thời gian cách ly, người phun, trị bệnh gì, lượng thuốc, máy phun, thời tiết.</p>
       </div>
+    </div>
+  </section>
+
+  <!-- BAO CAO LAI LO -->
+  <section class="screen" data-screen="baocao" hidden>
+    <div class="sheet flat">
+      <div class="filters noprint" id="plFilters"></div>
+      <div class="section">
+        <div class="dthead"><div><h2 style="border:0;padding:0;margin:0">Báo cáo lãi lỗ</h2><p class="dtsub" id="plScope"></p></div>
+          <button type="button" class="btn sm noprint" id="plPrint"><i data-lucide="printer"></i>In / lưu PDF</button></div>
+        <div class="debtgrid" id="plCards"></div>
+        <div class="tblwrap"><table class="mtable pltable" id="plTable"></table></div>
+        <div class="unitgrid" id="plUnit"></div>
+      </div>
+      <div class="section"><h2>Chi phí lớn nhất</h2><div id="plBars"></div></div>
+      <div class="section" id="plTrBox" hidden><h2>Hàng chuyển giữa các farm</h2><ul class="list" id="plTr"></ul>
+        <p class="hint">Tính theo giá nhập trung bình. Chi phí thuốc, phân luôn tính cho farm đã dùng, nên đây là số farm nhận cần trả lại farm đã mua.</p></div>
+      <div class="section"><h2>Lãi lỗ các vụ</h2><div class="tblwrap"><table class="mtable sstable" id="plSeasons"></table></div></div>
+      <div class="section"><h2>Đầu tư và thu hồi vốn</h2><div id="plPay"></div><ul class="list" id="plInv"></ul></div>
+      <div class="section"><h2>Cách tính</h2><ul class="hint sslist" id="plNotes"></ul></div>
     </div>
   </section>
 
@@ -946,7 +985,7 @@ const TYPE = {
   xuat:{n:"Xuất hàng", i:"truck", c:"c-purple"}, phun:{n:"Phun thuốc", i:"spray-can", c:"c-blue"},
   bon:{n:"Bón phân", i:"flask-round", c:"c-orange"}, trong:{n:"Trồng cây", i:"sprout", c:"c-green"},
 };
-const TITLES = {home:"Trang chủ", xuat:"Xuất hàng", phun:"Lịch phun thuốc", bon:"Lịch bón phân", trong:"Lịch trồng cây", farms:"Theo farm", cachly:"Lô đang cách ly", weather:"Thời tiết", nhap:"Nhập liệu", ai:"Hỏi AI", kho:"Kho vật tư", sosanh:"So sánh mùa vụ", quy:"Sổ quỹ & công nợ", dangnhap:"Đăng nhập", taikhoan:"Tài khoản", doitac:"Hồ sơ phun thuốc", nhac:"Nhắc việc", baove:"Thùng rác & sao lưu", phanquyen:"Phân quyền farm", vaitro:"Vai trò xem thử"};
+const TITLES = {home:"Trang chủ", xuat:"Xuất hàng", phun:"Lịch phun thuốc", bon:"Lịch bón phân", trong:"Lịch trồng cây", farms:"Theo farm", cachly:"Lô đang cách ly", weather:"Thời tiết", nhap:"Nhập liệu", ai:"Hỏi AI", kho:"Kho vật tư", sosanh:"So sánh mùa vụ", quy:"Sổ quỹ & công nợ", dangnhap:"Đăng nhập", taikhoan:"Tài khoản", baocao:"Báo cáo lãi lỗ", doitac:"Hồ sơ phun thuốc", nhac:"Nhắc việc", baove:"Thùng rác & sao lưu", phanquyen:"Phân quyền farm", vaitro:"Vai trò xem thử"};
 const $ = s => document.querySelector(s);
 const ic = n => `<i data-lucide="${n}"></i>`;
 const icons = () => { try { window.lucide && window.lucide.createIcons(); } catch(e){} };
@@ -1753,7 +1792,7 @@ function seasonStats(k, only){
   const dates = ex.map(e => e.date).sort();
   return {t, phun:done.filter(e => e.type === "phun").length, bon:done.filter(e => e.type === "bon").length,
     trong:done.filter(e => e.type === "trong").reduce((a, e) => a + (+e.plants||0), 0), cost, costN, useN, cPhun, cBon, pbN,
-    size:sizeOf(F ? [F] : FARMS, k), xuatN:ex.length,
+    size:sizeOf(F ? [F] : FARMS, k), xuatN:ex.length, pl:plOf(k, F),
     from:dates[0], to:dates[dates.length-1], avg:t.priced ? t.revenue / Object.values(t.pkg).reduce((a, b) => a + b, 0) : null};
 }
 function renderSoSanh(){
@@ -1776,7 +1815,7 @@ function renderSoSanh(){
   const two = S.length === 2;
   const diff = (a, b, good = 1) => { if (!a && !b) return ""; if (!a) return `<span class="up">mới</span>`; const p = Math.round((b - a)/a*100); return `<span class="${p*good >= 0 ? "up" : "down"}">${p > 0 ? "+" : ""}${p}%</span>`; };
   const per = (v, d, dec) => d ? (Math.round(v / d * 10**dec) / 10**dec).toLocaleString("vi-VN") : "—";
-  const profit = x => x.t.priced && x.costN ? x.t.revenue - x.cost : null;
+  const profit = x => x.pl.revenue || x.pl.cost ? x.pl.profit : null;
   const R = [
     ["Diện tích", x => x.size.area ? ha(x.size.area) : "—", null],
     ["Số cây", x => x.size.plants ? fmt(x.size.plants) : "—", x => x.size.plants, 0],
@@ -1788,7 +1827,8 @@ function renderSoSanh(){
     ["Giá bán trung bình", x => x.avg ? `${Math.round(x.avg).toLocaleString("vi-VN")} đ/kg` : "—", x => x.avg || 0],
     ["Tiền thuốc", x => x.costN ? vnd(x.cPhun) : "—", x => x.cPhun, -1],
     ["Tiền phân", x => x.costN ? vnd(x.cBon) : "—", x => x.cBon, -1],
-    ["Lợi nhuận (doanh thu − thuốc, phân)", x => profit(x) !== null ? `<b>${vndS(profit(x))}</b>` : "—", x => profit(x) || 0],
+    ["Nhân công, chi khác, khấu hao", x => x.pl.cost - x.pl.c.phun - x.pl.c.bon ? vnd(x.pl.cost - x.pl.c.phun - x.pl.c.bon) : "—", x => x.pl.cost - x.pl.c.phun - x.pl.c.bon, -1],
+    ["Lợi nhuận", x => profit(x) !== null ? `<b>${vndS(profit(x))}</b>` : "—", x => profit(x) || 0],
     ["Lợi nhuận mỗi ha", x => profit(x) !== null && x.size.area ? vndS(profit(x) / x.size.area) : "—", x => profit(x) !== null && x.size.area ? profit(x) / x.size.area : 0],
     ["Lợi nhuận mỗi cây", x => profit(x) !== null && x.size.plants ? `${Math.round(profit(x) / x.size.plants).toLocaleString("vi-VN")} đ` : "—", x => profit(x) !== null && x.size.plants ? profit(x) / x.size.plants : 0],
     ["Lần phun thuốc", x => fmt(x.phun), x => x.phun, -1],
@@ -1807,7 +1847,7 @@ function renderSoSanh(){
     if (st.size.missA) notes.push(`${k}: ${st.size.missA} farm chưa ghi diện tích.`);
   });
   $("#ssNotes").innerHTML = (notes.length ? `<li>${notes.map(esc).join("</li><li>")}</li>` : "")
-    + `<li>Lợi nhuận ở đây chỉ trừ tiền thuốc và phân lấy từ kho, tính theo giá nhập trung bình. Chưa trừ nhân công, xăng dầu, điện nước và khấu hao.</li>`;
+    + `<li>Lợi nhuận = doanh thu − thuốc, phân thực dùng − nhân công và chi phí khác trong Sổ quỹ − khấu hao đầu tư. Xem chi tiết ở Báo cáo lãi lỗ.</li>`;
   renderFarmInfo(all.map(s => s.k).filter(Boolean));
   renderFarmCompare(cols.length ? cols[cols.length - 1].k : "");
   icons();
@@ -1900,7 +1940,7 @@ let qBookN = 15, accounts = [], quyDocs = [], seeMoney = false, partner = false,
 const ACCK = {tienmat:{n:"Tiền mặt", i:"wallet", c:"c-green"}, nganhang:{n:"Ngân hàng", i:"landmark", c:"c-blue"}, vi:{n:"Ví điện tử", i:"smartphone", c:"c-purple"}};
 const QCAT = {
   thu:[["thuno","Thu nợ khách"],["banle","Bán hàng ngoài sổ"],["khac","Thu khác"]],
-  chi:[["trano","Trả nợ nơi bán vật tư"],["nhancong","Nhân công"],["nhienlieu","Xăng dầu, điện nước"],["suachua","Sửa chữa, máy móc"],["vanchuyen","Vận chuyển"],["khac","Chi khác"]],
+  chi:[["trano","Trả nợ nơi bán vật tư"],["nhancong","Nhân công"],["nhienlieu","Xăng dầu, điện nước"],["suachua","Sửa chữa, máy móc"],["vanchuyen","Vận chuyển"],["dautu","Đầu tư (trụ, giàn, tưới, cây giống, máy)"],["khac","Chi khác"]],
 };
 const catName = (k, c) => (QCAT[k] || []).find(x => x[0] === c)?.[1] || (k === "thu" ? "Thu khác" : "Chi khác");
 const accOf = id => accounts.find(a => a.id === id);
@@ -1944,7 +1984,7 @@ function moneyRows(){
   khoMoves.filter(trackedBuy).forEach(m => { if (+m.paid > 0){ const it = itemOf(m.item); rows.push({date:m.date, at:m.createdAt || 0, sign:-1, amount:+m.paid, acc:m.acc, t:`Mua ${it ? it.name : "vật tư"} · ${qtyFmt(m.qty, it?.unit)}`, d:m.from || "", cat:"muavattu", icon:"package-plus", c:"c-orange"}); } });
   quyDocs.forEach(q => {
     if (q.kind === "chuyen") rows.push({date:q.date, at:q.createdAt || 0, sign:0, amount:+q.amount, acc:q.acc, t:`Chuyển ${accName(q.acc)} → ${accName(q.acc2)}`, d:q.note || "", cat:"chuyen", icon:"arrow-left-right", c:"c-blue", q});
-    else rows.push({date:q.date, at:q.createdAt || 0, sign:q.kind === "thu" ? 1 : -1, amount:+q.amount, acc:q.acc, t:catName(q.kind, q.cat), d:[q.party, q.note].filter(Boolean).join(" · "), cat:q.cat, icon:q.kind === "thu" ? "hand-coins" : "receipt-text", c:q.kind === "thu" ? "c-green" : "c-red", q});
+    else rows.push({date:q.date, at:q.createdAt || 0, sign:q.kind === "thu" ? 1 : -1, amount:+q.amount, acc:q.acc, t:catName(q.kind, q.cat), d:[q.farm !== undefined && q.farm !== "" ? (Number(q.farm) ? `Farm ${q.farm}` : "Chung 3 farm") : "", q.years ? `chia ${q.years} vụ` : "", q.party, q.note].filter(Boolean).join(" · "), cat:q.cat, icon:q.kind === "thu" ? "hand-coins" : "receipt-text", c:q.kind === "thu" ? "c-green" : "c-red", q});
   });
   return rows.sort((a, b) => b.date.localeCompare(a.date) || b.at - a.at);
 }
@@ -1999,7 +2039,7 @@ function setQKind(k){
   if (QCAT[k]) $("#q_cat").innerHTML = QCAT[k].map(([v, n]) => `<option value="${v}">${n}</option>`).join("");
   $("#q_accLbl").textContent = k === "thu" ? "Vào tài khoản" : k === "chi" ? "Chi từ tài khoản" : "Từ tài khoản";
   $("#q_partyLbl").textContent = k === "thu" ? "Người nộp" : "Người nhận";
-  $("#qMsg").textContent = ""; qHint();
+  $("#qMsg").textContent = ""; qHint(); if (typeof qExtraUI === "function") qExtraUI();
 }
 function qHint(){
   const c = $("#q_cat").value, p = $("#q_party").value.trim(), h = $("#qHint");
@@ -2092,6 +2132,11 @@ $("#qForm").addEventListener("submit", async ev => {
       if (!accOf(rec.acc2) || rec.acc2 === rec.acc) return fail("Chọn tài khoản nhận khác tài khoản chuyển.");
     } else {
       rec.cat = $("#q_cat").value; rec.party = v("#q_party");
+      if ((qKind === "chi" && rec.cat !== "trano") || (qKind === "thu" && rec.cat === "banle")){
+        if ($("#q_farm").value === "") return fail("Chọn farm chịu khoản này. Mỗi farm tính lãi lỗ riêng.");
+        rec.farm = Number($("#q_farm").value); rec.season = $("#q_season").value || seasonOfDate(date);
+        if (rec.cat === "dautu"){ rec.years = Number(v("#q_years")); if (!(rec.years >= 1 && rec.years <= 30 && Number.isInteger(rec.years))) return fail("Nhập số vụ chia khoản đầu tư (1 đến 30)."); }
+      }
       if ((rec.cat === "thuno" || rec.cat === "trano") && !rec.party) return fail(rec.cat === "thuno" ? "Ghi tên người đang trả nợ." : "Ghi tên nơi bán đang được trả nợ.");
       if (rec.party){
         const known = [...new Set([...entries.map(e => e.buyer), ...khoMoves.map(m => m.from), ...quyDocs.map(q => q.party)].filter(Boolean))];
@@ -2102,7 +2147,7 @@ $("#qForm").addEventListener("submit", async ev => {
     }
     confirmNew.party = null;
     await db.collection("quy").add(rec);
-    ["#q_amount", "#q_note", "#q_party"].forEach(id => $(id).value = "");
+    ["#q_amount", "#q_note", "#q_party", "#q_years"].forEach(id => $(id).value = "");
     ok(`Đã lưu ${qKind === "thu" ? "phiếu thu" : qKind === "chi" ? "phiếu chi" : "chuyển tiền"} ${vndFull(amount)}. ${accName(rec.acc)} còn ${vndS(balanceOf(rec.acc))}.`);
     qHint();
   } catch(err){ fail("Không lưu được: " + (err?.message || "lỗi")); }
@@ -2226,7 +2271,7 @@ function sampleExtra(out){
 async function moneySeedSample(){
   for (const [f, area, plants] of [[1, 5, 3000], [2, 7, 4000], [3, 4, 2500]]) if (!farmInfo[String(f)]) await db.doc("farminfo/" + f).set({area, plants, variety:"Đài Nông 1", seasons:f === 2 ? {"Vụ 2025 (mẫu)":{area:6, plants:3400}} : {}, sample:true, updatedAt:Date.now(), updatedBy:me});
   if (!accOf("tienmat")) await db.doc("taikhoan/tienmat").set({name:"Tiền mặt", kind:"tienmat", open:0, createdAt:Date.now(), createdBy:me});
-  await db.doc("taikhoan/mau-vcb").set({name:"Vietcombank (mẫu)", kind:"nganhang", no:"0071 000 123 456", open:20000000, sample:true, createdAt:Date.now(), createdBy:me});
+  await db.doc("taikhoan/mau-vcb").set({name:"Vietcombank (mẫu)", kind:"nganhang", no:"0071 000 123 456", open:350000000, sample:true, createdAt:Date.now(), createdBy:me});
   await db.doc("vattu/mau-cuoc").set({name:"Cuốc", unit:"cái", kind:"dungcu", min:2, sample:true, createdAt:Date.now(), createdBy:me});
   await db.doc("vattu/mau-may-phun").set({name:"Máy phun Honda GX35 (mẫu)", unit:"cái", kind:"may", min:0, sample:true, createdAt:Date.now(), createdBy:me});
   await db.doc("vattu/mau-may-cat-co").set({name:"Máy cắt cỏ", unit:"cái", kind:"may", min:0, sample:true, createdAt:Date.now(), createdBy:me});
@@ -2234,8 +2279,14 @@ async function moneySeedSample(){
     await db.collection("kho").add({kind:"nhap", item, qty, price, pay, acc:"tienmat", paid:qty * price, from, exp, date:addDays(today, d), sample:true, createdAt:Date.now(), createdBy:me});
   const Q = [[-28,"thu","khac","tienmat",30000000,"","Tiền quỹ đầu vụ (mẫu)"],[-20,"chi","nhancong","tienmat",12000000,"Tổ hái 6 người",""],[-14,"chi","nhienlieu","tienmat",1850000,"","Xăng máy phun, điện bơm"],
     [-7,"thu","thuno","mau-vcb",15000000,"Cty XK (mẫu)","Trả bớt nợ lô Âu"],[-6,"chi","nhancong","tienmat",9500000,"Tổ hái 6 người",""],[-3,"chi","trano","mau-vcb",500000,"Đại lý vật tư (mẫu)","Trả bớt tiền Movento"],[-2,"chuyen","","mau-vcb",10000000,"","Rút tiền trả công"]];
-  for (const [d, kind, cat, acc, amount, party, note] of Q)
-    await db.collection("quy").add({kind, cat, acc, acc2:kind === "chuyen" ? "tienmat" : "", amount, party, note, date:addDays(today, d), sample:true, createdAt:Date.now(), createdBy:me});
+  const FM = {"-20":1, "-6":2, "-14":0};
+  for (const [d, kind, cat, acc, amount, party, note] of Q){
+    const extra = kind === "chi" && cat !== "trano" ? {farm:FM[String(d)] ?? 0, season:"Vụ 2026 (mẫu)"} : {};
+    await db.collection("quy").add({kind, cat, acc, acc2:kind === "chuyen" ? "tienmat" : "", amount, party, note, ...extra, date:addDays(today, d), sample:true, createdAt:Date.now(), createdBy:me});
+  }
+  for (const [d, cat, farm, season, amount, years, note] of [[-21,"nhancong",3,"Vụ 2026 (mẫu)",8000000,0,"Tổ hái Farm 3"],[-380,"nhancong",1,"Vụ 2025 (mẫu)",14000000,0,"Công hái vụ trước"],[-375,"nhancong",2,"Vụ 2025 (mẫu)",16000000,0,"Công hái vụ trước"],[-372,"nhancong",3,"Vụ 2025 (mẫu)",9000000,0,"Công hái vụ trước"],
+    [-400,"dautu",2,"Vụ 2025 (mẫu)",150000000,5,"Trụ bê tông, giàn Farm 2 (mẫu)"],[-398,"dautu",1,"Vụ 2025 (mẫu)",90000000,5,"Trụ, giàn Farm 1 (mẫu)"],[-35,"dautu",0,"Vụ 2026 (mẫu)",24000000,3,"Hệ thống tưới nhỏ giọt chung (mẫu)"]])
+    await db.collection("quy").add({kind:"chi", cat, acc:"mau-vcb", amount, party:"", note, farm, season, ...(years ? {years} : {}), date:addDays(today, d), sample:true, createdAt:Date.now(), createdBy:me});
 }
 
 function fillPhunLists(){
@@ -2319,9 +2370,9 @@ function renderFarmCompare(k){
   if (box.hidden) return;
   $("#fcTitle").textContent = `So sánh 3 farm · ${k || "Chưa ghi mùa vụ"}`;
   const rows = FARMS.map(f => ({f, st:seasonStats(k, f), z:farmSize(f, k)}));
-  const best = Math.max(...rows.map(r => r.z && r.z.area && r.st.t.priced && r.st.costN ? (r.st.t.revenue - r.st.cost) / r.z.area : -Infinity));
+  const best = Math.max(...rows.map(r => r.z && r.z.area && (r.st.pl.revenue || r.st.pl.cost) ? r.st.pl.profit / r.z.area : -Infinity));
   $("#fcTable").innerHTML = `<thead><tr><th>Farm</th><th class="num">Diện tích</th><th class="num">Sản lượng</th><th class="num">Tấn/ha</th><th class="num">Kg/cây</th><th class="num">Lợi nhuận</th><th class="num">Lợi nhuận/ha</th></tr></thead><tbody>`
-    + rows.map(({f, st, z}) => { const p = st.t.priced && st.costN ? st.t.revenue - st.cost : null, pha = p !== null && z && z.area ? p / z.area : null;
+    + rows.map(({f, st, z}) => { const p = st.pl.revenue || st.pl.cost ? st.pl.profit : null, pha = p !== null && z && z.area ? p / z.area : null;
       return `<tr><td><b>Farm ${f}</b>${z && z.plants ? `<small>${fmt(z.plants)} cây</small>` : ""}</td><td class="num">${z && z.area ? ha(z.area) : "—"}</td><td class="num">${tons(st.t.total)}</td>
       <td class="num">${z && z.area ? (Math.round(st.t.total / z.area / 10) / 100).toLocaleString("vi-VN") : "—"}</td><td class="num">${z && z.plants ? (Math.round(st.t.total / z.plants * 10) / 10).toLocaleString("vi-VN") : "—"}</td>
       <td class="num">${p !== null ? vndS(p) : "—"}</td><td class="num ${pha !== null && pha === best ? "up" : ""}">${pha !== null ? vndS(pha) : "—"}</td></tr>`; }).join("") + `</tbody>`;
@@ -2339,6 +2390,7 @@ const FEATS = [
   ["nhac","Nhắc việc","bell-ring","Việc cần làm, nhắc việc"],
   ["hoi","Hỏi nhanh","bot","Hỏi lịch phun, xuất hàng, kho"],
   ["sosanh","So sánh mùa vụ","chart-column","Năng suất, lợi nhuận theo vụ"],
+  ["baocao","Báo cáo lãi lỗ","receipt","Doanh thu, chi phí, lợi nhuận, thu hồi vốn"],
   ["quy","Sổ quỹ, công nợ","wallet","Tiền mặt, tài khoản, công nợ"],
   ["hoso","Hồ sơ phun cho đối tác","file-check-2","Nhật ký phun để gửi đối tác"],
 ];
@@ -2352,9 +2404,10 @@ const TPL = {
   tuychon:{n:"Tùy chỉnh", perms:null, view:null, i:"sliders-horizontal"},
 };
 /* which feature opens which screen; "admin" = owner only */
-const SCREEN_FEAT = {xuat:"xuat", phun:"phun", cachly:"phun", bon:"bon", trong:"trong", farms:"tongquan", kho:"kho", sosanh:"sosanh", quy:"quy", doitac:"hoso", weather:"thoitiet", ai:"hoi", nhac:"nhac", baove:"admin", phanquyen:"admin", vaitro:"admin"};
+const SCREEN_FEAT = {xuat:"xuat", phun:"phun", cachly:"phun", bon:"bon", trong:"trong", farms:"tongquan", kho:"kho", sosanh:"sosanh", baocao:"baocao", quy:"quy", doitac:"hoso", weather:"thoitiet", ai:"hoi", nhac:"nhac", baove:"admin", phanquyen:"admin", vaitro:"admin"};
 let accList = [], curAcc = null, viewAs = null, accEdit = null;
-const can = f => !!curAcc && (f === "admin" ? curAcc.tpl === "chu" && !viewAs : curAcc.tpl === "chu" || (curAcc.perms || []).includes(f));
+const permsOf = a => a.tpl === "chu" || a.tpl === "sep" ? ALLF : (a.perms || []);
+const can = f => !!curAcc && (f === "admin" ? curAcc.tpl === "chu" && !viewAs : permsOf(curAcc).includes(f));
 const canEnterNhap = () => canWrite !== false && ["phun","bon","trong","xuat"].some(can);
 function canScreen(name){
   if (!curAcc) return name === "dangnhap";
@@ -2450,7 +2503,7 @@ document.addEventListener("click", e => {
 /* ---------- my account + owner's account manager ---------- */
 function renderTaiKhoan(){
   const a = curAcc; if (!a) return;
-  const perms = a.tpl === "chu" ? ALLF : (a.perms || []);
+  const perms = permsOf(a);
   $("#meCard").innerHTML = `<div class="item" style="cursor:default"><span class="tico c-green">${ic((TPL[a.tpl] || TPL.tuychon).i)}</span><div class="body"><div class="t">${esc(a.name)}</div>
     <div class="d"><span>${ic("at-sign")}${esc(a.user)}</span><span>${tplName(a)}</span><span>${ic("warehouse")}${farmLbl(a)}</span>${a.view ? `<span>${ic("eye")}Chỉ xem</span>` : ""}</div>
     <div class="featchips">${FEATS.filter(f => perms.includes(f[0])).map(f => `<span>${ic(f[2])}${f[1]}</span>`).join("")}</div></div></div>`;
@@ -2458,7 +2511,7 @@ function renderTaiKhoan(){
   $("#accAdmin").hidden = !can("admin");
   if (can("admin")){
     $("#accCount").textContent = `${accList.length} người`;
-    $("#accList").innerHTML = accList.map(x => { const p = x.tpl === "chu" ? ALLF : (x.perms || []), off = x.active === false;
+    $("#accList").innerHTML = accList.map(x => { const p = permsOf(x), off = x.active === false;
       return `<li class="item ${off ? "plan" : ""}"><span class="tico ${off ? "c-grey" : x.tpl === "chu" ? "c-amber" : "c-green"}">${ic(off ? "lock" : (TPL[x.tpl] || TPL.tuychon).i)}</span><div class="body">
         <div class="t">${esc(x.name)}${x.id === curAcc.id ? " · bạn" : ""}</div>
         <div class="d"><span>${ic("at-sign")}${esc(x.user)}</span><span>${tplName(x)}</span><span>${ic("warehouse")}${farmLbl(x)}</span>${x.view ? `<span>${ic("eye")}Chỉ xem</span>` : ""}${off ? `<span class="down">${ic("lock")}Đang khóa</span>` : ""}</div>
@@ -2489,7 +2542,7 @@ function openAccForm(id){
   $("#u_tpl").value = a.tpl || "tuychon"; $("#u_farm").value = String(Number(a.farm) || 0); $("#u_view").checked = !!a.view;
   const self = id === curAcc.id;
   $("#u_tpl").disabled = self; $("#u_view").disabled = self || a.tpl === "chu";
-  featBoxes(a.tpl === "chu" ? ALLF : (a.perms || []), a.tpl === "chu");
+  featBoxes(permsOf(a), a.tpl === "chu");
   accHint();
   $("#accForm").scrollIntoView({behavior:"smooth", block:"start"});
 }
@@ -2560,6 +2613,166 @@ async function seedAccounts(){
     await db.doc("nguoidung/" + id).set({name, user, tpl, farm:farmN, perms:TPL[tpl].perms, view:TPL[tpl].view, active:true, demoPin:pin, pinHash:await pinHash(user, pin), createdAt:Date.now(), createdBy:"demo-chu"});
 }
 
+/* ---------- profit & loss: revenue − (chemicals, fertiliser, labour, other costs, the season's share of investments) ----------
+   chemicals/fertiliser = what was actually used (stock uses × average purchase price), not what was bought.
+   costs logged for "Chung" (no farm) are split between farms by hectares when a single farm is viewed.
+   an investment logged with "N vụ" counts 1/N in its own season and each of the next N−1 seasons. */
+const PLCOST = [["phun","Thuốc BVTV","spray-can"],["bon","Phân bón","flask-round"],["nhancong","Nhân công","users-round"],["nhienlieu","Xăng dầu, điện nước","fuel"],
+  ["suachua","Sửa chữa, máy móc","wrench"],["vanchuyen","Vận chuyển","truck"],["dungcu","Dụng cụ, máy mua qua kho","shovel"],["khac","Chi khác","receipt-text"],["khauhao","Khấu hao đầu tư","landmark"]];
+let plSeason = "", plFarm = "all";
+const seasonKeys = () => seasonList().map(s => s.k).filter(Boolean);
+function seasonOfDate(d){
+  const L = seasonList().filter(s => s.k);
+  if (!L.length) return "";
+  const before = L.filter(s => s.first <= d);
+  return (before.length ? before[before.length - 1] : L[0]).k;
+}
+const qSeason = q => q.season || seasonOfDate(q.date);
+/* share of a cost that belongs to farm F (null = all farms) */
+function farmShare(costFarm, F, k){
+  const cf = Number(costFarm) || 0;
+  if (!F) return 1;
+  if (cf) return cf === F ? 1 : 0;
+  const z = sizeOf(FARMS, k);
+  if (z.area){ const mine = farmSize(F, k); return mine && mine.area ? mine.area / z.area : 0; }
+  return 1 / FARMS.length;
+}
+function plOf(k, F){
+  F = F || null;
+  const list = entries.filter(e => seasonKey(e) === k && (!F || Number(e.farm) === F));
+  const ex = list.filter(e => e.type === "xuat"), t = gradeTotals(ex), done = list.filter(e => !isPlan(e));
+  const c = Object.fromEntries(PLCOST.map(([key]) => [key, 0]));
+  let unpricedUse = 0, chungShared = false;
+  done.filter(e => (e.type === "phun" || e.type === "bon")).forEach(e => {
+    if (!(e.khoItem && +e.khoQty > 0)){ unpricedUse++; return; }
+    const p = avgCost(e.khoItem); if (p === null){ unpricedUse++; return; }
+    c[e.type] += p * +e.khoQty;
+  });
+  let other = 0;
+  quyDocs.forEach(q => {
+    if (q.kind === "thu" && q.cat === "banle" && qSeason(q) === k){ const s = farmShare(q.farm, F, k); if (s && !Number(q.farm) && F) chungShared = true; other += (+q.amount || 0) * s; }
+    if (q.kind !== "chi" || q.cat === "trano") return;
+    if (q.cat === "dautu") return;
+    if (qSeason(q) !== k) return;
+    const s = farmShare(q.farm, F, k); if (!s) return;
+    if (!Number(q.farm) && F) chungShared = true;
+    const key = c[q.cat] !== undefined ? q.cat : "khac";
+    c[key] += (+q.amount || 0) * s;
+  });
+  khoMoves.filter(m => m.kind === "nhap" && +m.price > 0 && seasonOfDate(m.date) === k).forEach(m => {
+    const it = itemOf(m.item); if (!it || (it.kind !== "dungcu" && it.kind !== "may")) return;
+    if (F && kf(m) !== F) return;
+    c.dungcu += (+m.qty || 0) * (+m.price || 0);
+  });
+  const ks = seasonKeys(), j = ks.indexOf(k);
+  investments().forEach(v => {
+    const i = ks.indexOf(v.season); if (i < 0 || j < 0 || j < i || j >= i + v.years) return;
+    const s = farmShare(v.farm, F, k); if (!s) return;
+    if (!Number(v.farm) && F) chungShared = true;
+    c.khauhao += v.amount / v.years * s;
+  });
+  const revenue = t.revenue + other, cost = PLCOST.reduce((a, [key]) => a + c[key], 0);
+  return {k, F, t, other, revenue, c, cost, profit:revenue - cost, beforeDep:revenue - cost + c.khauhao, unpricedUse, unpricedSale:t.n - t.priced, chungShared, size:sizeOf(F ? [F] : FARMS, k)};
+}
+function investments(){
+  return quyDocs.filter(q => q.kind === "chi" && q.cat === "dautu").map(q => ({id:q.id, date:q.date, farm:Number(q.farm) || 0, amount:+q.amount || 0, years:Math.max(1, Math.round(+q.years || 1)), season:qSeason(q), note:q.note || q.party || "Đầu tư"}))
+    .sort((a, b) => a.date.localeCompare(b.date));
+}
+
+function renderBaoCao(){
+  const ks = seasonKeys();
+  if (!ks.includes(plSeason)) plSeason = ks[ks.length - 1] || "";
+  $("#plFilters").innerHTML = `<select data-plseason aria-label="Mùa vụ">${ks.slice().reverse().map(k => `<option ${k === plSeason ? "selected" : ""}>${esc(k)}</option>`).join("") || `<option value="">Chưa có mùa vụ</option>`}</select>`
+    + [["all","Cả 3 farm","layers"], ...FARMS.map(f => [String(f), `Farm ${f}`, "warehouse"])].map(([v, l, i]) => `<button type="button" class="chip" data-plfarm="${v}" aria-pressed="${plFarm === v}">${ic(i)}${l}</button>`).join("");
+  const F = plFarm === "all" ? null : +plFarm;
+  $("#plScope").textContent = `${plSeason || "Chưa có mùa vụ"} · ${F ? farmName(F) : "Cả 3 farm"} · lập ngày ${vnDate(today)}`;
+  if (!plSeason){ $("#plCards").innerHTML = ""; $("#plTable").innerHTML = ""; $("#plBars").innerHTML = `<p class="hint">Chưa có ghi chép nào có mùa vụ.</p>`; $("#plNotes").innerHTML = ""; $("#plInv").innerHTML = ""; $("#plPay").innerHTML = ""; icons(); return; }
+  const p = plOf(plSeason, F), kg = p.t.total;
+  $("#plCards").innerHTML = `<div class="dcard cash"><span>${ic("arrow-down-left")}Doanh thu</span><b>${vndS(p.revenue)}</b></div>
+    <div class="dcard pay"><span>${ic("arrow-up-right")}Chi phí</span><b>${vndS(p.cost)}</b></div>
+    <div class="dcard ${p.profit >= 0 ? "cash" : "pay"} big"><span>${ic(p.profit >= 0 ? "trending-up" : "trending-down")}Lợi nhuận</span><b>${vndS(p.profit)}</b>${p.revenue ? `<small>${Math.round(p.profit / p.revenue * 100)}% doanh thu</small>` : ""}</div>`;
+  const pct = x => p.revenue ? `${(Math.round(x / p.revenue * 1000) / 10).toLocaleString("vi-VN")}%` : "—";
+  const row = (label, v, cls = "", ico = "") => `<tr class="${cls}"><td>${ico ? ic(ico) : ""}${label}</td><td class="num">${vndFull(v)}</td><td class="num">${pct(v)}</td></tr>`;
+  $("#plTable").innerHTML = `<thead><tr><th>Khoản</th><th class="num">Số tiền</th><th class="num">% doanh thu</th></tr></thead><tbody>`
+    + row(`Bán hàng (${tons(kg)})`, p.t.revenue, "", "truck") + (p.other ? row("Bán hàng ngoài sổ", p.other, "", "hand-coins") : "")
+    + row("Doanh thu", p.revenue, "sum")
+    + PLCOST.filter(([key]) => p.c[key]).map(([key, n, i]) => row(`− ${n}`, p.c[key], "", i)).join("")
+    + row("Tổng chi phí", p.cost, "sum")
+    + `<tr class="sum ${p.profit >= 0 ? "pos" : "neg"}"><td>Lợi nhuận</td><td class="num">${vndS(p.profit)}</td><td class="num">${pct(p.profit)}</td></tr></tbody>`;
+  const unit = [
+    kg ? ["Giá thành 1 kg", `${Math.round(p.cost / kg).toLocaleString("vi-VN")} đ`] : null,
+    kg && p.t.priced ? ["Giá bán TB 1 kg", `${Math.round(p.t.revenue / Object.values(p.t.pkg).reduce((a, b) => a + b, 0)).toLocaleString("vi-VN")} đ`] : null,
+    p.size.area ? ["Lợi nhuận mỗi ha", vndS(p.profit / p.size.area)] : null,
+    p.size.plants ? ["Lợi nhuận mỗi cây", `${Math.round(p.profit / p.size.plants).toLocaleString("vi-VN")} đ`] : null,
+    p.size.area ? ["Chi phí mỗi ha", vndS(p.cost / p.size.area)] : null,
+  ].filter(Boolean);
+  $("#plUnit").innerHTML = unit.map(([a, b]) => `<div class="unitbox"><span>${a}</span><b>${b}</b></div>`).join("");
+  const costs = PLCOST.filter(([key]) => p.c[key] > 0).sort((a, b) => p.c[b[0]] - p.c[a[0]]);
+  $("#plBars").innerHTML = costs.length ? costs.map(([key, n]) => `<div class="plbar"><div class="ssh"><span>${n}</span><span>${vnd(p.c[key])} · ${Math.round(p.c[key] / p.cost * 100)}%</span></div><div class="pltrack"><span style="width:${p.c[key] / costs.reduce((a, x) => Math.max(a, p.c[x[0]]), 0) * 100}%"></span></div></div>`).join("")
+    : `<p class="hint">Vụ này chưa có chi phí nào.</p>`;
+  /* every season side by side, same farm filter */
+  const all = ks.map(k => plOf(k, F));
+  $("#plSeasons").innerHTML = `<thead><tr><th>Mùa vụ</th><th class="num">Doanh thu</th><th class="num">Chi phí</th><th class="num">Lợi nhuận</th></tr></thead><tbody>`
+    + all.slice().reverse().map(x => `<tr${x.k === plSeason ? ' class="cur"' : ""}><td>${esc(x.k)}</td><td class="num">${vnd(x.revenue)}</td><td class="num">${vnd(x.cost)}</td><td class="num ${x.profit >= 0 ? "up" : "down"}">${vndS(x.profit)}</td></tr>`).join("") + `</tbody>`;
+  /* investments and payback */
+  const inv = investments().filter(v => !F || !v.farm || v.farm === F);
+  const jNow = ks.indexOf(plSeason);
+  $("#plInv").innerHTML = inv.length ? inv.map(v => { const i = ks.indexOf(v.season), used = i < 0 ? 0 : Math.max(0, Math.min(v.years, jNow - i + 1)), sh = farmShare(v.farm, F, plSeason), amt = v.amount * sh;
+    return `<li class="item"><span class="tico c-purple">${ic("landmark")}</span><div class="body"><div class="t">${esc(v.note)}</div>
+      <div class="d"><span>${ic("calendar")}${vnDate(v.date)}</span><span>${ic("warehouse")}${v.farm ? `Farm ${v.farm}` : `Chung${F ? `, phần Farm ${F} ${Math.round(sh * 100)}%` : ""}`}</span><span>${ic("calendar-range")}Chia ${v.years} vụ từ ${esc(v.season)}</span></div>
+      <div class="d"><span>Đã tính vào ${used}/${v.years} vụ: ${vnd(amt / v.years * used)}</span><span>Còn lại ${vnd(amt - amt / v.years * used)}</span></div></div>
+      <div class="stock"><b style="font-size:16px">${vnd(amt)}</b></div></li>`; }).join("")
+    : `<li class="none">${ic("landmark")}Chưa ghi khoản đầu tư nào. Vào Sổ quỹ, Phiếu chi, chọn khoản "Đầu tư".</li>`;
+  const totalInv = inv.reduce((a, v) => a + v.amount * farmShare(v.farm, F, plSeason), 0);
+  const earned = all.filter((x, i) => i <= jNow).reduce((a, x) => a + x.beforeDep, 0);
+  $("#plPay").innerHTML = totalInv ? `<div class="debtgrid"><div class="dcard recv"><span>${ic("landmark")}Tổng đầu tư</span><b>${vndS(totalInv)}</b></div><div class="dcard cash"><span>${ic("piggy-bank")}Lãi trước khấu hao, cộng dồn đến ${esc(plSeason)}</span><b>${vndS(earned)}</b></div></div>
+    <div class="paytrack"><span style="width:${Math.max(0, Math.min(100, earned / totalInv * 100))}%"></span></div>
+    <p class="hint">${earned >= totalInv ? `Đã thu hồi đủ vốn đầu tư, dư ${vnd(earned - totalInv)}.` : `Đã thu hồi ${Math.max(0, Math.round(earned / totalInv * 100))}% vốn đầu tư, còn ${vnd(totalInv - Math.max(0, earned))}.`}</p>` : "";
+  const notes = [];
+  if (p.unpricedSale) notes.push(`${p.unpricedSale} lần xuất hàng chưa ghi giá, chưa tính vào doanh thu.`);
+  if (p.unpricedUse) notes.push(`${p.unpricedUse} lần phun, bón chưa chọn "Lấy từ kho" hoặc thuốc, phân chưa có giá nhập, chưa tính tiền.`);
+  if (p.chungShared) notes.push(p.size.area || sizeOf(FARMS, plSeason).area ? `Chi phí ghi "Chung cả 3 farm" được chia theo diện tích từng farm.` : `Chi phí ghi "Chung cả 3 farm" được chia đều 3 farm vì chưa ghi đủ diện tích. Ghi diện tích ở So sánh mùa vụ để chia đúng hơn.`);
+  notes.push(`Tiền thuốc, phân tính theo lượng thực dùng và giá nhập trung bình, không theo số tiền mua. Nhân công và các khoản khác lấy từ phiếu chi trong Sổ quỹ.`);
+  $("#plNotes").innerHTML = notes.map(n => `<li>${esc(n)}</li>`).join("");
+  renderTransfers(F);
+  $("#plPrint").hidden = !p.revenue && !p.cost;
+  icons();
+}
+document.addEventListener("click", e => { const b = e.target.closest("[data-plfarm]"); if (b){ plFarm = b.dataset.plfarm; renderBaoCao(); } if (e.target.closest("#plPrint")) window.print(); });
+document.addEventListener("change", e => { if (e.target.matches("[data-plseason]")){ plSeason = e.target.value; renderBaoCao(); } });
+
+/* cash book: farm, season and years fields for costs */
+function qExtraUI(){
+  const k = qKind, c = $("#q_cat").value;
+  const show = (k === "chi" && c !== "trano") || (k === "thu" && c === "banle");
+  $("#q_farmBox").hidden = !show; $("#q_seasonBox").hidden = !show; $("#q_yearsBox").hidden = !(k === "chi" && c === "dautu");
+  if (show){
+    const ks = seasonKeys().slice().reverse(), cur = $("#q_season").value, auto = seasonOfDate($("#q_date").value || today);
+    $("#q_season").innerHTML = `<option value="">Theo ngày${auto ? ` (${esc(auto)})` : ""}</option>` + ks.map(k2 => `<option value="${esc(k2)}">${esc(k2)}</option>`).join("");
+    if (ks.includes(cur)) $("#q_season").value = cur;
+  }
+  if (k === "chi" && c === "dautu") $("#qHint").textContent = "Tiền đầu tư dùng nhiều vụ (trụ, giàn, hệ thống tưới, cây giống, máy lớn). Chia đều cho số vụ anh chọn, mỗi vụ chỉ tính một phần vào chi phí.";
+}
+document.addEventListener("change", e => { if (["q_cat","q_date"].includes(e.target.id)) qExtraUI(); });
+document.addEventListener("click", e => { if (e.target.closest("#qKinds [data-qkind]")) setTimeout(qExtraUI, 0); });
+/* goods one farm passed to another, valued at average purchase price: what the receiving farm owes the sending farm */
+function transferValues(k){
+  const m = {};
+  khoMoves.filter(x => x.kind === "chuyen" && x.status === "nhan" && +x.recvQty > 0 && (!k || seasonOfDate(x.date) === k)).forEach(x => {
+    const p = avgCost(x.item), key = `${kf(x)}>${x.to}`;
+    m[key] ||= {from:kf(x), to:Number(x.to), value:0, n:0, noPrice:0};
+    if (p === null) m[key].noPrice++; else m[key].value += p * +x.recvQty;
+    m[key].n++;
+  });
+  return Object.values(m).sort((a, b) => a.from - b.from || a.to - b.to);
+}
+function renderTransfers(F){
+  const T = transferValues(plSeason).filter(x => !F || x.from === F || x.to === F);
+  $("#plTrBox").hidden = !T.length;
+  $("#plTr").innerHTML = T.map(x => `<li class="item"><span class="tico c-blue">${ic("truck")}</span><div class="body"><div class="t">Farm ${x.from} → Farm ${x.to}</div>
+    <div class="d"><span>${x.n} lần chuyển trong ${esc(plSeason)}</span>${x.noPrice ? `<span class="warn">${x.noPrice} lần chưa có giá nhập</span>` : ""}<span>Farm ${x.to} dùng thì tính vào chi phí Farm ${x.to}</span></div></div>
+    <div class="stock"><b style="font-size:16px">${vnd(x.value)}</b><span>Farm ${x.to} nợ Farm ${x.from}</span></div></li>`).join("");
+}
 /* ---------- render ---------- */
 function render(){
   const s = scoped();
@@ -2653,6 +2866,7 @@ function render(){
   if (screen==="sosanh") renderSoSanh();
   if (screen==="nhap"){ fillKhoSelect(); fillNameLists(); fillAccSelects(); fillPhunLists(); payUI("f"); }
   if (screen==="quy") renderQuy();
+  if (screen==="baocao") renderBaoCao();
   if (screen==="doitac") renderDoiTac();
   if (screen==="weather") renderWeather();
   if (screen==="taikhoan") renderTaiKhoan();

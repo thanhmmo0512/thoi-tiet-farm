@@ -1,5 +1,5 @@
 /* Sổ Vườn: open offline. Pages: network first, fall back to the saved copy. Weather data is never cached here. */
-const CACHE = "so-vuon-v6";
+const CACHE = "so-vuon-v7";
 const SHELL = ["./", "./index.html", "./manifest.webmanifest", "./icon-192.png", "./icon-512.png", "./icon-180.png"];
 self.addEventListener("install", e => { e.waitUntil(caches.open(CACHE).then(c => c.addAll(SHELL)).then(() => self.skipWaiting())); });
 self.addEventListener("activate", e => {
