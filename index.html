@@ -147,6 +147,9 @@ button.dcard{cursor:pointer}
 .miss{color:var(--red);font-weight:700}
 .warn{color:var(--amber);font-weight:700}
 .hint.err{color:var(--red);font-weight:600}
+.fiform{margin-top:12px;padding:14px;border-radius:16px;background:var(--sunk)}
+.hint.sslist{display:block;margin:10px 0 0;padding-left:18px}
+.sslist li{margin-bottom:4px}
 .types.five{grid-template-columns:repeat(5,minmax(0,1fr));gap:2px}
 .types.five button{font-size:12px}
 .types.five button .circ{width:50px;height:50px}
@@ -742,10 +745,25 @@ a{color:inherit}
         <div class="chips2" id="ssSeasons"></div>
         <p class="hint" id="ssNoSeason"></p>
       </div>
+      <div class="section"><h2>Diện tích và số cây</h2><ul class="list" id="fiList"></ul>
+        <form class="fiform" id="fiForm" novalidate hidden>
+          <h3 class="sub2" id="fiTitle">Sửa farm</h3>
+          <div class="fields">
+            <label class="f wide"><span class="lt"><i data-lucide="calendar-range"></i>Áp dụng cho</span><select id="fi_scope"></select></label>
+            <label class="f"><span class="lt"><i data-lucide="ruler"></i>Diện tích (ha)</span><input type="number" inputmode="decimal" min="0" step="0.01" id="fi_area" placeholder="VD: 7"></label>
+            <label class="f"><span class="lt"><i data-lucide="trees"></i>Số cây</span><input type="number" inputmode="numeric" min="0" step="1" id="fi_plants" placeholder="VD: 4000"></label>
+            <label class="f wide"><span class="lt"><i data-lucide="leaf"></i>Giống chanh dây</span><input id="fi_variety" placeholder="VD: Đài Nông 1"></label>
+          </div>
+          <p class="hint" id="fiScopeHint"></p>
+          <div class="row" style="margin-top:12px"><button class="btn primary" type="submit"><i data-lucide="save"></i>Lưu</button><button class="btn ghost" type="button" id="fiCancel">Thôi</button></div>
+          <div id="fiMsg" class="formmsg" role="status"></div>
+        </form>
+      </div>
       <div class="section"><h2>Sản lượng</h2><div id="ssBars"></div></div>
       <div class="section"><h2>Bảng so sánh</h2><div class="tblwrap"><table class="mtable sstable" id="ssTable"></table></div>
-        <p class="hint" style="margin-top:10px">Chi phí vật tư tính từ những lần phun, bón có chọn "Lấy từ kho" và vật tư có ghi giá nhập.</p>
+        <ul class="hint sslist" id="ssNotes"></ul>
       </div>
+      <div class="section" id="fcBox" hidden><h2 id="fcTitle">So sánh 3 farm</h2><div class="tblwrap"><table class="mtable sstable" id="fcTable"></table></div></div>
     </div>
   </section>
 
@@ -1644,15 +1662,17 @@ function seasonList(){
   entries.forEach(e => { const k = seasonKey(e); (m[k] ||= {k, first:e.date, last:e.date, n:0}); m[k].n++; if (e.date < m[k].first) m[k].first = e.date; if (e.date > m[k].last) m[k].last = e.date; });
   return Object.values(m).sort((a, b) => a.first.localeCompare(b.first));
 }
-function seasonStats(k){
-  const F = myFarm || (ssFarm === "all" ? null : +ssFarm);
+function seasonStats(k, only){
+  const F = only || myFarm || (ssFarm === "all" ? null : +ssFarm);
   const list = entries.filter(e => seasonKey(e) === k && (!F || Number(e.farm) === F));
   const ex = list.filter(e => e.type === "xuat"), t = gradeTotals(ex), done = list.filter(e => !isPlan(e));
-  let cost = 0, costN = 0, useN = 0;
-  done.filter(e => e.khoItem && +e.khoQty > 0).forEach(e => { useN++; const c = avgCost(e.khoItem); if (c !== null){ cost += c * +e.khoQty; costN++; } });
+  let cost = 0, costN = 0, useN = 0, cPhun = 0, cBon = 0;
+  done.filter(e => e.khoItem && +e.khoQty > 0).forEach(e => { useN++; const c = avgCost(e.khoItem); if (c !== null){ const x = c * +e.khoQty; cost += x; costN++; if (e.type === "bon") cBon += x; else cPhun += x; } });
+  const pbN = done.filter(e => e.type === "phun" || e.type === "bon").length;
   const dates = ex.map(e => e.date).sort();
   return {t, phun:done.filter(e => e.type === "phun").length, bon:done.filter(e => e.type === "bon").length,
-    trong:done.filter(e => e.type === "trong").reduce((a, e) => a + (+e.plants||0), 0), cost, costN, useN,
+    trong:done.filter(e => e.type === "trong").reduce((a, e) => a + (+e.plants||0), 0), cost, costN, useN, cPhun, cBon, pbN,
+    size:sizeOf(F ? [F] : FARMS, k), xuatN:ex.length,
     from:dates[0], to:dates[dates.length-1], avg:t.priced ? t.revenue / Object.values(t.pkg).reduce((a, b) => a + b, 0) : null};
 }
 function renderSoSanh(){
@@ -1666,21 +1686,30 @@ function renderSoSanh(){
   const noSeason = entries.filter(e => !e.season).length;
   $("#ssNoSeason").textContent = noSeason ? `${noSeason} ghi chép chưa ghi mùa vụ, đang gom vào nhóm "Chưa ghi mùa vụ". Khi nhập liệu nhớ điền ô Mùa vụ để so sánh chính xác.` : "";
   const cols = all.filter(s => ssSel.includes(s.k));
-  if (!cols.length){ $("#ssBars").innerHTML = `<p class="hint">Chọn ít nhất một mùa vụ ở trên.</p>`; $("#ssTable").innerHTML = ""; icons(); return; }
+  if (!cols.length){ $("#ssBars").innerHTML = `<p class="hint">Chọn ít nhất một mùa vụ ở trên.</p>`; $("#ssTable").innerHTML = ""; $("#ssNotes").innerHTML = ""; renderFarmInfo(all.map(s => s.k).filter(Boolean)); renderFarmCompare(""); icons(); return; }
   const S = cols.map(s => ({s, st:seasonStats(s.k)}));
   const maxKg = Math.max(1, ...S.map(x => x.st.t.total));
-  $("#ssBars").innerHTML = S.map(({s, st}) => `<div class="ssbar"><div class="ssh"><b>${esc(s.k || "Chưa ghi mùa vụ")}</b><span>${fmt(st.t.total)} kg · Âu ${st.t.total?Math.round(st.t.by.au/st.t.total*100):0}%</span></div>
+  $("#ssBars").innerHTML = S.map(({s, st}) => `<div class="ssbar"><div class="ssh"><b>${esc(s.k || "Chưa ghi mùa vụ")}</b><span>${tons(st.t.total)} · Âu ${st.t.total?Math.round(st.t.by.au/st.t.total*100):0}%</span></div>
     <div class="sstrack" style="width:${Math.max(4, st.t.total/maxKg*100)}%">${st.t.total?GRADES.filter(g => st.t.by[g.k]).map(g => `<span style="width:${st.t.by[g.k]/st.t.total*100}%;background:${g.c}"></span>`).join(""):""}</div></div>`).join("")
     + `<div class="sslegend">${GRADES.map(g => `<span><i class="dot" style="background:${g.c}"></i>${g.n}</span>`).join("")}</div>`;
   const two = S.length === 2;
   const diff = (a, b, good = 1) => { if (!a && !b) return ""; if (!a) return `<span class="up">mới</span>`; const p = Math.round((b - a)/a*100); return `<span class="${p*good >= 0 ? "up" : "down"}">${p > 0 ? "+" : ""}${p}%</span>`; };
+  const per = (v, d, dec) => d ? (Math.round(v / d * 10**dec) / 10**dec).toLocaleString("vi-VN") : "—";
+  const profit = x => x.t.priced && x.costN ? x.t.revenue - x.cost : null;
   const R = [
-    ["Tổng sản lượng", x => `${fmt(x.t.total)} kg`, x => x.t.total],
+    ["Diện tích", x => x.size.area ? ha(x.size.area) : "—", null],
+    ["Số cây", x => x.size.plants ? fmt(x.size.plants) : "—", x => x.size.plants, 0],
+    ["Tổng sản lượng", x => `${tons(x.t.total)}<small>${fmt(x.t.total)} kg</small>`, x => x.t.total],
+    ["Năng suất", x => x.size.area ? `${per(x.t.total / 1000, x.size.area, 2)} tấn/ha` : "—", x => x.size.area ? x.t.total / x.size.area : 0],
+    ["Sản lượng mỗi cây", x => x.size.plants ? `${per(x.t.total, x.size.plants, 1)} kg/cây` : "—", x => x.size.plants ? x.t.total / x.size.plants : 0],
     ...GRADES.map(g => [g.n, x => `${fmt(x.t.by[g.k])} kg<small>${x.t.total?Math.round(x.t.by[g.k]/x.t.total*100):0}%</small>`, x => x.t.by[g.k], g.k === "xo" ? -1 : 1]),
     ["Doanh thu", x => x.t.priced ? vnd(x.t.revenue) : "—", x => x.t.revenue],
     ["Giá bán trung bình", x => x.avg ? `${Math.round(x.avg).toLocaleString("vi-VN")} đ/kg` : "—", x => x.avg || 0],
-    ["Chi phí vật tư (từ kho)", x => x.costN ? vnd(x.cost) : "—", x => x.cost, -1],
-    ["Doanh thu trừ vật tư", x => x.t.priced && x.costN ? vnd(x.t.revenue - x.cost) : "—", x => x.t.revenue - x.cost],
+    ["Tiền thuốc", x => x.costN ? vnd(x.cPhun) : "—", x => x.cPhun, -1],
+    ["Tiền phân", x => x.costN ? vnd(x.cBon) : "—", x => x.cBon, -1],
+    ["Lợi nhuận (doanh thu − thuốc, phân)", x => profit(x) !== null ? `<b>${vndS(profit(x))}</b>` : "—", x => profit(x) || 0],
+    ["Lợi nhuận mỗi ha", x => profit(x) !== null && x.size.area ? vndS(profit(x) / x.size.area) : "—", x => profit(x) !== null && x.size.area ? profit(x) / x.size.area : 0],
+    ["Lợi nhuận mỗi cây", x => profit(x) !== null && x.size.plants ? `${Math.round(profit(x) / x.size.plants).toLocaleString("vi-VN")} đ` : "—", x => profit(x) !== null && x.size.plants ? profit(x) / x.size.plants : 0],
     ["Lần phun thuốc", x => fmt(x.phun), x => x.phun, -1],
     ["Lần bón phân", x => fmt(x.bon), x => x.bon, 0],
     ["Cây trồng mới", x => fmt(x.trong), x => x.trong, 0],
@@ -1688,6 +1717,18 @@ function renderSoSanh(){
   ];
   $("#ssTable").innerHTML = `<thead><tr><th></th>${S.map(({s}) => `<th class="num">${esc(s.k || "Chưa ghi")}</th>`).join("")}${two?`<th class="num">Chênh lệch</th>`:""}</tr></thead><tbody>`
     + R.map(([label, f, num, good]) => `<tr><td><b>${label}</b></td>${S.map(({st}) => `<td class="num">${f(st)}</td>`).join("")}${two?`<td class="num">${num && good !== 0 ? diff(num(S[0].st), num(S[1].st), good) : ""}</td>`:""}</tr>`).join("") + `</tbody>`;
+  /* what the profit line does and does not include */
+  const notes = [];
+  S.forEach(({s, st}) => {
+    const k = s.k || "Chưa ghi mùa vụ";
+    if (st.t.n && st.t.priced < st.t.n) notes.push(`${k}: ${st.t.n - st.t.priced}/${st.t.n} lần xuất hàng chưa ghi giá nên chưa tính vào doanh thu.`);
+    if (st.pbN && st.costN < st.pbN) notes.push(`${k}: ${st.pbN - st.costN}/${st.pbN} lần phun, bón chưa chọn "Lấy từ kho" hoặc vật tư chưa có giá nhập, nên chưa tính tiền thuốc, phân.`);
+    if (st.size.missA) notes.push(`${k}: ${st.size.missA} farm chưa ghi diện tích.`);
+  });
+  $("#ssNotes").innerHTML = (notes.length ? `<li>${notes.map(esc).join("</li><li>")}</li>` : "")
+    + `<li>Lợi nhuận ở đây chỉ trừ tiền thuốc và phân lấy từ kho, tính theo giá nhập trung bình. Chưa trừ nhân công, xăng dầu, điện nước và khấu hao.</li>`;
+  renderFarmInfo(all.map(s => s.k).filter(Boolean));
+  renderFarmCompare(cols.length ? cols[cols.length - 1].k : "");
   icons();
 }
 document.addEventListener("click", e => {
@@ -2102,6 +2143,7 @@ function sampleExtra(out){
   if (sp) out.push({type:"xuat", date:addDays(sp.date, 3), farm:sp.farm, lot:sp.lot, season:sp.season, grade:"au", kg:280, price:28000, buyer:"Cty XK (mẫu)", pay:"no", acc:"", paid:0});
 }
 async function moneySeedSample(){
+  for (const [f, area, plants] of [[1, 5, 3000], [2, 7, 4000], [3, 4, 2500]]) if (!farmInfo[String(f)]) await db.doc("farminfo/" + f).set({area, plants, variety:"Đài Nông 1", seasons:f === 2 ? {"Vụ 2025 (mẫu)":{area:6, plants:3400}} : {}, sample:true, updatedAt:Date.now(), updatedBy:me});
   if (!accOf("tienmat")) await db.doc("taikhoan/tienmat").set({name:"Tiền mặt", kind:"tienmat", open:0, createdAt:Date.now(), createdBy:me});
   await db.doc("taikhoan/mau-vcb").set({name:"Vietcombank (mẫu)", kind:"nganhang", no:"0071 000 123 456", open:20000000, sample:true, createdAt:Date.now(), createdBy:me});
   await db.doc("vattu/mau-cuoc").set({name:"Cuốc", unit:"cái", kind:"dungcu", min:2, sample:true, createdAt:Date.now(), createdBy:me});
@@ -2120,6 +2162,88 @@ function fillPhunLists(){
   $("#workerList").innerHTML = uniq(entries.map(e => e.worker)).map(x => `<option value="${esc(x)}">`).join("");
   $("#machineList").innerHTML = uniq([...vattu.filter(v => v.kind === "may").map(v => v.name), ...entries.map(e => e.machine)]).map(x => `<option value="${esc(x)}">`).join("");
   $("#wxList").innerHTML = ["Nắng nhẹ, gió nhẹ","Râm mát, lặng gió","Nắng gắt","Gió vừa","Sau mưa, lá khô","Sương mù"].map(x => `<option value="${x}">`).join("");
+}
+/* ---------- farm size: hectares and plant count, a default per farm plus optional per-season values ---------- */
+let farmInfo = {}, fiEdit = null;
+function farmSize(f, season){
+  const d = farmInfo[String(f)]; if (!d) return null;
+  const s = season && d.seasons && d.seasons[season];
+  const area = s && +s.area > 0 ? +s.area : +d.area || 0, plants = s && +s.plants > 0 ? +s.plants : +d.plants || 0;
+  return area || plants ? {area, plants, own:!!s} : null;
+}
+/* several farms together: only complete when every farm in view has a value */
+function sizeOf(farms, season){
+  let area = 0, plants = 0, missA = 0, missP = 0;
+  farms.forEach(f => { const z = farmSize(f, season); if (z && z.area) area += z.area; else missA++; if (z && z.plants) plants += z.plants; else missP++; });
+  return {area: missA ? 0 : area, plants: missP ? 0 : plants, missA, missP};
+}
+const tons = kg => `${(Math.round(kg / 10) / 100).toLocaleString("vi-VN")} tấn`;
+const ha = x => `${(+x).toLocaleString("vi-VN")} ha`;
+function renderFarmInfo(seasons){
+  const farms = myFarm ? [myFarm] : (ssFarm === "all" ? FARMS : [+ssFarm]);
+  const latest = seasons[seasons.length - 1];
+  $("#fiList").innerHTML = farms.map(f => {
+    const d = farmInfo[String(f)] || {}, z = farmSize(f, latest);
+    const per = z && z.area && z.plants ? `${Math.round(z.plants / z.area).toLocaleString("vi-VN")} cây/ha` : "";
+    const ownSeasons = Object.keys(d.seasons || {}).filter(k => +d.seasons[k].area || +d.seasons[k].plants);
+    return `<li class="item"><span class="tico c-green">${ic("sprout")}</span><div class="body">
+      <div class="t">${esc(farmName(f))}</div>
+      <div class="d">${z ? `<span>${ic("ruler")}${z.area ? ha(z.area) : "chưa ghi diện tích"}</span><span>${ic("trees")}${z.plants ? `${fmt(z.plants)} cây` : "chưa ghi số cây"}</span>${per ? `<span>${per}</span>` : ""}` : `<span class="warn">${ic("info")}Chưa ghi diện tích, số cây</span>`}${d.variety ? `<span>${ic("leaf")}${esc(d.variety)}</span>` : ""}</div>
+      ${ownSeasons.length ? `<div class="d"><span>${ic("calendar-range")}Có số riêng cho: ${ownSeasons.map(esc).join(", ")}</span></div>` : ""}
+      ${isOwner ? `<div class="row"><button type="button" class="btn sm" data-fiedit="${f}">${ic("pencil")}Sửa</button></div>` : ""}</div></li>`;
+  }).join("");
+  const form = $("#fiForm");
+  form.hidden = !fiEdit;
+  if (fiEdit){
+    const d = farmInfo[String(fiEdit)] || {};
+    $("#fiTitle").textContent = `Sửa ${farmName(fiEdit)}`;
+    const opts = `<option value="">Mặc định cho mọi mùa vụ</option>` + seasons.map(k => `<option value="${esc(k)}">Riêng ${esc(k)}</option>`).join("");
+    const sel = $("#fi_scope"), cur = sel.dataset.farm === String(fiEdit) ? sel.value : "";
+    sel.innerHTML = opts; sel.value = seasons.includes(cur) ? cur : ""; sel.dataset.farm = String(fiEdit);
+    fiFill();
+    $("#fi_variety").value = d.variety || "";
+  }
+}
+function fiFill(){
+  const d = farmInfo[String(fiEdit)] || {}, k = $("#fi_scope").value, s = k ? (d.seasons || {})[k] || {} : d;
+  $("#fi_area").value = +s.area || ""; $("#fi_plants").value = +s.plants || "";
+  $("#fiScopeHint").textContent = k ? `Chỉ dùng cho ${k}. Để trống thì vụ này lấy số mặc định${+d.area ? ` (${ha(d.area)}, ${fmt(+d.plants || 0)} cây)` : ""}.` : "Dùng cho mọi mùa vụ chưa có số riêng. Khi trồng thêm hoặc phá bớt cây ở một vụ, chọn đúng vụ đó để ghi số riêng.";
+}
+document.addEventListener("change", e => { if (e.target.id === "fi_scope") fiFill(); });
+document.addEventListener("click", e => {
+  const b = e.target.closest("[data-fiedit]");
+  if (b){ fiEdit = +b.dataset.fiedit; $("#fiMsg").textContent = ""; renderSoSanh(); $("#fiForm").scrollIntoView({behavior:"smooth", block:"center"}); return; }
+  if (e.target.closest("#fiCancel")){ fiEdit = null; renderSoSanh(); }
+});
+$("#fiForm").addEventListener("submit", async ev => {
+  ev.preventDefault();
+  const msg = $("#fiMsg"), fail = t => { msg.className = "formmsg err"; msg.textContent = t; };
+  const area = Number($("#fi_area").value), plants = Number($("#fi_plants").value), k = $("#fi_scope").value;
+  if ($("#fi_area").value !== "" && !(area > 0 && area < 10000)) return fail("Diện tích phải lớn hơn 0 (tính bằng ha, ví dụ 7 hoặc 2,5).");
+  if ($("#fi_plants").value !== "" && !(plants > 0 && Number.isInteger(plants))) return fail("Số cây phải là số nguyên lớn hơn 0.");
+  if (!k && !(area > 0)) return fail("Nhập diện tích mặc định của farm.");
+  if (area > 0 && plants > 0 && plants / area > 5000 && confirmNew.fi !== `${area}|${plants}`){ confirmNew.fi = `${area}|${plants}`; return fail(`${fmt(plants)} cây trên ${ha(area)} là ${fmt(Math.round(plants/area))} cây/ha, cao bất thường. Kiểm tra lại đơn vị ha. Nếu đúng, bấm Lưu lần nữa.`); }
+  const d = JSON.parse(JSON.stringify(farmInfo[String(fiEdit)] || {}));
+  d.variety = $("#fi_variety").value.trim();
+  if (k){ d.seasons ||= {}; if (area > 0 || plants > 0) d.seasons[k] = {area: area || 0, plants: plants || 0}; else delete d.seasons[k]; }
+  else { d.area = area; d.plants = plants || 0; }
+  d.updatedAt = Date.now(); d.updatedBy = me; delete d.sample;
+  try { await db.doc("farminfo/" + fiEdit).set(d); fiEdit = null; confirmNew.fi = null; }
+  catch(err){ fail("Không lưu được: " + (err?.message || "lỗi")); }
+});
+/* each farm side by side inside one season */
+function renderFarmCompare(k){
+  const box = $("#fcBox");
+  box.hidden = !!myFarm || ssFarm !== "all" || !k;
+  if (box.hidden) return;
+  $("#fcTitle").textContent = `So sánh 3 farm · ${k || "Chưa ghi mùa vụ"}`;
+  const rows = FARMS.map(f => ({f, st:seasonStats(k, f), z:farmSize(f, k)}));
+  const best = Math.max(...rows.map(r => r.z && r.z.area && r.st.t.priced && r.st.costN ? (r.st.t.revenue - r.st.cost) / r.z.area : -Infinity));
+  $("#fcTable").innerHTML = `<thead><tr><th>Farm</th><th class="num">Diện tích</th><th class="num">Sản lượng</th><th class="num">Tấn/ha</th><th class="num">Kg/cây</th><th class="num">Lợi nhuận</th><th class="num">Lợi nhuận/ha</th></tr></thead><tbody>`
+    + rows.map(({f, st, z}) => { const p = st.t.priced && st.costN ? st.t.revenue - st.cost : null, pha = p !== null && z && z.area ? p / z.area : null;
+      return `<tr><td><b>Farm ${f}</b>${z && z.plants ? `<small>${fmt(z.plants)} cây</small>` : ""}</td><td class="num">${z && z.area ? ha(z.area) : "—"}</td><td class="num">${tons(st.t.total)}</td>
+      <td class="num">${z && z.area ? (Math.round(st.t.total / z.area / 10) / 100).toLocaleString("vi-VN") : "—"}</td><td class="num">${z && z.plants ? (Math.round(st.t.total / z.plants * 10) / 10).toLocaleString("vi-VN") : "—"}</td>
+      <td class="num">${p !== null ? vndS(p) : "—"}</td><td class="num ${pha !== null && pha === best ? "up" : ""}">${pha !== null ? vndS(pha) : "—"}</td></tr>`; }).join("") + `</tbody>`;
 }
 /* ---------- render ---------- */
 function render(){
@@ -2305,7 +2429,7 @@ $("#r_date").value = today;
 /* ---------- backups (owner only; the rules let nobody else read or write them) ---------- */
 const packDocs = list => list.map(({id, ...d}) => ({id, d}));
 async function doBackup(docId){
-  await db.doc("saoluu/"+docId).set({at:Date.now(), by:me, count:allDocs.length, nhatky:packDocs(allDocs), nhacviec:packDocs(reminders), vattu:packDocs(vattu), kho:packDocs(khoMoves), taikhoan:packDocs(accounts), quy:packDocs(quyDocs)});
+  await db.doc("saoluu/"+docId).set({at:Date.now(), by:me, count:allDocs.length, nhatky:packDocs(allDocs), nhacviec:packDocs(reminders), vattu:packDocs(vattu), kho:packDocs(khoMoves), taikhoan:packDocs(accounts), quy:packDocs(quyDocs), farminfo:packDocs(Object.entries(farmInfo).map(([id, d]) => ({id, ...d})))});
   const all = await db.collection("saoluu").orderBy("at","desc").limit(1000).get();
   for (const x of all.docs.slice(10)) await db.doc("saoluu/"+x.id).delete();
 }
@@ -2336,6 +2460,7 @@ async function restoreBackup(id){
   if (b.kho) await sync("kho", b.kho, [...khoMoves]);
   if (b.taikhoan) await sync("taikhoan", b.taikhoan, [...accounts]);
   if (b.quy) await sync("quy", b.quy, [...quyDocs]);
+  if (b.farminfo) await sync("farminfo", b.farminfo, Object.entries(farmInfo).map(([id, d]) => ({id, ...d})));
   await loadBackups(); render();
 }
 
@@ -2468,6 +2593,7 @@ $("#clearYes").addEventListener("click", async ()=>{
   for (const x of vattu.filter(x=>x.sample)) { try { await db.doc("vattu/"+x.id).delete(); } catch(err){} }
   for (const q of quyDocs.filter(x=>x.sample)) { try { await db.doc("quy/"+q.id).delete(); } catch(err){} }
   for (const a of accounts.filter(x=>x.sample)) { try { await db.doc("taikhoan/"+a.id).delete(); } catch(err){} }
+  for (const [id, d] of Object.entries(farmInfo)) if (d.sample) { try { await db.doc("farminfo/"+id).delete(); } catch(err){} }
   $("#clearYes").disabled = false; $("#clearConfirm").hidden=true; $("#clearSample").hidden=false;
 });
 
@@ -2711,6 +2837,10 @@ db.collection("taikhoan").onSnapshot(snap => {
 });
 db.collection("quy").onSnapshot(snap => {
   quyDocs = snap.docs.map(x => ({id:x.id, ...x.data()})).filter(q => q && q.date && q.kind);
+  render();
+});
+db.collection("farminfo").onSnapshot(snap => {
+  farmInfo = Object.fromEntries(snap.docs.map(x => [x.id, x.data()]).filter(([, d]) => d));
   render();
 });
 db.collection("thucte").onSnapshot(snap => {
