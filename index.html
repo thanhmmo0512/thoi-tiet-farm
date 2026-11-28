@@ -123,6 +123,32 @@ textarea{resize:vertical}
 .grade .v{font-size:19px;font-weight:800;font-variant-numeric:tabular-nums;color:var(--fg);line-height:1.1}
 .grade .n{font-size:13px;font-weight:600}
 .grade .p{font-size:12px;color:var(--muted)}
+.cashtotal{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+.cashtotal b{font-size:30px;font-weight:800;font-variant-numeric:tabular-nums}
+.cashtotal span{color:var(--muted);font-size:14px}
+.debtgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin-bottom:12px}
+.dcard{display:grid;gap:4px;padding:12px 14px;border-radius:16px;border:0;text-align:left;font:inherit;color:inherit;min-width:0}
+.dcard span{display:flex;align-items:center;gap:5px;font-size:13px;font-weight:600;color:var(--muted)}
+.dcard span svg.lucide{width:15px;height:15px}
+.dcard b{font-size:20px;font-weight:800;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+button.dcard{cursor:pointer}
+.dcard.cash{background:var(--green-soft)}
+.dcard.cash b{color:var(--green-d)}
+.dcard.recv{background:var(--amber-soft)}
+.dcard.recv b{color:var(--amber)}
+.dcard.pay{background:var(--red-soft)}
+.dcard.pay b{color:var(--red)}
+.sub2{font-size:15px;margin:16px 0 8px}
+.netline{display:flex;justify-content:space-between;gap:8px;padding:10px 2px 12px;font-size:15px}
+.dthead{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap;margin-bottom:12px}
+.dtsub{margin:4px 0 0;color:var(--muted);font-size:13px}
+.dttable td{vertical-align:top;min-width:96px}
+.dttable td small{display:block;font-size:11px;color:var(--muted)}
+.miss{color:var(--red);font-weight:700}
+.warn{color:var(--amber);font-weight:700}
+.hint.err{color:var(--red);font-weight:600}
+body.partner .tabbar,body.partner #bellBtn{display:none!important}
+@media print{body{background:#fff!important}.app{max-width:none!important;background:#fff!important}.dthead .btn{display:none!important}.topbar,.tabbar,.noprint,.banner,#dtMissBox{display:none!important}.screen:not([data-screen="doitac"]){display:none!important}.sheet{box-shadow:none!important;margin:0!important}.dttable{font-size:10px}.tblwrap{overflow:visible}}
 input[readonly]{background:var(--sunk);color:var(--muted)}
 .stock{text-align:right;min-width:64px;flex:none}
 .stock b{display:block;font-size:22px;font-weight:800;font-variant-numeric:tabular-nums;line-height:1.1}
@@ -415,6 +441,11 @@ a{color:inherit}
         </div>
       </div>
 
+      <div class="section" id="finBox" hidden>
+        <h2>Tiền và công nợ<button class="sec-link" type="button" data-go="quy">Sổ quỹ<i data-lucide="chevron-right"></i></button></h2>
+        <div class="debtgrid three" id="finCards"></div>
+      </div>
+
       <div class="section">
         <h2>Quản lý vườn</h2>
         <div class="menu">
@@ -426,6 +457,8 @@ a{color:inherit}
           <button class="mi" type="button" data-go="cachly"><span class="circ c-red"><i data-lucide="shield-alert"></i><span class="badge" id="phiBadge" hidden></span></span><span class="lbl">Lô đang cách ly</span></button>
           <button class="mi" type="button" data-go="kho"><span class="circ c-green"><i data-lucide="warehouse"></i><span class="badge" id="khoBadge" hidden></span></span><span class="lbl">Kho vật tư</span></button>
           <button class="mi" type="button" data-go="sosanh"><span class="circ c-purple"><i data-lucide="chart-column"></i></span><span class="lbl">So sánh mùa vụ</span></button>
+          <button class="mi" type="button" data-go="quy" id="tileQuy" hidden><span class="circ c-green"><i data-lucide="wallet"></i></span><span class="lbl">Sổ quỹ & công nợ</span></button>
+          <button class="mi" type="button" data-go="doitac"><span class="circ c-blue"><i data-lucide="file-check-2"></i></span><span class="lbl">Hồ sơ phun cho đối tác</span></button>
         </div>
       </div>
 
@@ -562,13 +595,23 @@ a{color:inherit}
           <label class="f" data-for="xuat"><span class="lt"><i data-lucide="tag"></i>Loại hàng</span><select id="f_grade"><option value="au">Hàng xuất Âu</option><option value="cho">Hàng chợ</option><option value="muc">Hàng múc</option><option value="xo">Hàng xô</option></select></label>
           <label class="f" data-for="xuat"><span class="lt"><i data-lucide="weight"></i>Số kg</span><input type="number" inputmode="decimal" min="0" step="0.1" id="f_kg"></label>
           <label class="f" data-for="xuat"><span class="lt"><i data-lucide="banknote"></i>Giá (đ/kg)</span><input type="number" inputmode="numeric" min="0" id="f_price" placeholder="Không bắt buộc"></label>
-          <label class="f" data-for="xuat"><span class="lt"><i data-lucide="user-round"></i>Người mua</span><input id="f_buyer" list="buyerList" placeholder="Không bắt buộc" autocomplete="off"><datalist id="buyerList"></datalist></label>
+          <label class="f" data-for="xuat"><span class="lt"><i data-lucide="user-round"></i>Người mua</span><input id="f_buyer" list="buyerList" placeholder="Bắt buộc nếu bán nợ" autocomplete="off"><datalist id="buyerList"></datalist></label>
+          <label class="f" data-for="xuat"><span class="lt"><i data-lucide="hand-coins"></i>Thanh toán</span><select id="f_pay"><option value="du">Đã thu đủ</option><option value="mot">Thu một phần</option><option value="no">Bán nợ</option></select></label>
+          <label class="f" data-for="xuat" data-payfor="f" data-pay="mot"><span class="lt"><i data-lucide="banknote"></i>Đã thu (đ)</span><input type="number" inputmode="numeric" min="0" id="f_paid"></label>
+          <label class="f" data-for="xuat" data-payfor="f" data-pay="du mot"><span class="lt"><i data-lucide="wallet"></i>Tiền vào tài khoản</span><select id="f_acc"></select></label>
+          <p class="hint wide" data-for="xuat" id="f_payhint"></p>
           <label class="f" data-for="phun bon"><span class="lt"><i data-lucide="package"></i>Tên thuốc / phân</span><input id="f_product" list="prodList" autocomplete="off" placeholder="Chọn Lấy từ kho để tên luôn đúng"><datalist id="prodList"></datalist></label>
           <label class="f" data-for="phun bon"><span class="lt"><i data-lucide="beaker"></i>Liều / số lượng</span><input id="f_dose" placeholder="VD: 20 ml/bình 16L"></label>
           <label class="f" data-for="phun bon"><span class="lt"><i data-lucide="warehouse"></i>Lấy từ kho</span><select id="f_kho"><option value="">Không lấy từ kho</option></select></label>
           <label class="f" data-for="phun bon"><span class="lt"><i data-lucide="package-minus"></i>Số lượng lấy kho <span id="f_khounit"></span></span><input type="number" inputmode="decimal" min="0" step="0.1" id="f_khoqty" placeholder="VD: 2"></label>
+          <p class="hint wide" data-for="phun bon" id="f_khohint"></p>
           <label class="f" data-for="phun"><span class="lt"><i data-lucide="shield-alert"></i>Cách ly (ngày)</span><input type="number" inputmode="numeric" min="0" id="f_phi" placeholder="Theo nhãn thuốc"></label>
           <label class="f" data-for="phun"><span class="lt"><i data-lucide="bug"></i>Trị bệnh / sâu</span><input id="f_target" placeholder="VD: thối nhũn"></label>
+          <label class="f" data-for="phun"><span class="lt"><i data-lucide="atom"></i>Hoạt chất</span><input id="f_ai" placeholder="Tự điền khi chọn từ kho"></label>
+          <label class="f" data-for="phun"><span class="lt"><i data-lucide="clock"></i>Giờ phun xong</span><input type="time" id="f_time"></label>
+          <label class="f" data-for="phun"><span class="lt"><i data-lucide="user-round"></i>Người phun</span><input id="f_worker" list="workerList" autocomplete="off" placeholder="VD: Anh Tư"><datalist id="workerList"></datalist></label>
+          <label class="f" data-for="phun"><span class="lt"><i data-lucide="cog"></i>Máy phun</span><input id="f_machine" list="machineList" autocomplete="off" placeholder="Chọn máy trong kho"><datalist id="machineList"></datalist></label>
+          <label class="f wide" data-for="phun"><span class="lt"><i data-lucide="cloud-sun"></i>Thời tiết lúc phun</span><input id="f_wx" list="wxList" autocomplete="off" placeholder="VD: Nắng nhẹ, gió nhẹ"><datalist id="wxList"></datalist></label>
           <label class="f" data-for="trong"><span class="lt"><i data-lucide="sprout"></i>Giống</span><input id="f_variety" placeholder="VD: Đài Nông 1"></label>
           <label class="f" data-for="trong"><span class="lt"><i data-lucide="hash"></i>Số cây</span><input type="number" inputmode="numeric" min="0" id="f_plants"></label>
           <label class="f wide"><span class="lt"><i data-lucide="message-square-text"></i>Ghi chú</span><textarea id="f_note" rows="2"></textarea></label>
@@ -636,6 +679,7 @@ a{color:inherit}
     <div class="sheet flat">
       <div class="section" id="khoWarnBox" hidden><h2>Cần chú ý</h2><ul class="list" id="khoWarn"></ul></div>
       <div class="section"><h2>Tồn kho <small id="khoCount"></small></h2>
+        <div class="filters" id="khoFilters" style="padding:0 0 12px"></div>
         <ul class="list" id="khoList"></ul>
       </div>
       <div class="section" id="khoHistBox" hidden><h2 id="khoHistTitle">Lịch sử</h2><ul class="list" id="khoHist"></ul></div>
@@ -654,13 +698,19 @@ a{color:inherit}
           <label class="f" data-kfor="kiemke"><span class="lt"><i data-lucide="clipboard-check"></i>Đếm thực tế còn <span id="k_unit2"></span></span><input type="number" inputmode="decimal" min="0" step="0.1" id="k_count"></label>
           <label class="f" data-kfor="nhap"><span class="lt"><i data-lucide="banknote"></i>Giá nhập (đ/đơn vị)</span><input type="number" inputmode="numeric" min="0" id="k_price" placeholder="Không bắt buộc"></label>
           <label class="f" data-kfor="nhap"><span class="lt"><i data-lucide="barcode"></i>Số lô hàng</span><input id="k_lot" placeholder="Không bắt buộc"></label>
-          <label class="f" data-kfor="nhap"><span class="lt"><i data-lucide="calendar-x"></i>Hạn dùng</span><input type="date" id="k_exp"></label>
-          <label class="f" data-kfor="nhap"><span class="lt"><i data-lucide="truck"></i>Nơi mua / người giao</span><input id="k_from" placeholder="Không bắt buộc"></label>
+          <label class="f" data-kfor="nhap"><span class="lt"><i data-lucide="factory"></i>Ngày sản xuất (NSX)</span><input type="date" id="k_mfg"></label>
+          <label class="f" data-kfor="nhap"><span class="lt"><i data-lucide="calendar-x"></i>Hạn sử dụng (HSD)</span><input type="date" id="k_exp"></label>
+          <label class="f" data-kfor="nhap"><span class="lt"><i data-lucide="truck"></i>Nơi mua / người giao</span><input id="k_from" list="partyList" autocomplete="off" placeholder="Bắt buộc nếu mua nợ"></label>
+          <label class="f" data-kfor="nhap"><span class="lt"><i data-lucide="hand-coins"></i>Thanh toán</span><select id="k_pay"><option value="du">Đã trả đủ</option><option value="mot">Trả một phần</option><option value="no">Mua nợ</option></select></label>
+          <label class="f" data-kfor="nhap" data-payfor="k" data-pay="mot"><span class="lt"><i data-lucide="banknote"></i>Đã trả (đ)</span><input type="number" inputmode="numeric" min="0" id="k_paid"></label>
+          <label class="f" data-kfor="nhap" data-payfor="k" data-pay="du mot"><span class="lt"><i data-lucide="wallet"></i>Trả từ tài khoản</span><select id="k_acc"></select></label>
+          <p class="hint wide" data-kfor="nhap" id="k_payhint"></p>
           <label class="f" data-kfor="xuat"><span class="lt"><i data-lucide="warehouse"></i>Cho farm</span><select id="k_farm"><option value="0">Không theo farm</option><option value="1">Farm 1</option><option value="2">Farm 2</option><option value="3">Farm 3</option></select></label>
           <label class="f wide" data-kfor="nhap xuat kiemke"><span class="lt"><i data-lucide="message-square-text"></i>Ghi chú</span><input id="k_note" placeholder="VD: lý do xuất, hàng hỏng, cho mượn"></label>
           <label class="f" data-kfor="moi"><span class="lt"><i data-lucide="tag"></i>Tên vật tư</span><input id="v_name" placeholder="VD: Amino"></label>
           <label class="f" data-kfor="moi"><span class="lt"><i data-lucide="ruler"></i>Đơn vị</span><select id="v_unit"></select></label>
-          <label class="f" data-kfor="moi"><span class="lt"><i data-lucide="layers"></i>Loại</span><select id="v_kind"><option value="thuoc">Thuốc BVTV</option><option value="phan">Phân bón</option><option value="khac">Khác</option></select></label>
+          <label class="f" data-kfor="moi"><span class="lt"><i data-lucide="layers"></i>Loại</span><select id="v_kind"><option value="thuoc">Thuốc BVTV</option><option value="phan">Phân bón</option><option value="dungcu">Công cụ, dụng cụ (cuốc, xẻng…)</option><option value="may">Máy móc (máy cắt cỏ, máy cưa…)</option><option value="khac">Khác</option></select></label>
+          <label class="f" data-kfor="moi"><span class="lt"><i data-lucide="atom"></i>Hoạt chất (với thuốc)</span><input id="v_ai" placeholder="VD: Spirotetramat 150 g/l"></label>
           <label class="f" data-kfor="moi"><span class="lt"><i data-lucide="triangle-alert"></i>Báo sắp hết khi còn</span><input type="number" inputmode="decimal" min="0" step="0.1" id="v_min" placeholder="VD: 2"></label>
         </div>
         <div style="margin-top:16px"><button class="btn primary block" type="submit" id="khoSave"><i data-lucide="save"></i><span id="khoSaveText">Nhập kho</span></button></div>
@@ -681,6 +731,72 @@ a{color:inherit}
       <div class="section"><h2>Sản lượng</h2><div id="ssBars"></div></div>
       <div class="section"><h2>Bảng so sánh</h2><div class="tblwrap"><table class="mtable sstable" id="ssTable"></table></div>
         <p class="hint" style="margin-top:10px">Chi phí vật tư tính từ những lần phun, bón có chọn "Lấy từ kho" và vật tư có ghi giá nhập.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- SO QUY & CONG NO -->
+  <section class="screen" data-screen="quy" hidden>
+    <div class="sheet flat">
+      <div class="section"><h2>Tiền đang có</h2>
+        <div class="cashtotal"><b id="qTotal">0 đ</b><span>tổng các tài khoản</span></div>
+        <ul class="list" id="qAccs"></ul>
+      </div>
+      <div class="section"><h2>Công nợ</h2>
+        <div class="debtgrid" id="qDebtSum"></div>
+        <h3 class="sub2">Khách đang nợ farm</h3><ul class="list" id="qRecv"></ul>
+        <h3 class="sub2">Farm đang nợ nơi bán</h3><ul class="list" id="qPay"></ul>
+        <p class="hint" id="qDebtNote"></p>
+      </div>
+      <div class="section"><h2>Thu chi <small id="qMonthLbl"></small></h2>
+        <div class="filters" id="qMonths"></div>
+        <div id="qMonth"></div>
+      </div>
+      <div class="section"><h2>Sổ quỹ <small>mới nhất trước</small></h2><ul class="list" id="qBook"></ul></div>
+      <form class="section" id="qForm" novalidate>
+        <h2>Ghi sổ quỹ</h2>
+        <div class="types" role="group" aria-label="Loại phiếu" id="qKinds">
+          <button type="button" data-qkind="thu" aria-pressed="true"><span class="circ c-green"><i data-lucide="hand-coins"></i></span>Phiếu thu</button>
+          <button type="button" data-qkind="chi" aria-pressed="false"><span class="circ c-red"><i data-lucide="receipt-text"></i></span>Phiếu chi</button>
+          <button type="button" data-qkind="chuyen" aria-pressed="false"><span class="circ c-blue"><i data-lucide="arrow-left-right"></i></span>Chuyển tiền</button>
+          <button type="button" data-qkind="tk" aria-pressed="false"><span class="circ c-purple"><i data-lucide="landmark"></i></span>Tài khoản mới</button>
+        </div>
+        <div class="fields">
+          <label class="f" data-qfor="thu chi chuyen"><span class="lt"><i data-lucide="calendar"></i>Ngày</span><input type="date" id="q_date"></label>
+          <label class="f" data-qfor="thu chi chuyen"><span class="lt"><i data-lucide="banknote"></i>Số tiền (đ)</span><input type="number" inputmode="numeric" min="0" id="q_amount" placeholder="VD: 5000000"></label>
+          <label class="f" data-qfor="thu chi"><span class="lt"><i data-lucide="tags"></i>Khoản</span><select id="q_cat"></select></label>
+          <label class="f" data-qfor="thu chi chuyen"><span class="lt"><i data-lucide="wallet"></i><span id="q_accLbl">Vào tài khoản</span></span><select id="q_acc"></select></label>
+          <label class="f" data-qfor="chuyen"><span class="lt"><i data-lucide="landmark"></i>Đến tài khoản</span><select id="q_acc2"></select></label>
+          <label class="f" data-qfor="thu chi"><span class="lt"><i data-lucide="user-round"></i><span id="q_partyLbl">Người nộp</span></span><input id="q_party" list="partyList" autocomplete="off" placeholder="VD: Cty XK"><datalist id="partyList"></datalist></label>
+          <label class="f wide" data-qfor="thu chi chuyen"><span class="lt"><i data-lucide="message-square-text"></i>Ghi chú</span><input id="q_note" placeholder="VD: trả công phun tuần 47"></label>
+          <label class="f" data-qfor="tk"><span class="lt"><i data-lucide="tag"></i>Tên tài khoản</span><input id="a_name" placeholder="VD: Vietcombank anh Thanh"></label>
+          <label class="f" data-qfor="tk"><span class="lt"><i data-lucide="layers"></i>Loại</span><select id="a_kind"><option value="nganhang">Ngân hàng</option><option value="tienmat">Tiền mặt</option><option value="vi">Ví điện tử</option></select></label>
+          <label class="f" data-qfor="tk"><span class="lt"><i data-lucide="hash"></i>Số tài khoản</span><input id="a_no" inputmode="numeric" placeholder="Không bắt buộc"></label>
+          <label class="f" data-qfor="tk"><span class="lt"><i data-lucide="coins"></i>Số dư hiện tại (đ)</span><input type="number" inputmode="numeric" min="0" id="a_open" placeholder="Tiền đang có trong tài khoản"></label>
+        </div>
+        <p class="hint" id="qHint"></p>
+        <div style="margin-top:16px"><button class="btn primary block" type="submit" id="qSave"><i data-lucide="save"></i><span id="qSaveText">Lưu phiếu thu</span></button></div>
+        <div id="qMsg" class="formmsg" role="status"></div>
+      </form>
+    </div>
+  </section>
+
+  <!-- HO SO PHUN THUOC (cho doi tac) -->
+  <section class="screen" data-screen="doitac" hidden>
+    <div class="sheet flat">
+      <div class="filters noprint" id="dtFilters"></div>
+      <div class="section">
+        <div class="dthead">
+          <div><h2 style="border:0;padding:0;margin:0">Nhật ký phun thuốc</h2><p class="dtsub" id="dtScope"></p></div>
+          <button type="button" class="btn sm noprint" id="dtPrint"><i data-lucide="printer"></i>In / lưu PDF</button>
+        </div>
+        <div class="debtgrid" id="dtSum"></div>
+      </div>
+      <div class="section" id="dtGapBox"><h2>Kiểm tra thời gian cách ly hàng Âu <small>chỉ liệt kê lần cần xem lại</small></h2><ul class="list" id="dtPhi"></ul></div>
+      <div class="section noprint" id="dtMissBox" hidden><h2>Cần ghi thêm trước khi gửi đối tác</h2><div class="tip-box" id="dtMiss"></div></div>
+      <div class="section"><h2>Chi tiết từng lần phun</h2>
+        <div class="tblwrap"><table class="mtable dttable" id="dtTable"></table></div>
+        <p class="hint" id="dtFoot">Mỗi lần phun ghi đủ các mục theo yêu cầu hồ sơ GlobalG.A.P. (mục CB 7.3): cây trồng, nơi phun, ngày và giờ phun xong, tên thuốc và hoạt chất, thời gian cách ly, người phun, trị bệnh gì, lượng thuốc, máy phun, thời tiết.</p>
       </div>
     </div>
   </section>
@@ -717,7 +833,7 @@ const TYPE = {
   xuat:{n:"Xuất hàng", i:"truck", c:"c-purple"}, phun:{n:"Phun thuốc", i:"spray-can", c:"c-blue"},
   bon:{n:"Bón phân", i:"flask-round", c:"c-orange"}, trong:{n:"Trồng cây", i:"sprout", c:"c-green"},
 };
-const TITLES = {home:"Trang chủ", xuat:"Xuất hàng", phun:"Lịch phun thuốc", bon:"Lịch bón phân", trong:"Lịch trồng cây", farms:"Theo farm", cachly:"Lô đang cách ly", weather:"Thời tiết", nhap:"Nhập liệu", ai:"Hỏi AI", kho:"Kho vật tư", sosanh:"So sánh mùa vụ", nhac:"Nhắc việc", baove:"Thùng rác & sao lưu", phanquyen:"Phân quyền farm", vaitro:"Vai trò xem thử"};
+const TITLES = {home:"Trang chủ", xuat:"Xuất hàng", phun:"Lịch phun thuốc", bon:"Lịch bón phân", trong:"Lịch trồng cây", farms:"Theo farm", cachly:"Lô đang cách ly", weather:"Thời tiết", nhap:"Nhập liệu", ai:"Hỏi AI", kho:"Kho vật tư", sosanh:"So sánh mùa vụ", quy:"Sổ quỹ & công nợ", doitac:"Hồ sơ phun thuốc", nhac:"Nhắc việc", baove:"Thùng rác & sao lưu", phanquyen:"Phân quyền farm", vaitro:"Vai trò xem thử"};
 const $ = s => document.querySelector(s);
 const ic = n => `<i data-lucide="${n}"></i>`;
 const icons = () => { try { window.lucide && window.lucide.createIcons(); } catch(e){} };
@@ -761,11 +877,12 @@ const saveUi = () => { try { localStorage.setItem("svcd-ui", JSON.stringify({far
 
 /* ---------- navigation ---------- */
 function go(name){
+  if (partner && name !== "vaitro") name = "doitac";
   screen = name;
   const generic = ["phun","bon","trong","cachly"].includes(name);
   document.querySelectorAll("[data-screen]").forEach(s => s.hidden = s.dataset.screen !== (generic ? "list" : name));
   $("#screenTitle").textContent = TITLES[name] || "";
-  const isHome = name === "home";
+  const isHome = name === "home" || (partner && name === "doitac");
   $("#backBtn").innerHTML = ic(isHome ? "user-round" : "arrow-left");
   $("#backBtn").setAttribute("aria-label", isHome ? "Vai trò xem thử" : "Quay lại");
   const tab = ["home","nhap","weather","ai"].includes(name) ? name : "home";
@@ -779,7 +896,7 @@ document.addEventListener("click", e => {
   const g = e.target.closest("[data-go]"); if (g) go(g.dataset.go);
   const t = e.target.closest(".tabbar [data-tab]"); if (t) go(t.dataset.tab);
 });
-$("#backBtn").addEventListener("click", () => go(screen === "home" ? "vaitro" : "home"));
+$("#backBtn").addEventListener("click", () => go(screen === "home" || (partner && screen === "doitac") ? "vaitro" : "home"));
 $("#bellBtn").addEventListener("click", () => go("nhac"));
 
 /* ---------- filters ---------- */
@@ -811,8 +928,8 @@ function statusPill(e){
 function details(e){
   const bits = []; const add = (i,t) => t && bits.push(`<span>${ic(i)}${esc(t)}</span>`);
   add("warehouse", `Farm ${e.farm}`); add("grid-2x2", e.lot);
-  if (e.type==="xuat"){ add("banknote", e.price?`${Number(e.price).toLocaleString("vi-VN")} đ/kg`:""); add("user-round", e.buyer); }
-  if (e.type==="phun"){ add("beaker", e.dose); add("bug", e.target); }
+  if (e.type==="xuat"){ add("banknote", e.price?`${Number(e.price).toLocaleString("vi-VN")} đ/kg`:""); add("user-round", e.buyer); { const pp = payPill(e); if (pp) bits.push(pp); } }
+  if (e.type==="phun"){ add("beaker", e.dose); add("bug", e.target); add("user-round", e.worker); add("clock", e.time ? `xong ${e.time}` : ""); }
   if (e.type==="bon") add("beaker", e.dose);
   if ((e.type==="phun"||e.type==="bon") && e.khoItem && +e.khoQty){ const it = itemOf(e.khoItem); add("package-minus", it ? `Kho: ${qtyFmt(e.khoQty, it.unit)} ${it.name}` : ""); }
   if (e.type==="trong") add("hash", e.plants?`${fmt(Number(e.plants))} cây`:"");
@@ -1211,8 +1328,9 @@ $("#ttForm").addEventListener("submit", async ev => {
 });
 
 /* ---------- warehouse: stock = received − used by done spray/fertiliser records − other issues ± stock-count adjustments ---------- */
-const UNITS = ["hộp","chai","gói","bao","kg","lít","ml","g","cái"];
-const VKIND = {thuoc:"Thuốc BVTV", phan:"Phân bón", khac:"Khác"};
+const UNITS = ["hộp","chai","gói","bao","kg","lít","ml","g","cái","chiếc","bộ","cuộn","mét"];
+const VKIND = {thuoc:"Thuốc BVTV", phan:"Phân bón", dungcu:"Công cụ, dụng cụ", may:"Máy móc", khac:"Khác"};
+const VICON = {thuoc:["spray-can","c-blue"], phan:["flask-round","c-orange"], dungcu:["shovel","c-amber"], may:["cog","c-purple"], khac:["package","c-grey"]};
 let vattu = [], khoMoves = [], khoSel = null, khoKind = "nhap";
 const itemOf = id => vattu.find(x => x.id === id);
 const qtyFmt = (n, u) => `${(Math.round((+n||0)*100)/100).toLocaleString("vi-VN")}${u?` ${u}`:""}`;
@@ -1236,16 +1354,17 @@ function khoAlerts(){
     if (need > s) return {v, s, t:`Lịch 14 ngày tới cần ${qtyFmt(need, v.unit)}, kho chỉ còn ${qtyFmt(s, v.unit)}.`, c:"c-red"};
     if (min && s <= min) return {v, s, t:`Sắp hết: còn ${qtyFmt(s, v.unit)} (báo khi còn ${qtyFmt(min, v.unit)}).`, c:"c-amber"};
     return null;
-  }).filter(Boolean);
+  }).filter(Boolean).concat(expAlerts());
 }
 function fillKhoSelect(){
   const sel = $("#f_kho"); if (!sel) return;
   const cur = sel.value, want = type === "bon" ? "phan" : "thuoc";
-  const list = [...vattu].sort((a, b) => (a.kind === want ? 0 : 1) - (b.kind === want ? 0 : 1) || a.name.localeCompare(b.name, "vi"));
+  const list = vattu.filter(v => v.kind === "thuoc" || v.kind === "phan" || v.kind === "khac").sort((a, b) => (a.kind === want ? 0 : 1) - (b.kind === want ? 0 : 1) || a.name.localeCompare(b.name, "vi"));
   sel.innerHTML = `<option value="">Không lấy từ kho</option>` + list.map(v => `<option value="${esc(v.id)}">${esc(v.name)} (còn ${qtyFmt(stockOf(v.id), v.unit)})</option>`).join("");
   sel.value = list.some(v => v.id === cur) ? cur : "";
   const it = itemOf(sel.value); $("#f_khounit").textContent = it ? `(${it.unit})` : "";
   $("#f_product").readOnly = !!it;
+  khoExpHint();
 }
 document.addEventListener("change", e => {
   if (e.target.id !== "f_kho") return;
@@ -1284,14 +1403,17 @@ function renderKho(){
   $("#khoWarnBox").hidden = !alerts.length;
   $("#khoWarn").innerHTML = alerts.map(a => `<li class="item"><span class="tico ${a.c}">${ic("triangle-alert")}</span><div class="body"><div class="t">${esc(a.v.name)}</div><div class="d"><span>${esc(a.t)}</span></div></div></li>`).join("");
   const list = [...vattu].sort((a, b) => a.name.localeCompare(b.name, "vi"));
+  $("#khoFilters").innerHTML = vattu.length ? khoFilterHTML() : "";
+  const shown = list.filter(v => khoFilter === "all" || v.kind === khoFilter);
   $("#khoCount").textContent = list.length ? `${list.length} loại` : "";
-  $("#khoList").innerHTML = list.length ? list.map(v => {
+  $("#khoList").innerHTML = shown.length ? shown.map(v => {
     const s = stockOf(v.id), need = plannedNeed(v.id), low = s < 0 || need > s || ((+v.min||0) && s <= +v.min);
     return `<li class="item ${khoSel===v.id?"sel":""}" data-kitem="${esc(v.id)}" role="button" tabindex="0">
-      <span class="tico ${v.kind==="phan"?"c-orange":v.kind==="thuoc"?"c-blue":"c-grey"}">${ic(v.kind==="phan"?"flask-round":v.kind==="thuoc"?"spray-can":"package")}</span>
-      <div class="body"><div class="t">${esc(v.name)}</div><div class="d"><span>${VKIND[v.kind]||""}</span>${need?`<span>${ic("calendar-clock")}Lịch 14 ngày cần ${qtyFmt(need, v.unit)}</span>`:""}</div></div>
+      <span class="tico ${(VICON[v.kind]||VICON.khac)[1]}">${ic((VICON[v.kind]||VICON.khac)[0])}</span>
+      <div class="body"><div class="t">${esc(v.name)}</div><div class="d"><span>${VKIND[v.kind]||""}</span>${v.ai?`<span>${ic("atom")}${esc(v.ai)}</span>`:""}${need?`<span>${ic("calendar-clock")}Lịch 14 ngày cần ${qtyFmt(need, v.unit)}</span>`:""}${(() => { const l = lotsLeft(v.id).find(x => x.exp); return l ? `<span class="${l.exp < today ? "down" : l.exp <= addDays(today, 30) ? "warn" : ""}">${ic("calendar-x")}HSD ${vnDate(l.exp)}</span>` : ""; })()}${lastUse(v.id)?`<span>${ic("history")}Dùng gần nhất ${vnShort(lastUse(v.id))}</span>`:""}</div></div>
       <div class="stock ${low?"low":""}"><b>${qtyFmt(s)}</b><span>${esc(v.unit)}</span></div></li>`;
-  }).join("") : `<li class="none">${ic("package-open")}Kho chưa có vật tư. Bấm "Vật tư mới" bên dưới để thêm, ví dụ Amino, đơn vị hộp.</li>`;
+  }).join("") : (list.length ? `<li class="none">${ic("filter")}Không có vật tư loại này.</li>` : `<li class="none">${ic("package-open")}Kho chưa có vật tư. Bấm "Vật tư mới" bên dưới để thêm, ví dụ Amino, đơn vị hộp.</li>`);
+  fillAccSelects(); payUI("k");
   const opts = list.map(v => `<option value="${esc(v.id)}">${esc(v.name)} (còn ${qtyFmt(stockOf(v.id), v.unit)})</option>`).join("");
   const ki = $("#k_item"), cur = ki.value || khoSel || "";
   ki.innerHTML = opts || `<option value="">Chưa có vật tư</option>`;
@@ -1322,7 +1444,7 @@ function renderKho(){
       return `<li class="item"><span class="tico ${m.kind==="nhap"?"c-green":m.kind==="xuat"?"c-orange":"c-blue"}">${ic(m.kind==="nhap"?"package-plus":m.kind==="xuat"?"package-minus":"clipboard-check")}</span>
         <div class="datebox"><b>${m.date.slice(8,10)}</b><span>TH ${Number(m.date.slice(5,7))}</span></div>
         <div class="body"><div class="t">${sign} ${qtyFmt(Math.abs(+m.qty), sel.unit)} · ${label}</div>
-        <div class="d">${m.price?`<span>${ic("banknote")}${Number(m.price).toLocaleString("vi-VN")} đ/${esc(sel.unit)}</span>`:""}${m.lot?`<span>${ic("barcode")}Lô ${esc(m.lot)}</span>`:""}${m.exp?`<span>${ic("calendar-x")}HSD ${vnDate(m.exp)}</span>`:""}${m.from?`<span>${ic("truck")}${esc(m.from)}</span>`:""}${Number(m.farm)?`<span>${ic("warehouse")}Farm ${esc(m.farm)}</span>`:""}${m.note?`<span>${ic("message-square-text")}${esc(m.note)}</span>`:""}</div>
+        <div class="d">${m.price?`<span>${ic("banknote")}${Number(m.price).toLocaleString("vi-VN")} đ/${esc(sel.unit)}</span>`:""}${m.lot?`<span>${ic("barcode")}Lô ${esc(m.lot)}</span>`:""}${m.mfg?`<span>${ic("factory")}NSX ${vnDate(m.mfg)}</span>`:""}${m.exp?`<span>${ic("calendar-x")}HSD ${vnDate(m.exp)}</span>`:""}${trackedBuy(m)?`<span>${ic(buyTotal(m)-(+m.paid||0)>0.5?"hourglass":"wallet")}${buyTotal(m)-(+m.paid||0)>0.5?`Còn nợ ${vndFull(buyTotal(m)-(+m.paid||0))}`:`Đã trả · ${esc(accName(m.acc))}`}</span>`:""}${m.from?`<span>${ic("truck")}${esc(m.from)}</span>`:""}${Number(m.farm)?`<span>${ic("warehouse")}Farm ${esc(m.farm)}</span>`:""}${m.note?`<span>${ic("message-square-text")}${esc(m.note)}</span>`:""}</div>
         ${whoLine(m)}
         ${isOwner?`<div class="row"><span class="kacts"><button type="button" class="btn sm ghost danger" data-kact="del" data-id="${esc(m.id)}">${ic("trash-2")}Xóa dòng này</button></span></div>`:""}</div></li>`;
     }).join("") : `<li class="none">${ic("history")}Chưa có lần nhập, xuất nào.</li>`;
@@ -1353,9 +1475,9 @@ $("#khoForm").addEventListener("submit", async ev => {
       const near = vattu.find(x => nearName(x.name, name));
       if (near && confirmNew.vattu !== name){ confirmNew.vattu = name; fail(`"${name}" gần giống "${near.name}" đã có trong kho. Nếu gõ nhầm, dùng ${near.name}. Nếu đúng là loại khác, bấm Thêm vật tư lần nữa.`); return; }
       confirmNew.vattu = null;
-      const r = await db.collection("vattu").add({name, unit:$("#v_unit").value, kind:$("#v_kind").value, min:Number(v("#v_min"))||0, createdAt:Date.now(), createdBy:me});
+      const r = await db.collection("vattu").add({name, unit:$("#v_unit").value, kind:$("#v_kind").value, ai:v("#v_ai"), min:Number(v("#v_min"))||0, createdAt:Date.now(), createdBy:me});
       ok(`Đã thêm ${name}. Giờ ghi Nhập kho cho vật tư này.`);
-      $("#v_name").value = ""; $("#v_min").value = "";
+      $("#v_name").value = ""; $("#v_min").value = ""; $("#v_ai").value = "";
       khoSel = r && r.id || null; setKhoKind("nhap"); renderKho(); if (khoSel) $("#k_item").value = khoSel;
       msg.className = "formmsg ok"; msg.textContent = `Đã thêm ${name}. Giờ nhập số lượng về kho.`;
       return;
@@ -1375,9 +1497,16 @@ $("#khoForm").addEventListener("submit", async ev => {
     const qty = Number(v("#k_qty"));
     if (!(qty > 0)){ fail("Nhập số lượng lớn hơn 0."); return; }
     if (khoKind === "nhap"){
-      await db.collection("kho").add({...base, kind:"nhap", qty, price:Number(v("#k_price"))||0, lot:v("#k_lot"), exp:v("#k_exp"), from:v("#k_from")});
+      const rec = {...base, kind:"nhap", qty, price:Number(v("#k_price"))||0, lot:v("#k_lot"), mfg:v("#k_mfg"), exp:v("#k_exp"), from:v("#k_from")};
+      if (rec.mfg && rec.exp && rec.exp <= rec.mfg){ fail("Hạn dùng phải sau ngày sản xuất."); return; }
+      if (rec.mfg && rec.mfg > today){ fail("Ngày sản xuất không thể sau hôm nay."); return; }
+      if (rec.exp && rec.exp < date && confirmNew.exp !== rec.exp){ confirmNew.exp = rec.exp; fail(`Lô này đã hết hạn từ ${vnDate(rec.exp)}. Nếu đúng vậy, bấm Nhập kho lần nữa để vẫn ghi.`); return; }
+      confirmNew.exp = null;
+      if (rec.from){ const known = [...new Set(khoMoves.map(m => m.from).filter(Boolean))]; rec.from = canonName(rec.from, known); }
+      { const pe = readPay("k", qty * rec.price, rec.from, rec); if (pe){ fail(pe); return; } }
+      await db.collection("kho").add(rec);
       ok(`Đã nhập ${qtyFmt(qty, item.unit)} ${item.name}. Kho còn ${qtyFmt(stockOf(item.id), item.unit)}.`);
-      ["#k_qty","#k_price","#k_lot","#k_exp","#k_from","#k_note"].forEach(id => $(id).value = "");
+      ["#k_qty","#k_price","#k_lot","#k_mfg","#k_exp","#k_from","#k_note","#k_paid"].forEach(id => $(id).value = ""); payUI("k");
     } else {
       await db.collection("kho").add({...base, kind:"xuat", qty, farm:Number($("#k_farm").value)||0});
       const s = stockOf(item.id);
@@ -1389,12 +1518,15 @@ $("#khoForm").addEventListener("submit", async ev => {
   finally { $("#khoSave").disabled = false; }
 });
 async function khoSeedSample(){
-  const V = [["mau-ridomil","Ridomil Gold 68WG","gói","thuoc",2],["mau-movento","Movento 150OD","chai","thuoc",1],["mau-score","Score 250EC","chai","thuoc",1],
+  const V = [["mau-ridomil","Ridomil Gold 68WG","gói","thuoc",2,"Metalaxyl-M 4% + Mancozeb 64%"],["mau-movento","Movento 150OD","chai","thuoc",1,"Spirotetramat 150 g/l"],["mau-score","Score 250EC","chai","thuoc",1,"Difenoconazole 250 g/l"],
     ["mau-amino","Amino (phân bón lá)","hộp","phan",3],["mau-npk16","NPK 16-16-8","bao","phan",2],["mau-kali","Kali trắng (K2SO4)","bao","phan",1],["mau-canxibo","Canxi Bo","gói","phan",2]];
-  for (const [id, name, unit, kind, min] of V) await db.doc("vattu/"+id).set({name, unit, kind, min, sample:true, createdAt:Date.now(), createdBy:me});
+  for (const [id, name, unit, kind, min, ai] of V) await db.doc("vattu/"+id).set({name, unit, kind, min, ai:ai || "", sample:true, createdAt:Date.now(), createdBy:me});
   const M = [[-400,"mau-ridomil",6,85000],[-400,"mau-movento",3,420000],[-400,"mau-score",3,180000],[-400,"mau-npk16",4,650000],
     [-30,"mau-ridomil",4,90000],[-30,"mau-movento",2,430000],[-30,"mau-score",2,185000],[-30,"mau-amino",10,120000],[-30,"mau-kali",2,900000],[-30,"mau-canxibo",3,60000],[-30,"mau-npk16",2,680000]];
-  for (const [n, item, qty, price] of M) await db.collection("kho").add({kind:"nhap", item, qty, price, date:addDays(today, n), from:"Đại lý vật tư (mẫu)", sample:true, createdAt:Date.now(), createdBy:me});
+  for (const [n, item, qty, price] of M){
+    const debt = n === -30 && item === "mau-movento", exp = n === -30 && item === "mau-ridomil" ? addDays(today, 20) : n === -30 ? addDays(today, 500) : "";
+    await db.collection("kho").add({kind:"nhap", item, qty, price, pay:debt ? "no" : "du", acc:debt ? "" : "tienmat", paid:debt ? 0 : qty * price, date:addDays(today, n), mfg:n === -30 ? addDays(today, -120) : "", exp, lot:n === -30 ? `L${String(Math.abs(qty*7919)%9000+1000)}` : "", from:"Đại lý vật tư (mẫu)", sample:true, createdAt:Date.now(), createdBy:me});
+  }
 }
 
 /* ---------- season comparison ---------- */
@@ -1534,6 +1666,354 @@ document.addEventListener("click", e => {
   if (!e.target.closest("[data-kscroll]")) return;
   setTimeout(() => { const b = document.querySelector('[data-kkind="nhap"]'); if (b) b.click(); const f = $("#khoForm"); if (f && !f.hidden) f.scrollIntoView({behavior:"smooth", block:"start"}); }, 80);
 });
+/* ---------- cash book & debts: accounts, receipts/payments, what buyers owe, what the farm owes suppliers ---------- */
+let qBookN = 15, accounts = [], quyDocs = [], seeMoney = false, partner = false, qKind = "thu", qMonthSel = today.slice(0, 7);
+const ACCK = {tienmat:{n:"Tiền mặt", i:"wallet", c:"c-green"}, nganhang:{n:"Ngân hàng", i:"landmark", c:"c-blue"}, vi:{n:"Ví điện tử", i:"smartphone", c:"c-purple"}};
+const QCAT = {
+  thu:[["thuno","Thu nợ khách"],["banle","Bán hàng ngoài sổ"],["khac","Thu khác"]],
+  chi:[["trano","Trả nợ nơi bán vật tư"],["nhancong","Nhân công"],["nhienlieu","Xăng dầu, điện nước"],["suachua","Sửa chữa, máy móc"],["vanchuyen","Vận chuyển"],["khac","Chi khác"]],
+};
+const catName = (k, c) => (QCAT[k] || []).find(x => x[0] === c)?.[1] || (k === "thu" ? "Thu khác" : "Chi khác");
+const accOf = id => accounts.find(a => a.id === id);
+const accName = id => accOf(id)?.name || "Tài khoản đã xóa";
+const saleTotal = e => (+e.kg || 0) * (+e.price || 0);
+/* a sale counts toward cash/debt only when it has a price and a payment choice (sales logged before this feature stay out) */
+const tracked = e => e.type === "xuat" && e.pay && +e.price > 0;
+const buyTotal = m => (+m.qty || 0) * (+m.price || 0);
+const trackedBuy = m => m.kind === "nhap" && m.pay && +m.price > 0;
+
+function balanceOf(id){
+  const a = accOf(id); let s = +(a && a.open) || 0;
+  entries.forEach(e => { if (tracked(e) && e.acc === id) s += +e.paid || 0; });
+  khoMoves.forEach(m => { if (trackedBuy(m) && m.acc === id) s -= +m.paid || 0; });
+  quyDocs.forEach(q => {
+    if (q.kind === "thu" && q.acc === id) s += +q.amount || 0;
+    if (q.kind === "chi" && q.acc === id) s -= +q.amount || 0;
+    if (q.kind === "chuyen"){ if (q.acc === id) s -= +q.amount || 0; if (q.acc2 === id) s += +q.amount || 0; }
+  });
+  return s;
+}
+function debts(){
+  const recv = {}, pay = {};
+  const key = (m, name) => { const k = Object.keys(m).find(x => sameName(x, name)) || name; m[k] ||= {name:k, owe:0, last:"", n:0}; return m[k]; };
+  entries.filter(tracked).forEach(e => { const left = saleTotal(e) - (+e.paid || 0); if (left > 0.5){ const r = key(recv, e.buyer || "Khách lẻ"); r.owe += left; r.n++; if (e.date > r.last) r.last = e.date; } });
+  quyDocs.filter(q => q.kind === "thu" && q.cat === "thuno" && q.party).forEach(q => { key(recv, q.party).owe -= +q.amount || 0; });
+  khoMoves.filter(trackedBuy).forEach(m => { const left = buyTotal(m) - (+m.paid || 0); if (left > 0.5){ const r = key(pay, m.from || "Nơi bán chưa ghi"); r.owe += left; r.n++; if (m.date > r.last) r.last = m.date; } });
+  quyDocs.filter(q => q.kind === "chi" && q.cat === "trano" && q.party).forEach(q => { key(pay, q.party).owe -= +q.amount || 0; });
+  const list = m => Object.values(m).filter(x => Math.abs(x.owe) > 0.5).sort((a, b) => b.owe - a.owe);
+  const R = list(recv), P = list(pay);
+  return {R, P, recv:R.reduce((a, x) => a + Math.max(0, x.owe), 0), pay:P.reduce((a, x) => a + Math.max(0, x.owe), 0)};
+}
+const cashTotal = () => accounts.reduce((a, x) => a + balanceOf(x.id), 0);
+const vndFull = x => `${Math.round(x).toLocaleString("vi-VN")} đ`;
+const vndS = x => (x < 0 ? "−" : "") + vnd(Math.abs(x));
+
+/* all money movements, newest first, for the cash book list and the month summary */
+function moneyRows(){
+  const rows = [];
+  entries.filter(tracked).forEach(e => { if (+e.paid > 0) rows.push({date:e.date, at:e.createdAt || 0, sign:1, amount:+e.paid, acc:e.acc, t:`Bán ${GRADES.find(g => g.k === e.grade)?.n.toLowerCase() || "hàng"} · ${fmt(+e.kg)} kg`, d:e.buyer || "Khách lẻ", cat:"banhang", icon:"truck", c:"c-purple"}); });
+  khoMoves.filter(trackedBuy).forEach(m => { if (+m.paid > 0){ const it = itemOf(m.item); rows.push({date:m.date, at:m.createdAt || 0, sign:-1, amount:+m.paid, acc:m.acc, t:`Mua ${it ? it.name : "vật tư"} · ${qtyFmt(m.qty, it?.unit)}`, d:m.from || "", cat:"muavattu", icon:"package-plus", c:"c-orange"}); } });
+  quyDocs.forEach(q => {
+    if (q.kind === "chuyen") rows.push({date:q.date, at:q.createdAt || 0, sign:0, amount:+q.amount, acc:q.acc, t:`Chuyển ${accName(q.acc)} → ${accName(q.acc2)}`, d:q.note || "", cat:"chuyen", icon:"arrow-left-right", c:"c-blue", q});
+    else rows.push({date:q.date, at:q.createdAt || 0, sign:q.kind === "thu" ? 1 : -1, amount:+q.amount, acc:q.acc, t:catName(q.kind, q.cat), d:[q.party, q.note].filter(Boolean).join(" · "), cat:q.cat, icon:q.kind === "thu" ? "hand-coins" : "receipt-text", c:q.kind === "thu" ? "c-green" : "c-red", q});
+  });
+  return rows.sort((a, b) => b.date.localeCompare(a.date) || b.at - a.at);
+}
+
+function fillAccSelects(){
+  const opts = accounts.map(a => `<option value="${esc(a.id)}">${esc(a.name)}</option>`).join("") || `<option value="">Chưa có tài khoản</option>`;
+  ["#f_acc", "#k_acc", "#q_acc", "#q_acc2"].forEach(id => { const s = $(id); if (!s) return; const cur = s.value; s.innerHTML = opts; if (accounts.some(a => a.id === cur)) s.value = cur; });
+  if ($("#q_acc2") && $("#q_acc2").value === $("#q_acc").value && accounts.length > 1) $("#q_acc2").value = accounts.find(a => a.id !== $("#q_acc").value).id;
+  const parties = [...new Set([...entries.map(e => e.buyer), ...khoMoves.map(m => m.from), ...quyDocs.map(q => q.party)].filter(Boolean))];
+  if ($("#partyList")) $("#partyList").innerHTML = parties.map(x => `<option value="${esc(x)}">`).join("");
+}
+/* payment fields on the sale form and the stock-in form */
+function payUI(prefix){
+  const pay = $(`#${prefix}_pay`).value;
+  document.querySelectorAll(`[data-payfor="${prefix}"]`).forEach(l => l.hidden = !l.dataset.pay.split(" ").includes(pay));
+  const total = prefix === "f" ? (+$("#f_kg").value || 0) * (+$("#f_price").value || 0) : (+$("#k_qty").value || 0) * (+$("#k_price").value || 0);
+  const h = $(`#${prefix}_payhint`);
+  if (!total) h.textContent = prefix === "f" ? "Nhập giá (đ/kg) để app tính tiền thu và công nợ." : "Nhập giá nhập để app tính tiền trả và công nợ.";
+  else if (pay === "du") h.textContent = `Thành tiền ${vndFull(total)}, ${prefix === "f" ? "đã thu đủ" : "đã trả đủ"}.`;
+  else if (pay === "mot"){ const p = +$(`#${prefix}_paid`).value || 0; h.textContent = `Thành tiền ${vndFull(total)}. ${prefix === "f" ? "Khách còn nợ" : "Farm còn nợ"} ${vndFull(Math.max(0, total - p))}.`; }
+  else h.textContent = `Thành tiền ${vndFull(total)}, ghi nợ toàn bộ.`;
+}
+document.addEventListener("input", e => { if (["f_kg","f_price","f_paid"].includes(e.target.id)) payUI("f"); if (["k_qty","k_price","k_paid"].includes(e.target.id)) payUI("k"); });
+document.addEventListener("change", e => { if (e.target.id === "f_pay") payUI("f"); if (e.target.id === "k_pay") payUI("k"); });
+/* reads the payment choice; returns an error text or null */
+function readPay(prefix, total, party, rec){
+  const pay = $(`#${prefix}_pay`).value;
+  if (!(total > 0)){ delete rec.pay; return null; }
+  rec.pay = pay; rec.acc = pay === "no" ? "" : $(`#${prefix}_acc`).value;
+  if (pay !== "no" && !accOf(rec.acc)) return "Chọn tài khoản nhận tiền. Chưa có thì vào Sổ quỹ, thêm tài khoản.";
+  if (pay === "du") rec.paid = total;
+  else if (pay === "no") rec.paid = 0;
+  else {
+    rec.paid = Number($(`#${prefix}_paid`).value) || 0;
+    if (!(rec.paid > 0) || rec.paid >= total) return `Thu một phần: nhập số tiền lớn hơn 0 và nhỏ hơn ${vndFull(total)}.`;
+  }
+  if (pay !== "du" && !party) return prefix === "f" ? "Ghi nợ thì phải có tên người mua để theo dõi công nợ." : "Ghi nợ thì phải có tên nơi mua để theo dõi công nợ.";
+  return null;
+}
+function payPill(e){
+  if (!tracked(e)) return "";
+  const left = saleTotal(e) - (+e.paid || 0);
+  return left > 0.5 ? `<span>${ic("hourglass")}Còn nợ ${vndFull(left)}</span>` : `<span>${ic("wallet")}Đã thu · ${esc(accName(e.acc))}</span>`;
+}
+
+/* ---------- screen: Sổ quỹ ---------- */
+function setQKind(k){
+  qKind = k;
+  document.querySelectorAll("#qKinds [data-qkind]").forEach(b => b.setAttribute("aria-pressed", b.dataset.qkind === k));
+  document.querySelectorAll("[data-qfor]").forEach(l => l.hidden = !l.dataset.qfor.split(" ").includes(k));
+  $("#qSaveText").textContent = {thu:"Lưu phiếu thu", chi:"Lưu phiếu chi", chuyen:"Lưu chuyển tiền", tk:"Thêm tài khoản"}[k];
+  if (QCAT[k]) $("#q_cat").innerHTML = QCAT[k].map(([v, n]) => `<option value="${v}">${n}</option>`).join("");
+  $("#q_accLbl").textContent = k === "thu" ? "Vào tài khoản" : k === "chi" ? "Chi từ tài khoản" : "Từ tài khoản";
+  $("#q_partyLbl").textContent = k === "thu" ? "Người nộp" : "Người nhận";
+  $("#qMsg").textContent = ""; qHint();
+}
+function qHint(){
+  const c = $("#q_cat").value, p = $("#q_party").value.trim(), h = $("#qHint");
+  if (qKind === "tk"){ h.textContent = "Số dư hiện tại là tiền đang có trong tài khoản lúc bắt đầu dùng app. Từ đó app tự cộng tiền thu, trừ tiền chi."; return; }
+  if ((qKind === "thu" && c === "thuno") || (qKind === "chi" && c === "trano")){
+    const d = debts(), list = qKind === "thu" ? d.R : d.P, hit = p && list.find(x => sameName(x.name, p));
+    h.textContent = hit ? `${hit.name} ${qKind === "thu" ? "đang nợ farm" : "farm đang nợ"} ${vndFull(hit.owe)}.` : `Ghi đúng tên ${qKind === "thu" ? "người mua" : "nơi bán"} để trừ vào công nợ.`;
+  } else h.textContent = "";
+}
+document.querySelector("#qKinds").addEventListener("click", e => { const b = e.target.closest("[data-qkind]"); if (b) setQKind(b.dataset.qkind); });
+document.addEventListener("input", e => { if (e.target.id === "q_party") qHint(); });
+document.addEventListener("change", e => { if (e.target.id === "q_cat") qHint(); });
+$("#q_date").value = today;
+setQKind("thu");
+
+function renderQuy(){
+  fillAccSelects();
+  const total = cashTotal();
+  $("#qTotal").textContent = vndS(total);
+  $("#qAccs").innerHTML = accounts.length ? accounts.map(a => { const k = ACCK[a.kind] || ACCK.tienmat, b = balanceOf(a.id);
+    return `<li class="item"><span class="tico ${k.c}">${ic(k.i)}</span><div class="body"><div class="t">${esc(a.name)}</div><div class="d"><span>${k.n}</span>${a.no?`<span>${ic("hash")}${esc(a.no)}</span>`:""}</div></div>
+      <div class="stock ${b < 0 ? "low" : ""}"><b style="font-size:17px">${vndS(b)}</b></div></li>`; }).join("")
+    : `<li class="none">${ic("wallet")}Chưa có tài khoản. Thêm ở mục Ghi sổ quỹ bên dưới.</li>`;
+  const d = debts();
+  $("#qDebtSum").innerHTML = `<div class="dcard recv"><span>${ic("arrow-down-left")}Khách nợ farm</span><b>${vndS(d.recv)}</b></div><div class="dcard pay"><span>${ic("arrow-up-right")}Farm nợ nơi bán</span><b>${vndS(d.pay)}</b></div>`;
+  const row = (x, kind) => `<li class="item" data-debt="${kind}" data-party="${esc(x.name)}" data-amount="${Math.round(x.owe)}" role="button" tabindex="0"><span class="tico ${kind === "thu" ? "c-amber" : "c-red"}">${ic(kind === "thu" ? "user-round" : "store")}</span>
+    <div class="body"><div class="t">${esc(x.name)}</div><div class="d"><span>${ic("calendar")}Lần gần nhất ${vnDate(x.last) || "—"}</span>${x.owe < 0 ? `<span>${ic("info")}Trả dư</span>` : ""}</div>
+    ${canWrite !== false && x.owe > 0 ? `<div class="row"><span class="pill p-plan">${ic(kind === "thu" ? "hand-coins" : "receipt-text")}Bấm để ghi ${kind === "thu" ? "thu nợ" : "trả nợ"}</span></div>` : ""}</div>
+    <div class="stock"><b style="font-size:17px">${vndS(x.owe)}</b></div></li>`;
+  $("#qRecv").innerHTML = d.R.length ? d.R.map(x => row(x, "thu")).join("") : `<li class="none">${ic("circle-check")}Không khách nào đang nợ.</li>`;
+  $("#qPay").innerHTML = d.P.length ? d.P.map(x => row(x, "chi")).join("") : `<li class="none">${ic("circle-check")}Farm không nợ nơi bán nào.</li>`;
+  const old = entries.filter(e => e.type === "xuat" && +e.price > 0 && !e.pay).length;
+  $("#qDebtNote").textContent = old ? `${old} lần xuất hàng ghi trước khi có Sổ quỹ chưa có thông tin thanh toán nên không tính vào tiền và công nợ. Muốn tính thì bấm Sửa từng lần và chọn Thanh toán.` : "";
+  /* month summary */
+  const rows = moneyRows(), months = [...new Set([today.slice(0, 7), ...rows.map(r => r.date.slice(0, 7))])].sort().reverse().slice(0, 6);
+  if (!months.includes(qMonthSel)) qMonthSel = months[0];
+  $("#qMonths").innerHTML = months.map(m => `<button type="button" class="chip" data-qmonth="${m}" aria-pressed="${m === qMonthSel}">Tháng ${Number(m.slice(5))}/${m.slice(2, 4)}</button>`).join("");
+  $("#qMonthLbl").textContent = `tháng ${Number(qMonthSel.slice(5))}/${qMonthSel.slice(0, 4)}`;
+  const mr = rows.filter(r => r.date.startsWith(qMonthSel) && r.sign !== 0);
+  const inn = mr.filter(r => r.sign > 0).reduce((a, r) => a + r.amount, 0), out = mr.filter(r => r.sign < 0).reduce((a, r) => a + r.amount, 0);
+  const by = {}; mr.filter(r => r.sign < 0).forEach(r => { const n = r.cat === "muavattu" ? "Mua vật tư" : catName("chi", r.cat); by[n] = (by[n] || 0) + r.amount; });
+  $("#qMonth").innerHTML = `<div class="debtgrid"><div class="dcard recv"><span>${ic("arrow-down-left")}Tiền vào</span><b>${vndS(inn)}</b></div><div class="dcard pay"><span>${ic("arrow-up-right")}Tiền ra</span><b>${vndS(out)}</b></div></div>
+    <div class="netline">Chênh lệch thu chi <b class="${inn - out >= 0 ? "up" : "down"}">${inn - out >= 0 ? "+" : "−"}${vnd(Math.abs(inn - out))}</b></div>
+    ${Object.keys(by).length ? `<div class="tblwrap"><table class="mtable"><thead><tr><th>Tiền ra theo khoản</th><th class="num">Số tiền</th><th class="num">Tỉ lệ</th></tr></thead><tbody>${Object.entries(by).sort((a, b) => b[1] - a[1]).map(([n, v]) => `<tr><td>${esc(n)}</td><td class="num">${vndFull(v)}</td><td class="num">${Math.round(v / out * 100)}%</td></tr>`).join("")}</tbody></table></div>` : ""}`;
+  $("#qBook").innerHTML = rows.length ? rows.slice(0, qBookN).map(r => `<li class="item"><span class="tico ${r.c}">${ic(r.icon)}</span>
+    <div class="datebox"><b>${r.date.slice(8, 10)}</b><span>TH ${Number(r.date.slice(5, 7))}</span></div>
+    <div class="body"><div class="t">${esc(r.t)}</div><div class="d"><span>${ic("wallet")}${esc(accName(r.acc))}</span>${r.d ? `<span>${esc(r.d)}</span>` : ""}</div>
+    ${r.q && isOwner ? `<div class="row"><span class="kacts"><button type="button" class="btn sm ghost danger" data-qact="del" data-id="${esc(r.q.id)}">${ic("trash-2")}Xóa phiếu</button></span></div>` : ""}</div>
+    <div class="stock"><b style="font-size:16px" class="${r.sign > 0 ? "up" : r.sign < 0 ? "down" : ""}">${r.sign > 0 ? "+" : r.sign < 0 ? "−" : ""}${vnd(r.amount)}</b></div></li>`).join("")
+    : `<li class="none">${ic("book-open")}Chưa có thu chi nào.</li>`;
+  if (rows.length > qBookN) $("#qBook").innerHTML += `<li><button type="button" class="btn block" data-qmore>${ic("chevrons-down")}Xem thêm (${rows.length - qBookN} dòng)</button></li>`;
+  $("#qForm").hidden = canWrite === false;
+  icons();
+}
+document.addEventListener("click", async e => {
+  if (e.target.closest("[data-qmore]")){ qBookN += 30; renderQuy(); return; }
+  const m = e.target.closest("[data-qmonth]"); if (m){ qMonthSel = m.dataset.qmonth; renderQuy(); return; }
+  const d = e.target.closest("[data-debt]");
+  if (d && canWrite !== false && +d.dataset.amount > 0){
+    setQKind(d.dataset.debt); $("#q_cat").value = d.dataset.debt === "thu" ? "thuno" : "trano";
+    $("#q_party").value = d.dataset.party; $("#q_amount").value = d.dataset.amount; qHint();
+    $("#qForm").scrollIntoView({behavior:"smooth", block:"start"}); return;
+  }
+  const b = e.target.closest("[data-qact]"); if (!b) return;
+  const box = b.closest(".kacts");
+  if (b.dataset.qact === "del"){ box.innerHTML = `<button type="button" class="btn sm danger" data-qact="del-yes" data-id="${esc(b.dataset.id)}">Xóa hẳn phiếu này</button><button type="button" class="btn sm ghost" data-qact="cancel">Thôi</button>`; return; }
+  if (b.dataset.qact === "cancel"){ renderQuy(); return; }
+  if (b.dataset.qact === "del-yes"){ try { await db.doc("quy/" + b.dataset.id).delete(); } catch(err){ box.innerHTML = `<span class="err">Không xóa được</span>`; } }
+});
+$("#qForm").addEventListener("submit", async ev => {
+  ev.preventDefault();
+  const msg = $("#qMsg"), fail = t => { msg.className = "formmsg err"; msg.textContent = t; }, ok = t => { msg.className = "formmsg ok"; msg.textContent = t; };
+  const v = id => $(id).value.trim();
+  $("#qSave").disabled = true;
+  try {
+    if (qKind === "tk"){
+      const name = v("#a_name"); if (!name) return fail("Nhập tên tài khoản.");
+      if (accounts.some(a => sameName(a.name, name))) return fail("Đã có tài khoản tên này.");
+      await db.collection("taikhoan").add({name, kind:$("#a_kind").value, no:v("#a_no"), open:Number(v("#a_open")) || 0, createdAt:Date.now(), createdBy:me});
+      ["#a_name", "#a_no", "#a_open"].forEach(id => $(id).value = "");
+      return ok(`Đã thêm tài khoản ${name}.`);
+    }
+    const amount = Number(v("#q_amount")), date = v("#q_date");
+    if (!date) return fail("Chọn ngày.");
+    if (!(amount > 0)) return fail("Nhập số tiền lớn hơn 0.");
+    if (!accOf($("#q_acc").value)) return fail("Chọn tài khoản. Chưa có thì bấm Tài khoản mới.");
+    const rec = {kind:qKind, date, amount, acc:$("#q_acc").value, note:v("#q_note"), createdAt:Date.now(), createdBy:me};
+    if (qKind === "chuyen"){
+      rec.acc2 = $("#q_acc2").value;
+      if (!accOf(rec.acc2) || rec.acc2 === rec.acc) return fail("Chọn tài khoản nhận khác tài khoản chuyển.");
+    } else {
+      rec.cat = $("#q_cat").value; rec.party = v("#q_party");
+      if ((rec.cat === "thuno" || rec.cat === "trano") && !rec.party) return fail(rec.cat === "thuno" ? "Ghi tên người đang trả nợ." : "Ghi tên nơi bán đang được trả nợ.");
+      if (rec.party){
+        const known = [...new Set([...entries.map(e => e.buyer), ...khoMoves.map(m => m.from), ...quyDocs.map(q => q.party)].filter(Boolean))];
+        rec.party = canonName(rec.party, known);
+        const near = !known.includes(rec.party) && nearOf(rec.party, known);
+        if (near && confirmNew.party !== rec.party){ confirmNew.party = rec.party; return fail(`"${rec.party}" gần giống "${near}" đã có trong sổ. Nếu gõ nhầm, sửa thành "${near}". Nếu đúng là người khác, bấm Lưu lần nữa.`); }
+      }
+    }
+    confirmNew.party = null;
+    await db.collection("quy").add(rec);
+    ["#q_amount", "#q_note", "#q_party"].forEach(id => $(id).value = "");
+    ok(`Đã lưu ${qKind === "thu" ? "phiếu thu" : qKind === "chi" ? "phiếu chi" : "chuyển tiền"} ${vndFull(amount)}. ${accName(rec.acc)} còn ${vndS(balanceOf(rec.acc))}.`);
+    qHint();
+  } catch(err){ fail("Không lưu được: " + (err?.message || "lỗi")); }
+  finally { $("#qSave").disabled = false; }
+});
+
+/* home: money at a glance, for the owner and the boss only */
+function renderMoneyHome(){
+  $("#finBox").hidden = !seeMoney;
+  if (!seeMoney) return;
+  const d = debts();
+  $("#finCards").innerHTML = `<button type="button" class="dcard cash" data-go="quy"><span>${ic("wallet")}Tiền đang có</span><b>${vndS(cashTotal())}</b></button>
+    <button type="button" class="dcard recv" data-go="quy"><span>${ic("arrow-down-left")}Khách nợ</span><b>${vndS(d.recv)}</b></button>
+    <button type="button" class="dcard pay" data-go="quy"><span>${ic("arrow-up-right")}Đang nợ</span><b>${vndS(d.pay)}</b></button>`;
+}
+
+/* ---------- stock: tools & machines, expiry by lot (oldest used first) ---------- */
+function lotsLeft(id){
+  let left = stockOf(id); const out = [];
+  if (left <= 0) return out;
+  const ins = khoMoves.filter(m => m.item === id && m.kind === "nhap").sort((a, b) => b.date.localeCompare(a.date) || (b.createdAt || 0) - (a.createdAt || 0));
+  for (const m of ins){ if (left <= 0) break; const q = Math.min(left, +m.qty || 0); out.push({qty:q, exp:m.exp || "", mfg:m.mfg || "", lot:m.lot || "", date:m.date}); left -= q; }
+  return out.reverse(); /* oldest first: the next ones to be used */
+}
+function expAlerts(){
+  const out = [];
+  vattu.filter(v => v.kind === "thuoc" || v.kind === "phan").forEach(v => lotsLeft(v.id).forEach(l => {
+    if (!l.exp) return;
+    if (l.exp < today) out.push({v, s:l.qty, t:`${qtyFmt(l.qty, v.unit)}${l.lot ? ` lô ${l.lot}` : ""} đã hết hạn ngày ${vnDate(l.exp)}. Không dùng, tách riêng để xử lý.`, c:"c-red"});
+    else if (l.exp <= addDays(today, 30)) out.push({v, s:l.qty, t:`${qtyFmt(l.qty, v.unit)}${l.lot ? ` lô ${l.lot}` : ""} hết hạn ngày ${vnDate(l.exp)}, còn ${Math.round((new Date(l.exp) - new Date(today)) / 864e5)} ngày. Dùng trước.`, c:"c-amber"});
+  }));
+  return out;
+}
+const lastUse = id => entries.filter(e => e.khoItem === id && +e.khoQty > 0 && !isPlan(e)).map(e => e.date).sort().pop() || "";
+function khoExpHint(){
+  const it = itemOf($("#f_kho").value), h = $("#f_khohint"); if (!h) return;
+  if (!it){ h.textContent = ""; return; }
+  const l = lotsLeft(it.id)[0];
+  h.textContent = !l ? `${it.name} đang hết trong kho.` : l.exp && l.exp < today ? `Lô đang dùng${l.lot ? ` (${l.lot})` : ""} đã hết hạn ${vnDate(l.exp)}. Kiểm tra lại trước khi phun.` : l.exp ? `Lô đang dùng${l.lot ? ` ${l.lot}` : ""}: hạn dùng ${vnDate(l.exp)}.` : "";
+  h.className = "hint" + (l && l.exp && l.exp < today ? " err" : "");
+  if (it.ai && !$("#f_ai").value) $("#f_ai").value = it.ai;
+}
+document.addEventListener("change", e => { if (e.target.id === "f_kho"){ const it = itemOf(e.target.value); $("#f_ai").value = it && it.ai || ""; khoExpHint(); } });
+let khoFilter = "all";
+document.addEventListener("click", e => { const b = e.target.closest("[data-kfilter]"); if (b){ khoFilter = b.dataset.kfilter; renderKho(); } });
+function khoFilterHTML(){
+  const n = k => vattu.filter(v => k === "all" || v.kind === k).length;
+  return [["all","Tất cả","layers"],["thuoc","Thuốc","spray-can"],["phan","Phân","flask-round"],["dungcu","Dụng cụ","shovel"],["may","Máy móc","cog"],["khac","Khác","package"]]
+    .filter(([k]) => k === "all" || n(k)).map(([k, l, i]) => `<button type="button" class="chip" data-kfilter="${k}" aria-pressed="${khoFilter === k}">${ic(i)}${l} ${n(k)}</button>`).join("");
+}
+
+/* ---------- spray record for partners (GlobalG.A.P. CB 7.3 items) ---------- */
+let dtFarm = "all", dtSeason = "all";
+const cropOf = e => { const t = entries.filter(x => x.type === "trong" && Number(x.farm) === Number(e.farm) && sameName(x.lot || "", e.lot || "") && x.date <= e.date && x.variety).sort((a, b) => b.date.localeCompare(a.date))[0]; return `Chanh dây${t ? ` (${t.variety})` : ""}`; };
+function phiCheck(list){
+  const sales = entries.filter(e => e.type === "xuat" && e.grade === "au" && (dtFarm === "all" || String(e.farm) === dtFarm) && (dtSeason === "all" || e.season === dtSeason));
+  return sales.map(s => {
+    if (!s.lot) return {s, bad:[], unknown:[], noLot:true};
+    const sprays = entries.filter(p => p.type === "phun" && !isPlan(p) && Number(p.farm) === Number(s.farm) && sameName(p.lot || "", s.lot || "") && p.date <= s.date);
+    const bad = sprays.filter(p => +p.phi > 0 && addDays(p.date, +p.phi) > s.date);
+    const unknown = sprays.filter(p => !(+p.phi > 0) && p.date >= addDays(s.date, -30));
+    return {s, bad, unknown};
+  }).sort((a, b) => b.s.date.localeCompare(a.s.date));
+}
+function renderDoiTac(){
+  const seasons = seasonsList();
+  if (dtSeason !== "all" && !seasons.includes(dtSeason)) dtSeason = "all";
+  $("#dtFilters").innerHTML = [["all","Cả 3 farm"],["1","Farm 1"],["2","Farm 2"],["3","Farm 3"]].map(([v, l]) => `<button type="button" class="chip" data-dtfarm="${v}" aria-pressed="${dtFarm === v}">${ic(v === "all" ? "layers" : "warehouse")}${l}</button>`).join("")
+    + `<select data-dtseason aria-label="Mùa vụ"><option value="all">Mọi mùa vụ</option>${seasons.map(s => `<option ${s === dtSeason ? "selected" : ""}>${esc(s)}</option>`).join("")}</select>`;
+  const farmLbl = f => pins[f] && pins[f].name ? `Farm ${f} · ${pins[f].name}` : `Farm ${f}`;
+  $("#dtScope").textContent = `${dtFarm === "all" ? "Farm 1, 2, 3" : farmLbl(dtFarm)} · ${dtSeason === "all" ? "mọi mùa vụ" : dtSeason} · in ngày ${vnDate(today)}`;
+  const list = entries.filter(e => e.type === "phun" && !isPlan(e) && (dtFarm === "all" || String(e.farm) === dtFarm) && (dtSeason === "all" || e.season === dtSeason)).sort((a, b) => b.date.localeCompare(a.date));
+  const pc = phiCheck(list), okN = pc.filter(x => !x.bad.length && !x.noLot).length;
+  const prods = new Set(list.map(e => nkey(e.product)));
+  $("#dtSum").innerHTML = `<div class="dcard cash"><span>${ic("spray-can")}Lần phun</span><b>${list.length}</b></div><div class="dcard recv"><span>${ic("flask-conical")}Loại thuốc</span><b>${prods.size}</b></div>`
+    + `<div class="dcard ${pc.length && okN < pc.length ? "pay" : "cash"}"><span>${ic("shield-check")}Lần xuất Âu đã kiểm, đủ cách ly</span><b>${pc.length ? `${okN}/${pc.length}` : "—"}</b></div>`;
+  const flagged = pc.filter(x => x.bad.length || x.noLot || x.unknown.length), clean = pc.length - flagged.length;
+  $("#dtPhi").innerHTML = !pc.length ? "" : (flagged.length ? "" : "") + flagged.slice(0, 30).map(({s, bad, unknown, noLot}) => `<li class="item"><span class="tico ${bad.length ? "c-red" : unknown.length || noLot ? "c-amber" : "c-green"}">${ic(bad.length ? "shield-x" : unknown.length || noLot ? "shield-question" : "shield-check")}</span>
+      <div class="body"><div class="t">Xuất Âu ${vnDate(s.date)} · Farm ${esc(s.farm)}${s.lot ? ` · ${esc(s.lot)}` : ""}</div>
+      <div class="d">${bad.length ? bad.map(p => `<span>${ic("triangle-alert")}Phun ${esc(p.product)} ngày ${vnShort(p.date)}, cách ly ${p.phi} ngày, phải thu sau ${vnShort(addDays(p.date, +p.phi))}</span>`).join("")
+        : noLot ? `<span>${ic("info")}Lần xuất chưa ghi lô nên chưa đối chiếu được. Bấm Sửa ở Xuất hàng để ghi lô.</span>` : `<span>${ic("check")}Mọi lần phun trên lô này đã qua thời gian cách ly</span>`}${unknown.length && !bad.length ? `<span>${ic("info")}${unknown.length} lần phun trong 30 ngày trước chưa ghi số ngày cách ly</span>` : ""}</div></div></li>`).join("")
+    + (clean ? `<li class="item"><span class="tico c-green">${ic("shield-check")}</span><div class="body"><div class="t">${clean} lần xuất Âu khác đều đủ thời gian cách ly</div><div class="d"><span>Đã đối chiếu từng lần phun trên cùng lô trước ngày xuất</span></div></div></li>` : "");
+  if (!pc.length) $("#dtPhi").innerHTML = `<li class="none">${ic("plane")}Chưa có lần xuất hàng Âu nào trong phạm vi đang xem.</li>`;
+  const need = [["ai","hoạt chất"],["worker","người phun"],["time","giờ phun xong"],["machine","máy phun"],["wx","thời tiết"],["phi","thời gian cách ly"],["target","trị bệnh gì"],["lot","lô"]];
+  const miss = need.map(([k, n]) => [n, list.filter(e => !(k === "phi" ? +e.phi > 0 : String(e[k] || "").trim())).length]).filter(([, c]) => c);
+  $("#dtMissBox").hidden = partner || !miss.length || !list.length;
+  $("#dtMiss").innerHTML = `${ic("clipboard-list")}<span>${miss.map(([n, c]) => `${c} lần chưa ghi ${n}`).join(", ")}. Bấm Sửa ở Lịch phun thuốc để bổ sung. Hồ sơ càng đủ, đối tác càng tin.</span>`;
+  const dash = x => x ? esc(x) : `<span class="miss">—</span>`;
+  $("#dtTable").innerHTML = `<thead><tr><th>Ngày phun</th><th>Nơi phun</th><th>Cây trồng</th><th>Thuốc (tên thương mại)</th><th>Hoạt chất</th><th>Liều, lượng</th><th>Trị</th><th>Cách ly</th><th>Người phun</th><th>Máy phun</th><th>Thời tiết</th></tr></thead><tbody>`
+    + (list.length ? list.map(e => { const it = itemOf(e.khoItem);
+      return `<tr><td class="num">${vnDate(e.date)}${e.time ? `<small>xong ${esc(e.time)}</small>` : ""}</td><td>Farm ${esc(e.farm)}${e.lot ? `<small>${esc(e.lot)}</small>` : ""}</td><td>${esc(cropOf(e))}</td>
+      <td><b>${esc(e.product)}</b></td><td>${dash(e.ai)}</td><td>${dash(e.dose)}${it && +e.khoQty ? `<small>Tổng ${qtyFmt(e.khoQty, it.unit)}</small>` : ""}</td><td>${dash(e.target)}</td>
+      <td class="num">${+e.phi > 0 ? `${e.phi} ngày<small>thu từ ${vnDate(addDays(e.date, +e.phi))}</small>` : `<span class="miss">—</span>`}</td><td>${dash(e.worker)}</td><td>${dash(e.machine)}</td><td>${dash(e.wx)}</td></tr>`; }).join("")
+      : `<tr><td colspan="11">Chưa có lần phun nào đã làm trong phạm vi đang xem.</td></tr>`) + `</tbody>`;
+  $("#dtPrint").hidden = !list.length;
+  icons();
+}
+document.addEventListener("click", e => { const b = e.target.closest("[data-dtfarm]"); if (b){ dtFarm = b.dataset.dtfarm; renderDoiTac(); } if (e.target.closest("#dtPrint")) window.print(); });
+document.addEventListener("change", e => { if (e.target.matches("[data-dtseason]")){ dtSeason = e.target.value; renderDoiTac(); } });
+
+/* ---------- sample data for these screens ---------- */
+function sampleExtra(out){
+  const P = "Vụ 2025 (mẫu)";
+  out.forEach(e => {
+    if (e.type === "xuat"){
+      const recent = e.season !== P && e.date >= addDays(today, -10);
+      if (e.grade === "au"){ e.pay = recent ? "no" : "du"; e.acc = recent ? "" : "mau-vcb"; }
+      else { e.pay = recent && e.grade === "cho" ? "mot" : "du"; e.acc = "tienmat"; }
+      e.paid = e.pay === "du" ? saleTotal(e) : e.pay === "mot" ? Math.round(saleTotal(e) / 2 / 1000) * 1000 : 0;
+    }
+    if (e.type === "phun"){
+      const AI = {"Ridomil Gold 68WG":"Metalaxyl-M 4% + Mancozeb 64%","Movento 150OD":"Spirotetramat 150 g/l","Score 250EC":"Difenoconazole 250 g/l","Chế phẩm Trichoderma":"Trichoderma spp."};
+      e.ai = AI[e.product] || ""; e.time = ["08:30","09:15","16:40","07:50"][(e.farm + e.date.length) % 4];
+      e.worker = ["Anh Tư","Chị Hoa","Anh Sáu"][e.farm - 1]; e.machine = "Máy phun Honda GX35 (mẫu)"; e.wx = "Nắng nhẹ, gió nhẹ";
+    }
+  });
+  /* one Âu shipment logged before a spray's PHI ended, so the check has something to show */
+  const sp = out.find(e => e.type === "phun" && e.product === "Score 250EC" && e.season !== P);
+  if (sp) out.push({type:"xuat", date:addDays(sp.date, 3), farm:sp.farm, lot:sp.lot, season:sp.season, grade:"au", kg:280, price:28000, buyer:"Cty XK (mẫu)", pay:"no", acc:"", paid:0});
+}
+async function moneySeedSample(){
+  if (!accOf("tienmat")) await db.doc("taikhoan/tienmat").set({name:"Tiền mặt", kind:"tienmat", open:0, createdAt:Date.now(), createdBy:me});
+  await db.doc("taikhoan/mau-vcb").set({name:"Vietcombank (mẫu)", kind:"nganhang", no:"0071 000 123 456", open:20000000, sample:true, createdAt:Date.now(), createdBy:me});
+  await db.doc("vattu/mau-cuoc").set({name:"Cuốc", unit:"cái", kind:"dungcu", min:2, sample:true, createdAt:Date.now(), createdBy:me});
+  await db.doc("vattu/mau-may-phun").set({name:"Máy phun Honda GX35 (mẫu)", unit:"cái", kind:"may", min:0, sample:true, createdAt:Date.now(), createdBy:me});
+  await db.doc("vattu/mau-may-cat-co").set({name:"Máy cắt cỏ", unit:"cái", kind:"may", min:0, sample:true, createdAt:Date.now(), createdBy:me});
+  for (const [d, item, qty, price, pay, from, exp] of [[-60,"mau-cuoc",6,85000,"du","Cửa hàng nông cụ (mẫu)",""],[-200,"mau-may-phun",2,3200000,"du","Cửa hàng nông cụ (mẫu)",""],[-90,"mau-may-cat-co",1,4500000,"du","Cửa hàng nông cụ (mẫu)",""]])
+    await db.collection("kho").add({kind:"nhap", item, qty, price, pay, acc:"tienmat", paid:qty * price, from, exp, date:addDays(today, d), sample:true, createdAt:Date.now(), createdBy:me});
+  const Q = [[-28,"thu","khac","tienmat",30000000,"","Tiền quỹ đầu vụ (mẫu)"],[-20,"chi","nhancong","tienmat",12000000,"Tổ hái 6 người",""],[-14,"chi","nhienlieu","tienmat",1850000,"","Xăng máy phun, điện bơm"],
+    [-7,"thu","thuno","mau-vcb",15000000,"Cty XK (mẫu)","Trả bớt nợ lô Âu"],[-6,"chi","nhancong","tienmat",9500000,"Tổ hái 6 người",""],[-3,"chi","trano","mau-vcb",500000,"Đại lý vật tư (mẫu)","Trả bớt tiền Movento"],[-2,"chuyen","","mau-vcb",10000000,"","Rút tiền trả công"]];
+  for (const [d, kind, cat, acc, amount, party, note] of Q)
+    await db.collection("quy").add({kind, cat, acc, acc2:kind === "chuyen" ? "tienmat" : "", amount, party, note, date:addDays(today, d), sample:true, createdAt:Date.now(), createdBy:me});
+}
+
+function fillPhunLists(){
+  const uniq = a => [...new Set(a.filter(Boolean))];
+  $("#workerList").innerHTML = uniq(entries.map(e => e.worker)).map(x => `<option value="${esc(x)}">`).join("");
+  $("#machineList").innerHTML = uniq([...vattu.filter(v => v.kind === "may").map(v => v.name), ...entries.map(e => e.machine)]).map(x => `<option value="${esc(x)}">`).join("");
+  $("#wxList").innerHTML = ["Nắng nhẹ, gió nhẹ","Râm mát, lặng gió","Nắng gắt","Gió vừa","Sau mưa, lá khô","Sương mù"].map(x => `<option value="${x}">`).join("");
+}
 /* ---------- render ---------- */
 function render(){
   const s = scoped();
@@ -1588,6 +2068,7 @@ function render(){
     $("#grades").innerHTML = gradesHTML(t);
     $("#stack").innerHTML = stackHTML(t);
     $("#money").innerHTML = moneyHTML(t);
+    renderMoneyHome();
     const empty = !entries.length;
     $("#emptyHome").hidden = !empty || canWrite === false;
     $("#homeStats").hidden = empty && canWrite !== false;
@@ -1624,7 +2105,9 @@ function render(){
   if (screen==="phanquyen") renderPq();
   if (screen==="kho") renderKho();
   if (screen==="sosanh") renderSoSanh();
-  if (screen==="nhap"){ fillKhoSelect(); fillNameLists(); }
+  if (screen==="nhap"){ fillKhoSelect(); fillNameLists(); fillAccSelects(); fillPhunLists(); payUI("f"); }
+  if (screen==="quy") renderQuy();
+  if (screen==="doitac") renderDoiTac();
   if (screen==="weather") renderWeather();
   if (screen==="vaitro") renderRoles();
   if (screen==="nhap") renderLog();
@@ -1683,6 +2166,8 @@ function startEdit(e){
   set("#f_product", e.product); set("#f_dose", e.dose); set("#f_phi", e.phi || ""); set("#f_target", e.target);
   set("#f_variety", e.variety); set("#f_plants", e.plants || "");
   fillKhoSelect(); set("#f_kho", e.khoItem || ""); set("#f_khoqty", e.khoQty || ""); fillKhoSelect();
+  fillAccSelects(); set("#f_pay", e.pay || "du"); set("#f_paid", e.pay === "mot" ? e.paid : ""); if (e.acc) set("#f_acc", e.acc);
+  set("#f_ai", e.ai); set("#f_time", e.time); set("#f_worker", e.worker); set("#f_machine", e.machine); set("#f_wx", e.wx); payUI("f");
   $("#editText").textContent = `Đang sửa: ${title(e)} (${vnDate(e.date)})`;
   $("#editBanner").hidden = false;
   $("#saveBtn").innerHTML = `${ic("save")}Lưu thay đổi`; icons();
@@ -1690,7 +2175,7 @@ function startEdit(e){
 function cancelEdit(){
   editingId = null; $("#editBanner").hidden = true;
   $("#saveBtn").innerHTML = `${ic("save")}Lưu ghi chép`;
-  ["#f_kg","#f_price","#f_buyer","#f_product","#f_dose","#f_phi","#f_target","#f_variety","#f_plants","#f_note","#f_lot","#f_khoqty"].forEach(id=>$(id).value=""); $("#f_kho").value=""; $("#f_khounit").textContent="";
+  ["#f_kg","#f_price","#f_buyer","#f_product","#f_dose","#f_phi","#f_target","#f_variety","#f_plants","#f_note","#f_lot","#f_khoqty","#f_paid","#f_ai","#f_time","#f_wx","#f_worker","#f_machine"].forEach(id=>$(id).value=""); $("#f_pay").value="du"; payUI("f"); $("#f_khohint").textContent=""; $("#f_kho").value=""; $("#f_khounit").textContent="";
   $("#f_date").value = today; icons();
 }
 $("#cancelEdit").addEventListener("click", cancelEdit);
@@ -1713,7 +2198,7 @@ $("#r_date").value = today;
 /* ---------- backups (owner only; the rules let nobody else read or write them) ---------- */
 const packDocs = list => list.map(({id, ...d}) => ({id, d}));
 async function doBackup(docId){
-  await db.doc("saoluu/"+docId).set({at:Date.now(), by:me, count:allDocs.length, nhatky:packDocs(allDocs), nhacviec:packDocs(reminders), vattu:packDocs(vattu), kho:packDocs(khoMoves)});
+  await db.doc("saoluu/"+docId).set({at:Date.now(), by:me, count:allDocs.length, nhatky:packDocs(allDocs), nhacviec:packDocs(reminders), vattu:packDocs(vattu), kho:packDocs(khoMoves), taikhoan:packDocs(accounts), quy:packDocs(quyDocs)});
   const all = await db.collection("saoluu").orderBy("at","desc").limit(1000).get();
   for (const x of all.docs.slice(10)) await db.doc("saoluu/"+x.id).delete();
 }
@@ -1742,6 +2227,8 @@ async function restoreBackup(id){
   await sync("nhacviec", b.nhacviec||[], [...reminders]);
   if (b.vattu) await sync("vattu", b.vattu, [...vattu]);
   if (b.kho) await sync("kho", b.kho, [...khoMoves]);
+  if (b.taikhoan) await sync("taikhoan", b.taikhoan, [...accounts]);
+  if (b.quy) await sync("quy", b.quy, [...quyDocs]);
   await loadBackups(); render();
 }
 
@@ -1803,14 +2290,14 @@ $("#entryForm").addEventListener("submit", async ev => {
   const fail = t => { msg.className="formmsg err"; msg.textContent=t; };
   const rec = { type, date:v("#f_date"), farm:Number(v("#f_farm")), lot:v("#f_lot"), season:v("#f_season"), note:v("#f_note"), createdAt:Date.now() };
   if (!rec.date) return fail("Chọn ngày trước khi lưu.");
-  if (type==="xuat"){ Object.assign(rec,{grade:v("#f_grade"), kg:Number(v("#f_kg"))||0, price:Number(v("#f_price"))||0, buyer:v("#f_buyer")}); if(!rec.kg) return fail("Nhập số kg."); }
+  if (type==="xuat"){ Object.assign(rec,{grade:v("#f_grade"), kg:Number(v("#f_kg"))||0, price:Number(v("#f_price"))||0, buyer:v("#f_buyer")}); if(!rec.kg) return fail("Nhập số kg."); { const pe = readPay("f", rec.kg*rec.price, rec.buyer, rec); if (pe) return fail(pe); } }
   if (type==="phun"||type==="bon"){
     Object.assign(rec,{product:v("#f_product"), dose:v("#f_dose"), khoItem:$("#f_kho").value||"", khoQty:Number(v("#f_khoqty"))||0});
     if(!rec.product) return fail("Nhập tên thuốc hoặc phân.");
     if(rec.khoItem && !(rec.khoQty > 0)) return fail("Nhập số lượng lấy từ kho, hoặc chọn Không lấy từ kho.");
     if(!rec.khoItem) rec.khoQty = 0;
   }
-  if (type==="phun") Object.assign(rec,{phi:Number(v("#f_phi"))||0, target:v("#f_target")});
+  if (type==="phun") Object.assign(rec,{phi:Number(v("#f_phi"))||0, target:v("#f_target"), ai:v("#f_ai"), time:v("#f_time"), worker:v("#f_worker"), machine:v("#f_machine"), wx:v("#f_wx")});
   if (type==="trong") Object.assign(rec,{variety:v("#f_variety"), plants:Number(v("#f_plants"))||0});
   if (!db) return fail("Chưa kết nối được nơi lưu dữ liệu. Mở lại trang trong Claude.");
   if (type === "xuat" && rec.date > today) return fail("Xuất hàng chỉ ghi ngày đã xuất (hôm nay hoặc trước đó). Muốn lên lịch thì dùng Nhắc việc.");
@@ -1829,7 +2316,7 @@ $("#entryForm").addEventListener("submit", async ev => {
       rec.createdBy = me;
       await db.collection("nhatky").add(rec);
       msg.className="formmsg ok"; msg.innerHTML = `${ic("circle-check")}Đã lưu ${TYPE[type].n.toLowerCase()} ngày ${vnDate(rec.date)}.${esc(khoAfterSave(rec))}`; icons();
-      ["#f_kg","#f_price","#f_buyer","#f_product","#f_dose","#f_phi","#f_target","#f_variety","#f_plants","#f_note","#f_khoqty"].forEach(id=>$(id).value=""); $("#f_kho").value=""; $("#f_khounit").textContent="";
+      ["#f_kg","#f_price","#f_buyer","#f_product","#f_dose","#f_phi","#f_target","#f_variety","#f_plants","#f_note","#f_khoqty","#f_paid","#f_ai","#f_time","#f_wx"].forEach(id=>$(id).value=""); $("#f_pay").value="du"; payUI("f"); $("#f_khohint").textContent=""; $("#f_kho").value=""; $("#f_khounit").textContent="";
     }
   } catch(err){ fail("Không lưu được: " + (err?.message||"lỗi không rõ")); }
   $("#saveBtn").disabled = false;
@@ -1857,12 +2344,13 @@ function makeSample(){
   [[-385,1,"A1","NPK 16-16-8","50 kg"],[-370,3,"C2","NPK 16-16-8","50 kg"]].forEach(([n,f,l,p,dose])=>out.push({type:"bon",date:d(n),farm:f,lot:"Lô "+l,season:P,product:p,dose}));
   const K = {"Ridomil Gold 68WG":["mau-ridomil",1],"Movento 150OD":["mau-movento",1],"Score 250EC":["mau-score",1],"NPK 16-16-8":["mau-npk16",1],"Kali trắng (K2SO4)":["mau-kali",1],"Canxi Bo":["mau-canxibo",2]};
   out.forEach(e => { const k = K[e.product]; if (k && (e.type==="phun"||e.type==="bon")){ e.khoItem = k[0]; e.khoQty = k[1]; } });
+  sampleExtra(out);
   return out.map((e,i)=>({...e, sample:true, note:"Dữ liệu mẫu", createdAt:Date.now()+i, createdBy:me}));
 }
 $("#loadSample").addEventListener("click", async () => {
   if (!db) return;
   const b = $("#loadSample"); b.disabled = true; b.textContent = "Đang nạp…";
-  try { await khoSeedSample(); for (const e of makeSample()) await db.collection("nhatky").add(e); } catch(err){ b.textContent = "Không nạp được"; }
+  try { await moneySeedSample(); await khoSeedSample(); for (const e of makeSample()) await db.collection("nhatky").add(e); } catch(err){ b.textContent = "Không nạp được"; }
 });
 $("#clearSample").addEventListener("click", ()=>{ $("#clearConfirm").hidden=false; $("#clearSample").hidden=true; });
 $("#clearNo").addEventListener("click", ()=>{ $("#clearConfirm").hidden=true; $("#clearSample").hidden=false; });
@@ -1871,6 +2359,8 @@ $("#clearYes").addEventListener("click", async ()=>{
   for (const e of allDocs.filter(x=>x.sample)) { try { await db.doc("nhatky/"+e.id).delete(); } catch(err){} }
   for (const m of khoMoves.filter(x=>x.sample)) { try { await db.doc("kho/"+m.id).delete(); } catch(err){} }
   for (const x of vattu.filter(x=>x.sample)) { try { await db.doc("vattu/"+x.id).delete(); } catch(err){} }
+  for (const q of quyDocs.filter(x=>x.sample)) { try { await db.doc("quy/"+q.id).delete(); } catch(err){} }
+  for (const a of accounts.filter(x=>x.sample)) { try { await db.doc("taikhoan/"+a.id).delete(); } catch(err){} }
   $("#clearYes").disabled = false; $("#clearConfirm").hidden=true; $("#clearSample").hidden=false;
 });
 
@@ -2005,13 +2495,14 @@ const LocalDB = (() => {
 /* ---------- demo roles (the real app will use sign-in instead) ---------- */
 const DEMO_USERS = [
   {id:"demo-chu", name:"Anh (chủ farm)", role:"chu", d:"Thấy cả 3 farm, nhập liệu, phân quyền, ghim vị trí, xóa vĩnh viễn, sao lưu."},
-  {id:"demo-sep", name:"Sếp", role:"sep", d:"Chỉ xem dashboard và lịch của cả 3 farm, không nhập được."},
+  {id:"demo-sep", name:"Sếp", role:"sep", d:"Chỉ xem dashboard, lịch, tiền và công nợ của cả 3 farm, không nhập được."},
   {id:"demo-q1", name:"Quản lý Farm 1", role:"q", farm:1, d:"Chỉ thấy và nhập liệu cho Farm 1."},
   {id:"demo-q2", name:"Quản lý Farm 2", role:"q", farm:2, d:"Chỉ thấy và nhập liệu cho Farm 2."},
   {id:"demo-q3", name:"Quản lý Farm 3", role:"q", farm:3, d:"Chỉ thấy và nhập liệu cho Farm 3."},
+  {id:"demo-doitac", name:"Đối tác nhập hàng Âu", role:"doitac", d:"Chỉ xem Hồ sơ phun thuốc của 3 farm. Không thấy giá, tiền, kho, công nợ."},
 ];
 function renderRoles(){
-  $("#roleList").innerHTML = DEMO_USERS.map(u => `<li class="item"><span class="tico ${u.id===me?"c-green":"c-grey"}">${ic(u.role==="chu"?"crown":u.role==="sep"?"eye":"user-round")}</span>
+  $("#roleList").innerHTML = DEMO_USERS.map(u => `<li class="item"><span class="tico ${u.id===me?"c-green":"c-grey"}">${ic(u.role==="chu"?"crown":u.role==="sep"?"eye":u.role==="doitac"?"handshake":"user-round")}</span>
     <div class="body"><div class="t">${esc(u.name)}${u.id===me?" · đang dùng":""}</div><div class="d"><span>${esc(u.d)}</span></div>
     ${u.id===me?"":`<div class="row"><button type="button" class="btn sm primary" data-role="${u.id}">${ic("log-in")}Xem với vai trò này</button></div>`}</div></li>`).join("");
 }
@@ -2040,7 +2531,9 @@ document.addEventListener("change", async e => {
 /* ---------- boot ---------- */
 db = LocalDB;
 const meUser = DEMO_USERS.find(u => u.id === lsGet("svcd-role", "demo-chu")) || DEMO_USERS[0];
-me = meUser.id; isOwner = meUser.role === "chu"; canWrite = meUser.role !== "sep";
+me = meUser.id; isOwner = meUser.role === "chu"; canWrite = meUser.role !== "sep" && meUser.role !== "doitac";
+seeMoney = meUser.role === "chu" || meUser.role === "sep"; partner = meUser.role === "doitac";
+if (partner) document.body.classList.add("partner");
 myName = meUser.role === "chu" ? "" : meUser.name;
 DEMO_USERS.forEach(u => names[u.id] = u.name);
 user = {
@@ -2051,6 +2544,7 @@ if (!lsGet("svcd-seeded", false)){
   DEMO_USERS.filter(u => u.farm).forEach(u => LocalDB.doc("phanquyen/"+u.id).set({farm:u.farm, at:Date.now(), by:"demo-chu"}));
   lsSet("svcd-seeded", true);
 }
+if (!lsGet("svcd-seeded-tm", false)){ LocalDB.doc("taikhoan/tienmat").get().then(d => { if (!d.data()) LocalDB.doc("taikhoan/tienmat").set({name:"Tiền mặt", kind:"tienmat", open:0, createdAt:Date.now(), createdBy:"demo-chu"}); }); lsSet("svcd-seeded-tm", true); }
 /* pins sent in a link (#chon=1&f1=lat,lng,name…) from the earlier Sổ Vườn page */
 function readLink(){
   let h; try { h = new URLSearchParams(location.hash.slice(1)); } catch(e){ return; }
@@ -2069,13 +2563,14 @@ readLink();
 window.addEventListener("hashchange", readLink);
 
 applyRole();
+$("#tileQuy").hidden = !seeMoney;
 $("#aiNote").innerHTML = `${ic("info")}Bản demo trả lời bằng bộ lọc có sẵn, chưa dùng AI, nên hiểu các câu về lịch phun, bón, trồng, xuất hàng, cách ly, nhắc việc. Gõ không dấu cũng được.`;
 if (canWrite === false){
   $("#entryForm").hidden = true; $("#readOnlyNote").hidden = false;
   document.querySelectorAll('[data-go="nhap"], [data-kscroll], .tabbar [data-tab="nhap"]').forEach(el => el.hidden = true);
   $(".tabbar .in").style.gridTemplateColumns = "repeat(3,1fr)";
 }
-render();
+if (partner) go("doitac"); else render();
 if (!window.lucide) window.addEventListener("load", icons);
 db.collection("nhatky").onSnapshot(snap => {
   allDocs = snap.docs.map(x => ({id:x.id, ...x.data()})).filter(e => e && e.date && e.type);
@@ -2100,6 +2595,14 @@ db.collection("vattu").onSnapshot(snap => {
 });
 db.collection("kho").onSnapshot(snap => {
   khoMoves = snap.docs.map(x => ({id:x.id, ...x.data()})).filter(m => m && m.item && m.date);
+  render();
+});
+db.collection("taikhoan").onSnapshot(snap => {
+  accounts = snap.docs.map(x => ({id:x.id, ...x.data()})).filter(a => a && a.name).sort((a, b) => (a.kind === "tienmat" ? 0 : 1) - (b.kind === "tienmat" ? 0 : 1) || (a.createdAt || 0) - (b.createdAt || 0));
+  render();
+});
+db.collection("quy").onSnapshot(snap => {
+  quyDocs = snap.docs.map(x => ({id:x.id, ...x.data()})).filter(q => q && q.date && q.kind);
   render();
 });
 db.collection("thucte").onSnapshot(snap => {
